@@ -3,7 +3,7 @@ const myFaceImage = document.querySelector(".myFaceImage");
 const profileChangeRing = document.querySelector(".profileChangeRing");
 const statusDot = document.querySelector(".status-dot");
 const avatarRing = document.querySelector(".avatar-ring");
-let profileItr = 0;
+let profileItr = -1;
 let startTime;
 let hoverProfileInterval;
 let imageArray = [
@@ -24,6 +24,7 @@ function changeProfilePicture(){
     statusDot.style.boxShadow ="0 0 14px " + ringColor[profileItr];
     profileChangeRing.style.setProperty("--ring-color",ringColor[profileItr]);
 }
+changeProfilePicture();
 myFaceImage.addEventListener("mouseenter",() =>{
     startTime = Date.now();
     hoverProfileInterval = setInterval(() => {
