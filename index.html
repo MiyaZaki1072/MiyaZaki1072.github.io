@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freyr — Bio</title>
+    <link rel="icon" href ="/images/icon.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#about" class="nav-link">home</a>
+        <a href="#projects" class="nav-link">projects</a>
+        <a href="#education" class="nav-link">education</a>
+    </nav>
+    <section class="about-section" id="about">
+        <div class="about-inner">
+            <button class="translate-btn" id="translateBtn">
+                <span class="translate-icon">⌘</span>
+                <span id="translateLabel">EN / TH</span>
+            </button>
+            <div class="avatar-wrap">
+                <img src="images/myface1.JPG" class="myFaceImage" alt="Freyr">
+                <div class="avatar-ring"></div>
+                <div class="profileChangeRing"></div>
+                <div class="status-dot"></div>
+            </div>
+            <div class="text-section">
+                <span class="tag-line">&gt; whoami</span>
+                <h1 class="name-txt">Freyr<span class="cursor">_</span></h1>
+                <p class="status-txt">Computer Engineering Student<br>@ Chulalongkorn University</p>
+                <div class="interest-block">
+                    <span class="interest-label">// areas of interest</span>
+                    <ul class="interest-list">
+                        <li>Backend Engineering</li>
+                        <li>Competitive Programming</li>
+                    </ul>
+                </div>
+                <div class="contact-row">
+                    <a class="contact-btn" href = "mailto:titiwutfay2550@gmail.com" target="_blank">Email</a>
+                    <a class="contact-btn" href = "https://discord.com/users/464781419907121152" target="_blank">Discord</a>
+                    <a class="contact-btn" href = "https://github.com/MiyaZaki1072" target="_blank">GitHub</a>
+                </div> 
+            </div>
+        </div>
+    </section>
+    <section class="projects-section" id="projects">
+        <div class="section-header">
+            <span class="section-tag">// projects</span>
+            <h2 class="section-title">Things I've Built</h2>
+        </div>
+        <div class="project-grid">
+            <div class="project-card">
+                <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" class="project-img-link">
+                    <div class="project-img-wrap">
+                        <img src="images/MesosuemPic.png" class="project-img" alt="Mesosuem">
+                        <div class="project-img-overlay">
+                            <span class="view-label">&#8599; view</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="project-info">
+                    <p class="project-title">Mesosuem</p>
+                    <p class="project-sub">NSC2024 — Final Round</p>
+                    <p class="project-sub">3D Dinosaur musuem building game</p>
+                    <div class="skill-container">
+                        <span class="skill-tag">C#</span>
+                        <span class="skill-tag">Unity Engine</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+    <section class="education-section" id="education">
+        <div class="section-header">
+            <span class="section-tag">// education</span>
+            <h2 class="section-title">Background</h2>
+        </div>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-year">2026 — present</div>
+                <div class="timeline-content">
+                    <p class="timeline-title">Computer Engineering</p>
+                    <p class="timeline-place">Chulalongkorn University</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2023 — 2026</div>
+                <div class="timeline-content">
+                    <p class="timeline-title">Wit-Com Program</p>
+                    <p class="timeline-place">Rayongwittayakom School</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2020 — 2023</div>
+                <div class="timeline-content">
+                    <p class="timeline-title">Gifted Program</p>
+                    <p class="timeline-place">Rayongwittayakom School</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-year">2014 — 2020</div>
+                <div class="timeline-content">
+                    <p class="timeline-title">IEP Program</p>
+                    <p class="timeline-place">Assumption College Rayong</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+        <span>freyr &copy; 2026</span>
+    </footer>
+    <script src="index.js"></script>
+</body>
