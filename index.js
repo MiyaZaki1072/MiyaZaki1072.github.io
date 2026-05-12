@@ -7,7 +7,7 @@ let profileItr = 0;
 let startTime;
 let hoverProfileInterval;
 let imageArray = [
-    "images/myface1.jpg" , 
+    "images/myface1.png" , 
     "images/myface2.png" ,
 ];
 let ringColor = [
