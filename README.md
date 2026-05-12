@@ -1,4 +1,4 @@
-# [Javascript]Bio - My first website 
+# Bio - My first website 
 
 ## Tech Stack
 * **:** Html,CSS,Javascript
