@@ -599,7 +599,7 @@ body {
         right: auto;
         align-self: flex-end;
         font-size: 0.75em;
-}
+    }
 }
 @media (min-width: 1600px) {
     .about-section {
@@ -620,4 +620,11 @@ body {
     .project-grid {
         gap: 3rem;
     }
+    .translate-btn {
+        font-size: 2em;
+        padding: 0.35rem 0.75rem;
+        top: 1.25rem;
+        right: 1.25rem;
+    }
+    
 }
