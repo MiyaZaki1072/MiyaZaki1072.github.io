@@ -487,6 +487,12 @@ body {
     .timeline-year {
         min-width: unset;
     }
+    .translate-btn {
+        font-size: 1.2em;
+        padding: 0.35rem 0.75rem;
+        top: 1.25rem;
+        right: 1.25rem;
+    }
 }
 @media (max-width: 640px) {
     .navbar {
@@ -562,6 +568,13 @@ body {
     .contact-btn {
         text-align: center;
     }
+    .translate-btn {
+        font-size: 0.85em;
+        padding: 0.3rem 0.6rem;
+        top: 1rem;
+        right: 1rem;
+        gap: 0.3rem;
+    }
 }
 @media (max-width: 400px) {
     .about-inner {
@@ -578,6 +591,12 @@ body {
     .nav-link {
         padding: 8px 10px;
         font-size: 0.75rem;
+    }
+    .translate-btn {
+        font-size: 0.75em;
+        padding: 0.25rem 0.5rem;
+        top: 0.75rem;
+        right: 0.75rem;
     }
 }
 @media (min-width: 1600px) {
@@ -598,5 +617,8 @@ body {
     }
     .project-grid {
         gap: 3rem;
+    }
+    #translateLabel {
+        display: none;
     }
 }
