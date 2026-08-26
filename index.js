@@ -311,29 +311,44 @@ if (projectCards.length && filterTagsContainer) {
     const toggle = document.getElementById('bgToggle');
     const toggleLabel = document.getElementById('bgToggleLabel');
     const toggleHint = document.getElementById('bgToggleHint');
-    const emptyMsg = document.getElementById('timelineEmpty');
     if (!timeline || !toggle || !toggleLabel || !toggleHint) return;
 
     const other = mode => mode === 'education' ? 'experience' : 'education';
     const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-    function setMode(mode) {
+    function setMode(mode, animate) {
         timeline.dataset.mode = mode;
-        const categoryItems = timeline.querySelectorAll('.timeline-item[data-category]');
-        let anyVisible = false;
-        categoryItems.forEach(item => {
-            const show = item.dataset.category === mode;
-            item.hidden = !show;
-            if (show) anyVisible = true;
+        const groups = timeline.querySelectorAll('.timeline-columns[data-category]');
+        groups.forEach(group => {
+            const show = group.dataset.category === mode;
+            group.hidden = !show;
+            const items = group.querySelectorAll('.timeline-item');
+            items.forEach((item, i) => {
+                item.classList.remove('is-entering');
+                if (show && animate) {
+                    void item.offsetWidth;
+                    item.style.animationDelay = `${i * 0.06}s`;
+                    item.classList.add('is-entering');
+                }
+            });
         });
-        if (emptyMsg) emptyMsg.hidden = anyVisible;
 
-        toggleLabel.textContent = capitalize(mode);
+        if (animate) {
+            toggleLabel.classList.remove('is-swapping');
+            void toggleLabel.offsetWidth;
+            toggleLabel.classList.add('is-swapping');
+            toggle.classList.remove('is-switching');
+            void toggle.offsetWidth;
+            toggle.classList.add('is-switching');
+            setTimeout(() => { toggleLabel.textContent = capitalize(mode); }, 200);
+        } else {
+            toggleLabel.textContent = capitalize(mode);
+        }
         toggleHint.textContent = `switch to ${other(mode)} →`;
         toggle.setAttribute('aria-label', `Currently showing ${mode}. Click to switch to ${other(mode)}.`);
     }
 
-    toggle.addEventListener('click', () => setMode(other(timeline.dataset.mode)));
+    toggle.addEventListener('click', () => setMode(other(timeline.dataset.mode), true));
 
     setMode(timeline.dataset.mode || 'education');
 })();
