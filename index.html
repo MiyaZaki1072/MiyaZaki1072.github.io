@@ -15,12 +15,12 @@
     <nav class="navbar">
         <a href="#about" class="nav-link">home</a>
         <a href="#projects" class="nav-link">projects</a>
-        <a href="#education" class="nav-link">education</a>
+        <a href="#background" class="nav-link">background</a>
     </nav>
     <section class="about-section" id="about">
         <div class="about-inner">
             <button class="translate-btn" id="translateBtn">
-                <span class="translate-icon">⌘</span>
+                <span class="translate-icon">⇄</span>
                 <span id="translateLabel">EN / TH</span>
             </button>
             <div class="avatar-wrap">
@@ -28,6 +28,9 @@
                 <div class="avatar-ring"></div>
                 <div class="profileChangeRing"></div>
                 <div class="status-dot"></div>
+                <span class="zzz z1">z</span>
+                <span class="zzz z2">Z</span>
+                <span class="zzz z3">z</span>
             </div>
             <div class="text-section">
                 <span class="tag-line">&gt; whoami</span>
@@ -40,11 +43,36 @@
                         <li>Competitive Programming</li>
                     </ul>
                 </div>
+                <div class="skills-block">
+                    <span class="interest-label skills-label">// what i use</span>
+                    <div class="skill-group">
+                        <span class="skill-group-label group-lang">languages</span>
+                        <div class="skill-grid">
+                            <button type="button" class="skill-tag" data-tech="C">C</button>
+                            <button type="button" class="skill-tag" data-tech="C++">C++</button>
+                            <button type="button" class="skill-tag" data-tech="C#">C#</button>
+                            <button type="button" class="skill-tag" data-tech="Javascript">Javascript</button>
+                            <button type="button" class="skill-tag" data-tech="Python">Python</button>
+                        </div>
+                    </div>
+                    <div class="skill-group">
+                        <span class="skill-group-label group-tools">tools</span>
+                        <div class="skill-grid">
+                            <button type="button" class="skill-tag" data-tech="Unity Engine">Unity Engine</button>
+                        </div>
+                    </div>
+                    <div class="skill-group">
+                        <span class="skill-group-label group-fw">frameworks & libraries</span>
+                        <div class="skill-grid">
+                            <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="contact-row">
-                    <a class="contact-btn" href = "mailto:titiwutfay2550@gmail.com" target="_blank">Email</a>
-                    <a class="contact-btn" href = "https://discord.com/users/464781419907121152" target="_blank">Discord</a>
-                    <a class="contact-btn" href = "https://github.com/MiyaZaki1072" target="_blank">GitHub</a>
-                </div> 
+                    <button type="button" class="contact-btn" id="emailBtn" data-email="titiwutfay2550@gmail.com">Email</button>
+                    <a class="contact-btn" id="discordLink" href = "https://discord.com/users/464781419907121152" target="_blank">Discord</a>
+                    <a class="contact-btn" id="githubLink" href = "https://github.com/MiyaZaki1072" target="_blank">GitHub</a>
+                </div>
             </div>
         </div>
     </section>
@@ -53,13 +81,19 @@
             <span class="section-tag">// projects</span>
             <h2 class="section-title">Things I've Built</h2>
         </div>
-        <div class="project-grid">
-            <div class="project-card">
+        <div class="filter-bar">
+            <span class="filter-label">$ filter --stack</span>
+            <div class="filter-tags" id="filterTags"></div>
+            <button type="button" class="filter-clear" id="filterClear" hidden>$ clear</button>
+        </div>
+        <p class="filter-empty" id="filterEmpty" hidden>$ no projects match this filter (yet)</p>
+        <div class="project-grid" id="projectGrid">
+            <div class="project-card" data-tags="C#,Unity Engine">
                 <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/MesosuemPic.png" class="project-img" alt="Mesosuem">
                         <div class="project-img-overlay">
-                            <span class="view-label">&#8599; view</span>
+                            <span class="view-label">$ open ./mesosuem</span>
                         </div>
                     </div>
                 </a>
@@ -73,12 +107,12 @@
                     </div>
                 </div>
             </div>
-            <div class="project-card">
+            <div class="project-card" data-tags="Javascript,Node.js">
                 <a href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/SeriesTracker.png" class="project-img" alt="SeriesTracker">
                         <div class="project-img-overlay">
-                            <span class="view-label">&#8599; view</span>
+                            <span class="view-label">$ node tracker.js</span>
                         </div>
                     </div>
                 </a>
@@ -88,50 +122,116 @@
                     <p class="project-sub">A simple alarm to help you remember your favorite series when it uploaded</p>
                     <div class="skill-container">
                         <span class="skill-tag">Javascript</span>
+                        <span class="skill-tag">Node.js</span>
                     </div>
                 </div>
             </div>
             
         </div>
     </section>
-    <section class="education-section" id="education">
+    <section class="background-section" id="background">
         <div class="section-header">
-            <span class="section-tag">// education</span>
+            <span class="section-tag">// background</span>
             <h2 class="section-title">Background</h2>
         </div>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-year">2026 — present</div>
-                <div class="timeline-content">
+        <div class="bg-switch">
+            <button type="button" class="bg-toggle" id="bgToggle">
+                <span class="bg-toggle-label" id="bgToggleLabel">Education</span>
+                <span class="bg-toggle-hint" id="bgToggleHint">switch to experience →</span>
+            </button>
+        </div>
+        <div class="timeline" id="timeline" data-mode="education">
+            <div class="timeline-item is-current" data-category="education">
+                <div class="timeline-content" tabindex="0" role="button"
+                     data-image="images/education/cpcu.webp"
+                     data-caption="Computer Engineering — Chulalongkorn University"
+                     data-fb="https://www.facebook.com/cpengchula">
+                    <p class="timeline-year">2026 — present</p>
                     <p class="timeline-title">Computer Engineering</p>
                     <p class="timeline-place">Chulalongkorn University</p>
+                    <span class="timeline-hint">view photo →</span>
                 </div>
+                <span class="timeline-dot" aria-hidden="true"></span>
             </div>
-            <div class="timeline-item">
-                <div class="timeline-year">2023 — 2026</div>
-                <div class="timeline-content">
+            <div class="timeline-item" data-category="education">
+                <div class="timeline-content" tabindex="0" role="button"
+                     data-image="images/education/witcom.jfif"
+                     data-caption="Wit-Com Program — Rayongwittayakom School"
+                     data-fb="https://www.facebook.com/profile.php?id=100063568503408">
+                    <p class="timeline-year">2023 — 2026</p>
                     <p class="timeline-title">Wit-Com Program</p>
                     <p class="timeline-place">Rayongwittayakom School</p>
+                    <p class="timeline-gpax">GPAX 3.99</p>
+                    <span class="timeline-hint">view photo →</span>
                 </div>
+                <span class="timeline-dot" aria-hidden="true"></span>
             </div>
-            <div class="timeline-item">
-                <div class="timeline-year">2020 — 2023</div>
-                <div class="timeline-content">
+            <div class="timeline-item" data-category="education">
+                <div class="timeline-content" tabindex="0" role="button"
+                     data-image="images/education/gifted.jfif"
+                     data-caption="Gifted Program — Rayongwittayakom School"
+                     data-fb="https://www.facebook.com/giftedrayongwit">
+                    <p class="timeline-year">2020 — 2023</p>
                     <p class="timeline-title">Gifted Program</p>
                     <p class="timeline-place">Rayongwittayakom School</p>
+                    <p class="timeline-gpax">GPAX 4.00</p>
+                    <span class="timeline-hint">view photo →</span>
                 </div>
+                <span class="timeline-dot" aria-hidden="true"></span>
             </div>
-            <div class="timeline-item">
-                <div class="timeline-year">2014 — 2020</div>
-                <div class="timeline-content">
+            <div class="timeline-item" data-category="education">
+                <div class="timeline-content" tabindex="0" role="button"
+                     data-image="images/education/acr.jfif"
+                     data-caption="IEP Program — Assumption College Rayong"
+                     data-fb="https://www.facebook.com/ACR2506">
+                    <p class="timeline-year">2014 — 2020</p>
                     <p class="timeline-title">IEP Program</p>
                     <p class="timeline-place">Assumption College Rayong</p>
+                    <p class="timeline-gpax">GPAX 4.00</p>
+                    <span class="timeline-hint">view photo →</span>
                 </div>
+                <span class="timeline-dot" aria-hidden="true"></span>
             </div>
         </div>
+        <p class="timeline-empty" id="timelineEmpty" hidden>$ no experience added yet — check back soon</p>
     </section>
+    <div class="timeline-lightbox" id="timelineLightbox" role="dialog" aria-modal="true" aria-label="Education photo">
+        <div class="timeline-lightbox-frame">
+            <button type="button" class="timeline-lightbox-close" id="timelineLightboxClose" aria-label="Close photo">×</button>
+            <a class="timeline-lightbox-img-link" id="timelineLightboxImgLink" target="_blank" rel="noopener noreferrer" aria-label="Visit Facebook page">
+                <img class="timeline-lightbox-img" id="timelineLightboxImg" alt="">
+                <p class="timeline-lightbox-empty" id="timelineLightboxEmpty">no photo added for this one yet</p>
+                <div class="timeline-lightbox-fb-overlay">
+                    <span class="timeline-lightbox-fb-label">visit fb page →</span>
+                </div>
+            </a>
+            <p class="timeline-lightbox-caption" id="timelineLightboxCaption"></p>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <div class="term-widget" id="termWidget">
+        <button type="button" class="term-trigger" id="termTrigger"
+                aria-expanded="false" aria-controls="termPanel" aria-label="Open terminal">
+            <span class="term-trigger-icon">&gt;_</span>
+            <span class="term-trigger-label">terminal</span>
+        </button>
+        <div class="term-panel" id="termPanel" role="dialog" aria-label="Terminal">
+            <div class="term-header">
+                <span class="term-header-title">&gt; guest@freyr:~$</span>
+                <button type="button" class="term-close" id="termClose" aria-label="Close terminal">×</button>
+            </div>
+            <div class="term-output" id="termOutput" role="log" aria-live="polite"></div>
+            <div class="term-input-row">
+                <span class="term-prompt">&gt;</span>
+                <input type="text" class="term-input" id="termInput"
+                       autocomplete="off" autocapitalize="off" spellcheck="false"
+                       aria-label="Terminal command input">
+            </div>
+        </div>
+    </div>
     <footer class="footer">
-        <span>freyr &copy; 2026</span>
+        <span>&gt; echo "thanks for stopping by" <span class="cursor">_</span></span>
+        <span class="footer-copy">freyr &copy; 2026</span>
     </footer>
     <script src="index.js"></script>
 </body>
