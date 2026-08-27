@@ -333,17 +333,7 @@ if (projectCards.length && filterTagsContainer) {
             });
         });
 
-        if (animate) {
-            toggleLabel.classList.remove('is-swapping');
-            void toggleLabel.offsetWidth;
-            toggleLabel.classList.add('is-swapping');
-            toggle.classList.remove('is-switching');
-            void toggle.offsetWidth;
-            toggle.classList.add('is-switching');
-            setTimeout(() => { toggleLabel.textContent = capitalize(mode); }, 200);
-        } else {
-            toggleLabel.textContent = capitalize(mode);
-        }
+        toggleLabel.textContent = capitalize(mode);
         toggleHint.textContent = `switch to ${other(mode)} →`;
         toggle.setAttribute('aria-label', `Currently showing ${mode}. Click to switch to ${other(mode)}.`);
     }
