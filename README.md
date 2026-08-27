@@ -1,4 +1,4 @@
-#  Personal Portfolio
+# Personal Portfolio
 
 A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
 
@@ -10,8 +10,9 @@ A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
 - Scramble text animation when switching languages
 - Full Thai / English translation toggle
 - Smooth scroll navigation with a fixed navbar
-- Project showcase with hover overlays
-- Education timeline
+- Project showcase with tag filtering and hover overlays
+- Background section with an Education / Experience timeline toggle and photo lightbox
+- Interactive terminal widget (`help`, `whoami`, `skills`, `projects [tag]`, `education`, `contact`, `game`, `clear`)
 - Fully responsive — mobile, tablet, and desktop
 
 ---
@@ -22,12 +23,16 @@ A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
 portfolio/
 ├── index.html          — page structure and content
 ├── style.css           — all styling and responsive breakpoints
-├── index.js            — profile switcher and translation logic
+├── index.js            — profile switcher, translation, timeline, and terminal logic
 └── images/
-    ├── icon.png        — browser tab favicon
-    ├── myface1.png     — profile photo (default)
-    ├── myface2.png     — profile photo (alternate)
-    └── MesosuemPic.png — project screenshot
+    ├── icon.png             — browser tab favicon
+    ├── myface1.png          — profile photo (default)
+    ├── myface2.png          — profile photo (alternate)
+    ├── MesosuemPic.png      — project screenshot
+    ├── SeriesTracker.png    — project screenshot
+    ├── catimage.png         — terminal easter egg asset
+    ├── cat-terminal.png     — terminal easter egg asset
+    └── education/           — photos shown in the background timeline lightbox
 ```
 
 ---
