@@ -7,6 +7,7 @@ A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
 ## Features
 
 - Profile picture switcher with a circular progress ring on hover
+- Click the avatar to flip it to a Braille ASCII cat (one per photo), click again to flip back
 - Scramble text animation when switching languages
 - Full Thai / English translation toggle
 - Smooth scroll navigation with a fixed navbar
@@ -55,12 +56,46 @@ python -m http.server 8000
 
 ---
 
+## The avatar's ASCII cats
+
+Clicking the avatar flips it to a Braille dot-art cat. There is one per profile photo,
+held in `index.js` as `ASCII_CAT_1` (green photo) and `ASCII_CAT_2` (amber photo), so
+holding to swap while the ASCII is showing morphs between them.
+
+Each cell is 2×4 dots, so the two grids are really one-bit bitmaps:
+
+| constant | grid | effective |
+|---|---|---|
+| `ASCII_CAT_1` | 90 × 45 | 180 × 180 dots |
+| `ASCII_CAT_2` | 50 × 25 | 100 × 100 dots |
+
+A coarser grid reads better at this size, not worse: at a 280px avatar `ASCII_CAT_2`
+gets 2.8px per dot against `ASCII_CAT_1`'s 1.6px, so its dots stay distinct instead of
+antialiasing into grey.
+
+To change either, just replace its template literal — **no CSS edit is needed.** The cell
+size is measured off the art at runtime and written to `--ascii-w` / `--ascii-rows`, which
+is why the two different grids both fill the same circle.
+
+Two things must hold or the drawing will skew: **every row the same width**, and **Braille
+characters only** (`U+2800`–`U+28FF`, using `⠀` U+2800 for blank cells rather than a normal
+space). Keeping the grid at 2:1 columns-to-rows keeps the art square in the circle.
+
+Noto Sans Symbols 2 is loaded for these because JetBrains Mono has no Braille glyphs at
+all; its Braille subset is 5.6KB and every glyph in it advances a uniform 0.7em, which is
+what holds the columns aligned.
+
+---
+
 ## Tech Stack
 
 - **HTML5** — semantic structure
 - **CSS3** — custom properties, grid, flexbox, keyframe animations
 - **Vanilla JavaScript** — no dependencies, no frameworks
-- **Google Fonts** — JetBrains Mono, IBM Plex Sans Thai
+- **Google Fonts** — Space Grotesk (display), IBM Plex Sans + IBM Plex Sans Thai
+  (body, one superfamily so the EN/TH toggle keeps a consistent voice),
+  JetBrains Mono (terminal, code, and labels), Noto Sans Symbols 2 (the avatar's
+  Braille cat — a 5.6KB subset, the only family here with Braille glyphs)
 - **WebP images** — sized to their display box; the social card stays JPEG
   because link crawlers are unreliable with WebP
 

@@ -23,7 +23,7 @@
     <meta name="twitter:image" content="https://miyazaki1072.github.io/images/og-card.jpg">
 
     <link rel="icon" href="images/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Symbols+2&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json">
     {
@@ -57,8 +57,15 @@
                 <span id="translateLabel">EN / TH</span>
             </button>
             <div class="avatar-wrap">
-                <img src="images/myface1.webp" class="myFaceImage" alt="Freyr"
-                     width="280" height="280" fetchpriority="high" decoding="async">
+                <button type="button" class="avatar-toggle" id="avatarToggle"
+                        aria-pressed="false" aria-label="ASCII portrait">
+                    <img src="images/myface1.webp" class="myFaceImage" alt="Freyr"
+                         width="280" height="280" fetchpriority="high" decoding="async">
+                    <!-- lang pinned so the EN/TH toggle (which rewrites <html lang>)
+                         can't change which system font a browser substitutes for
+                         these Braille glyphs — the art isn't language content. -->
+                    <pre class="ascii-face" id="asciiFace" aria-hidden="true" lang="en"></pre>
+                </button>
                 <div class="avatar-ring"></div>
                 <div class="profileChangeRing"></div>
                 <div class="status-dot"></div>
@@ -90,14 +97,9 @@
                         </div>
                     </div>
                     <div class="skill-group">
-                        <span class="skill-group-label group-tools">tools</span>
+                        <span class="skill-group-label group-tools">tools &amp; frameworks</span>
                         <div class="skill-grid">
                             <button type="button" class="skill-tag" data-tech="Unity Engine">Unity Engine</button>
-                        </div>
-                    </div>
-                    <div class="skill-group">
-                        <span class="skill-group-label group-fw">frameworks & libraries</span>
-                        <div class="skill-grid">
                             <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
                         </div>
                     </div>
@@ -116,11 +118,11 @@
             <h2 class="section-title">Things I've Built</h2>
         </div>
         <div class="filter-bar">
-            <span class="filter-label">$ filter --stack</span>
+            <span class="filter-label">// filter by stack</span>
             <div class="filter-tags" id="filterTags"></div>
-            <button type="button" class="filter-clear" id="filterClear" hidden>$ clear</button>
+            <button type="button" class="filter-clear" id="filterClear" hidden>clear filters</button>
         </div>
-        <p class="filter-empty" id="filterEmpty" hidden>$ no projects match this filter (yet)</p>
+        <p class="filter-empty" id="filterEmpty" hidden>No projects match this filter yet.</p>
         <div class="project-grid" id="projectGrid">
             <div class="project-card" data-tags="C#,Unity Engine">
                 <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer" class="project-img-link">
@@ -128,7 +130,7 @@
                         <img src="images/MesosuemPic.webp" class="project-img" alt="Mesosuem"
                              width="420" height="315" loading="lazy" decoding="async">
                         <div class="project-img-overlay">
-                            <span class="view-label">$ open ./mesosuem</span>
+                            <span class="view-label">View on GitHub →</span>
                         </div>
                     </div>
                 </a>
@@ -148,7 +150,7 @@
                         <img src="images/SeriesTracker.webp" class="project-img" alt="SeriesTracker"
                              width="420" height="315" loading="lazy" decoding="async">
                         <div class="project-img-overlay">
-                            <span class="view-label">$ node tracker.js</span>
+                            <span class="view-label">View on GitHub →</span>
                         </div>
                     </div>
                 </a>
@@ -196,39 +198,39 @@
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/witcom.jfif"
+                                 data-image="images/education/witcom.jpg"
                                  data-caption="Wit-Com Program — Rayongwittayakom School"
                                  data-fb="https://www.facebook.com/profile.php?id=100063568503408">
                                 <p class="timeline-year">2023 — 2026</p>
                                 <p class="timeline-title">Wit-Com Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
-                                <p class="timeline-gpax">GPAX 3.99</p>
+                                <p class="timeline-award">GPAX 3.99</p>
                                 <span class="timeline-hint">view photo →</span>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/gifted.jfif"
+                                 data-image="images/education/gifted.jpg"
                                  data-caption="Gifted Program — Rayongwittayakom School"
                                  data-fb="https://www.facebook.com/giftedrayongwit">
                                 <p class="timeline-year">2020 — 2023</p>
                                 <p class="timeline-title">Gifted Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
-                                <p class="timeline-gpax">GPAX 4.00</p>
+                                <p class="timeline-award">GPAX 4.00</p>
                                 <span class="timeline-hint">view photo →</span>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/acr.jfif"
+                                 data-image="images/education/acr.jpg"
                                  data-caption="IEP Program — Assumption College Rayong"
                                  data-fb="https://www.facebook.com/ACR2506">
                                 <p class="timeline-year">2014 — 2020</p>
                                 <p class="timeline-title">IEP Program</p>
                                 <p class="timeline-place">Assumption College Rayong</p>
-                                <p class="timeline-gpax">GPAX 4.00</p>
+                                <p class="timeline-award">GPAX 4.00</p>
                                 <span class="timeline-hint">view photo →</span>
                             </div>
                         </div>
@@ -272,7 +274,7 @@
                                 <p class="timeline-year">2026</p>
                                 <p class="timeline-title">TOI22</p>
                                 <p class="timeline-place">Thailand Olympiad in Informatics</p>
-                                <p class="timeline-gpax">Bronze Medal</p>
+                                <p class="timeline-award">Bronze Medal</p>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -281,7 +283,7 @@
                                 <p class="timeline-year">2025</p>
                                 <p class="timeline-title">TOI21</p>
                                 <p class="timeline-place">Thailand Olympiad in Informatics</p>
-                                <p class="timeline-gpax">Bronze Medal</p>
+                                <p class="timeline-award">Bronze Medal</p>
                             </div>
                         </div>
                         <div class="timeline-item">
