@@ -1,254 +1,300 @@
-//Nav scrollspy
-const navLinks = document.querySelectorAll('.nav-link');
-const sections = document.querySelectorAll('section[id]');
-if (navLinks.length && sections.length) {
-    const sectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`);
-                });
-            }
-        });
-    }, { rootMargin: '-40% 0px -55% 0px' });
-    sections.forEach(section => sectionObserver.observe(section));
-}
+//Shared ---------------------------------------------------------------------
 
-let updateTechTooltips = null;
-
-//Image change
-const myFaceImage = document.querySelector(".myFaceImage");
-const profileChangeRing = document.querySelector(".profileChangeRing");
-const statusDot = document.querySelector(".status-dot");
-const avatarRing = document.querySelector(".avatar-ring");
-let profileItr = -1;
-let startTime;
-let hoverProfileInterval;
-let imageArray = [
-    "images/myface1.png" , 
-    "images/myface2.png" ,
-];
-let ringColor = [
-    "var(--green)",
-    "var(--amber)"
-];
-let percentageOfTime;
-function changeProfilePicture(){
-    profileItr = (profileItr + 1)%2;
-    myFaceImage.src = imageArray[profileItr];
-    profileChangeRing.style.setProperty("--progress",`${0}deg`); 
-    statusDot.style.background = ringColor[profileItr];
-    avatarRing.style.border = "2.5px solid " + ringColor[profileItr];
-    statusDot.style.boxShadow ="0 0 14px " + ringColor[profileItr];
-    profileChangeRing.style.setProperty("--ring-color",ringColor[profileItr]);
-}
-changeProfilePicture();
-myFaceImage.addEventListener("mouseenter",() =>{
-    startTime = Date.now();
-    hoverProfileInterval = setInterval(() => {
-        const time = ((Date.now() - startTime));
-        percentageOfTime = Math.min(1,(time/3000));
-        profileChangeRing.style.setProperty("--progress",`${percentageOfTime*360}deg`); 
-        if(time >= 3000){
-            changeProfilePicture();
-            startTime = Date.now();
-        }
-    },100);
-});
-myFaceImage.addEventListener("mouseleave",()=>{
-    profileChangeRing.style.setProperty("--progress",`${0}deg`); 
-    clearInterval(hoverProfileInterval);
-});
-
-const translateBtn = document.getElementById('translateBtn');
-const translateLabel = document.getElementById('translateLabel');
-let lang = 'en';
-let animating = false;
-
-const content = {
-    en: {
-        tagLine: '> whoami',
-        name: 'Freyr',
-        status: 'Computer Engineering Student\n@ Chulalongkorn University',
-        interestLabel: '// areas of interest',
-        interests: ['Backend Engineering', 'Competitive Programming'],
-        skillsLabel: '// what i use',
-        skillGroups: ['languages', 'tools', 'frameworks & libraries'],
-        tooltipHas: '→ see what i built',
-        tooltipNone: '→ no projects yet',
-        btns: ['Email', 'Discord', 'GitHub'],
-    },
-    th: {
-        tagLine: '> ฉันคือใคร',
-        name: 'เฟรย์',
-        status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
-        interestLabel: '// สาขาที่สนใจ',
-        interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
-        skillsLabel: '// เทคโนโลยีที่ใช้',
-        skillGroups: ['ภาษา', 'เครื่องมือ', 'เฟรมเวิร์กและไลบรารี'],
-        tooltipHas: '→ ดูโปรเจคที่ผมทำ',
-        tooltipNone: '→ ยังไม่มีโปรเจคนี้',
-        btns: ['อีเมล', 'ดิสคอร์ด', 'กิตฮับ'],
-    }
-};
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
 const CHARS = {
-    en:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
-    th:'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ'
-}
+    en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
+    th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
+};
 
-function scramble(el, target, duration = 600, isHTML = false) {
-    const plain = target.replace(/<[^>]*>/g, '').replace(/\n/g, ' ');
-    const totalFrames = Math.round(duration / 16);
-    let frame = 0;
+//Language state. The translate button owns it and everything else subscribes,
+//so no block has to reach across for a mutable global.
+const i18n = (function () {
+    const content = {
+        en: {
+            tagLine: '> whoami',
+            name: 'Freyr',
+            status: 'Computer Engineering Student\n@ Chulalongkorn University',
+            interestLabel: '// areas of interest',
+            interests: ['Backend Engineering', 'Competitive Programming'],
+            skillsLabel: '// what i use',
+            skillGroups: ['languages', 'tools', 'frameworks & libraries'],
+            tooltipHas: '→ see what i built',
+            tooltipNone: '→ no projects yet',
+            btns: ['Email', 'Discord', 'GitHub'],
+        },
+        th: {
+            tagLine: '> ฉันคือใคร',
+            name: 'เฟรย์',
+            status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
+            interestLabel: '// สาขาที่สนใจ',
+            interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
+            skillsLabel: '// เทคโนโลยีที่ใช้',
+            skillGroups: ['ภาษา', 'เครื่องมือ', 'เฟรมเวิร์กและไลบรารี'],
+            tooltipHas: '→ ดูโปรเจคที่ผมทำ',
+            tooltipNone: '→ ยังไม่มีโปรเจคนี้',
+            btns: ['อีเมล', 'ดิสคอร์ด', 'กิตฮับ'],
+        },
+    };
+    let lang = 'en';
+    const listeners = [];
 
-    const tick = setInterval(() => {
-        frame++;
-        const progress = frame / totalFrames;
+    return {
+        get lang() { return lang; },
+        get strings() { return content[lang]; },
+        get chars() { return CHARS[lang]; },
+        onChange(fn) { listeners.push(fn); },
+        toggle() {
+            lang = lang === 'en' ? 'th' : 'en';
+            document.documentElement.lang = lang;
+            listeners.forEach(fn => fn(lang));
+            return content[lang];
+        },
+    };
+})();
 
-        const scrambled = plain.split('').map((char, i) => {
-            if (char === ' ' || char === '\n') return char;
-            if (i / plain.length < progress) return char;
-            return CHARS[lang][Math.floor(Math.random() * CHARS[lang].length)];
-        }).join('');
+//One scramble for the whole site. The call sites only ever differed in which
+//alphabet the noise came from, whether a blinking cursor trailed the text, and
+//whether the result was written as markup or as plain text.
+const scrambleFrames = new WeakMap();
 
-        el.textContent = scrambled;
+function scrambleText(el, target, options) {
+    const { duration = 600, pool = null, suffix = '', asText = false } = options || {};
+    const chars = pool || i18n.chars;
+    const plain = target.replace(/\n/g, ' ');
 
-        if (frame >= totalFrames) {
-            clearInterval(tick);
-            if (isHTML) {
-                el.innerHTML = target;
-            } else {
-                el.innerHTML = target.replace(/\n/g, '<br>');
-            }
-        }
-    }, 16);
-}
+    //Two loops writing to the same element would fight over its text.
+    const running = scrambleFrames.get(el);
+    if (running !== undefined) cancelAnimationFrame(running);
 
-function scrambleName(el, target, duration = 700) {
-    const totalFrames = Math.round(duration / 16);
-    let frame = 0;
-    const tick = setInterval(() => {
-        frame++;
-        const progress = frame / totalFrames;
-        const scrambled = target.split('').map((char, i) => {
-            if (i / target.length < progress) return char;
-            return CHARS[lang][Math.floor(Math.random() * CHARS[lang].length)];
-        }).join('');
-        el.innerHTML = scrambled + '<span class="cursor">_</span>';
-        if (frame >= totalFrames) {
-            clearInterval(tick);
-            el.innerHTML = target + '<span class="cursor">_</span>';
-        }
-    }, 16);
-}
+    const settle = () => {
+        scrambleFrames.delete(el);
+        if (asText) el.textContent = target;
+        else el.innerHTML = target.replace(/\n/g, '<br>') + suffix;
+    };
 
-translateBtn.addEventListener('click', () => {
-    if (animating) return;
-    animating = true;
-    lang = lang === 'en' ? 'th' : 'en';
-    const d = content[lang];
-    translateLabel.textContent = lang === 'en' ? 'EN / TH' : 'TH / EN';
-    translateBtn.classList.toggle('active', lang === 'th');
-    const delays = [0, 80, 160, 240, 320, 400];
-    const targets = [
-        { el: document.querySelector('.tag-line'),      text: d.tagLine,        delay: delays[0] },
-        { el: document.querySelector('.name-txt'),      text: d.name,           delay: delays[1], isName: true },
-        { el: document.querySelector('.status-txt'),    text: d.status,         delay: delays[2] },
-        { el: document.querySelector('.interest-label'),text: d.interestLabel,  delay: delays[3] },
-        { el: document.querySelector('.skills-label'),  text: d.skillsLabel,    delay: delays[3] + 60 },
-    ];
-    targets.forEach(({ el, text, delay, isName }) => {
-        setTimeout(() => {
-            if (isName) scrambleName(el, text, 650);
-            else scramble(el, text, 600);
-        }, delay);
-    });
-    const items = document.querySelectorAll('.interest-list li');
-    items.forEach((li, i) => {
-        setTimeout(() => scramble(li, d.interests[i], 550), delays[4] + i * 80);
-    });
-    const groupLabels = document.querySelectorAll('.skill-group-label');
-    groupLabels.forEach((label, i) => {
-        setTimeout(() => scramble(label, d.skillGroups[i], 450), delays[4] + i * 80);
-    });
-    const btns = document.querySelectorAll('.contact-btn');
-    btns.forEach((btn, i) => {
-        setTimeout(() => scramble(btn, d.btns[i], 450), delays[5] + i * 60);
-    });
-    if (updateTechTooltips) updateTechTooltips();
-    setTimeout(() => { animating = false; }, 1100);
-});
-
-//Email copy-to-clipboard
-const emailBtn = document.getElementById('emailBtn');
-const toast = document.getElementById('toast');
-let toastTimeout;
-emailBtn.addEventListener('click', async () => {
-    const email = emailBtn.dataset.email;
-    try {
-        await navigator.clipboard.writeText(email);
-    } catch (err) {
-        const scratch = document.createElement('textarea');
-        scratch.value = email;
-        scratch.style.position = 'fixed';
-        scratch.style.opacity = '0';
-        document.body.appendChild(scratch);
-        scratch.select();
-        document.execCommand('copy');
-        document.body.removeChild(scratch);
+    //Nothing to watch if the visitor asked for less motion — show the answer.
+    if (reducedMotion.matches) {
+        settle();
+        return;
     }
-    toast.textContent = `> copied "${email}" to clipboard`;
-    toast.classList.add('show');
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
-});
 
-//Project card click ripple
-document.querySelectorAll('.project-img-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-        const wrap = link.querySelector('.project-img-wrap');
-        const rect = wrap.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height) * 1.8;
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        ripple.style.width = ripple.style.height = `${size}px`;
-        ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-        ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-        wrap.appendChild(ripple);
-        ripple.addEventListener('animationend', () => ripple.remove());
+    const start = performance.now();
+    const step = (now) => {
+        const progress = Math.min(1, (now - start) / duration);
+        const scrambled = plain.split('').map((char, i) => {
+            if (char === ' ') return char;
+            if (i / plain.length < progress) return char;
+            return chars[Math.floor(Math.random() * chars.length)];
+        }).join('');
+
+        if (suffix) el.innerHTML = scrambled + suffix;
+        else el.textContent = scrambled;
+
+        if (progress < 1) scrambleFrames.set(el, requestAnimationFrame(step));
+        else settle();
+    };
+    scrambleFrames.set(el, requestAnimationFrame(step));
+}
+
+const showToast = (function () {
+    const toast = document.getElementById('toast');
+    let timer;
+    return function (message) {
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(timer);
+        timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    };
+})();
+
+//Nav scrollspy --------------------------------------------------------------
+(function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section[id]');
+    if (!navLinks.length || !sections.length) return;
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`);
+            });
+        });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+
+    sections.forEach(section => sectionObserver.observe(section));
+})();
+
+//Profile picture — hold the avatar to fill the ring, then swap ---------------
+(function () {
+    const myFaceImage = document.querySelector('.myFaceImage');
+    const profileChangeRing = document.querySelector('.profileChangeRing');
+    const statusDot = document.querySelector('.status-dot');
+    const avatarRing = document.querySelector('.avatar-ring');
+    if (!myFaceImage || !profileChangeRing || !statusDot || !avatarRing) return;
+
+    const HOLD_MS = 3000;
+    const profiles = [
+        { src: 'images/myface1.webp', color: 'var(--green)' },
+        { src: 'images/myface2.webp', color: 'var(--amber)' },
+    ];
+    let index = -1;
+    let frame = null;
+
+    function setProgress(deg) {
+        profileChangeRing.style.setProperty('--progress', `${deg}deg`);
+    }
+
+    function changeProfilePicture() {
+        index = (index + 1) % profiles.length;
+        const { src, color } = profiles[index];
+        myFaceImage.src = src;
+        setProgress(0);
+        statusDot.style.background = color;
+        statusDot.style.boxShadow = `0 0 14px ${color}`;
+        avatarRing.style.border = `2.5px solid ${color}`;
+        profileChangeRing.style.setProperty('--ring-color', color);
+    }
+
+    changeProfilePicture();
+
+    //rAF instead of a 100ms timer: the ring now tracks the display instead of
+    //stepping in tenths, and the loop stops itself while the tab is hidden.
+    myFaceImage.addEventListener('mouseenter', () => {
+        if (reducedMotion.matches) return;
+        let start = performance.now();
+        const step = (now) => {
+            const elapsed = now - start;
+            setProgress(Math.min(1, elapsed / HOLD_MS) * 360);
+            if (elapsed >= HOLD_MS) {
+                changeProfilePicture();
+                start = now;
+            }
+            frame = requestAnimationFrame(step);
+        };
+        frame = requestAnimationFrame(step);
     });
-});
 
-//Project tech-stack filter
-const projectCards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
-const filterTagsContainer = document.getElementById('filterTags');
-const filterClearBtn = document.getElementById('filterClear');
-const filterEmptyMsg = document.getElementById('filterEmpty');
+    myFaceImage.addEventListener('mouseleave', () => {
+        setProgress(0);
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+    });
 
-if (projectCards.length && filterTagsContainer) {
+    //With motion reduced there is no ring to fill, so a click swaps directly.
+    myFaceImage.addEventListener('click', () => {
+        if (reducedMotion.matches) changeProfilePicture();
+    });
+})();
+
+//EN / TH translate ----------------------------------------------------------
+(function () {
+    const translateBtn = document.getElementById('translateBtn');
+    const translateLabel = document.getElementById('translateLabel');
+    if (!translateBtn || !translateLabel) return;
+
+    const CURSOR = '<span class="cursor">_</span>';
+    let animating = false;
+
+    translateBtn.addEventListener('click', () => {
+        if (animating) return;
+        animating = true;
+
+        const d = i18n.toggle();
+        translateLabel.textContent = i18n.lang === 'en' ? 'EN / TH' : 'TH / EN';
+        translateBtn.classList.toggle('active', i18n.lang === 'th');
+
+        const targets = [
+            { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
+            { el: document.querySelector('.name-txt'),       text: d.name,          delay: 80,  duration: 650, suffix: CURSOR },
+            { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
+            { el: document.querySelector('.interest-label'), text: d.interestLabel, delay: 240, duration: 600 },
+            { el: document.querySelector('.skills-label'),   text: d.skillsLabel,   delay: 300, duration: 600 },
+        ];
+        targets.forEach(({ el, text, delay, duration, suffix }) => {
+            if (el) setTimeout(() => scrambleText(el, text, { duration, suffix }), delay);
+        });
+
+        document.querySelectorAll('.interest-list li').forEach((li, i) => {
+            setTimeout(() => scrambleText(li, d.interests[i], { duration: 550 }), 320 + i * 80);
+        });
+        document.querySelectorAll('.skill-group-label').forEach((label, i) => {
+            setTimeout(() => scrambleText(label, d.skillGroups[i], { duration: 450 }), 320 + i * 80);
+        });
+        document.querySelectorAll('.contact-btn').forEach((btn, i) => {
+            setTimeout(() => scrambleText(btn, d.btns[i], { duration: 450 }), 400 + i * 60);
+        });
+
+        setTimeout(() => { animating = false; }, 1100);
+    });
+})();
+
+//Email copy-to-clipboard ----------------------------------------------------
+(function () {
+    const emailBtn = document.getElementById('emailBtn');
+    if (!emailBtn) return;
+
+    emailBtn.addEventListener('click', async () => {
+        const email = emailBtn.dataset.email;
+        try {
+            await navigator.clipboard.writeText(email);
+        } catch (err) {
+            const scratch = document.createElement('textarea');
+            scratch.value = email;
+            scratch.style.position = 'fixed';
+            scratch.style.opacity = '0';
+            document.body.appendChild(scratch);
+            scratch.select();
+            document.execCommand('copy');
+            document.body.removeChild(scratch);
+        }
+        showToast(`> copied "${email}" to clipboard`);
+    });
+})();
+
+//Project card click ripple --------------------------------------------------
+(function () {
+    document.querySelectorAll('.project-img-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (reducedMotion.matches) return;
+            const wrap = link.querySelector('.project-img-wrap');
+            const rect = wrap.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height) * 1.8;
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+            wrap.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        });
+    });
+})();
+
+//Project tech-stack filter --------------------------------------------------
+(function () {
+    const projectCards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
+    const filterTagsContainer = document.getElementById('filterTags');
+    const filterClearBtn = document.getElementById('filterClear');
+    const filterEmptyMsg = document.getElementById('filterEmpty');
+    if (!projectCards.length || !filterTagsContainer || !filterClearBtn || !filterEmptyMsg) return;
+
+    const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
     const activeFilters = new Set();
     const uniqueTags = [];
     projectCards.forEach(card => {
-        card.dataset.tags.split(',').map(t => t.trim()).forEach(tag => {
+        tagsOf(card).forEach(tag => {
             if (!uniqueTags.includes(tag)) uniqueTags.push(tag);
         });
-    });
-
-    uniqueTags.forEach(tag => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'skill-tag';
-        btn.dataset.tech = tag;
-        btn.textContent = tag;
-        btn.addEventListener('click', () => toggleFilter(tag));
-        filterTagsContainer.appendChild(btn);
     });
 
     function applyFilters() {
         let visibleCount = 0;
         projectCards.forEach(card => {
-            const tags = card.dataset.tags.split(',').map(t => t.trim());
+            const tags = tagsOf(card);
             const matches = activeFilters.size === 0 || Array.from(activeFilters).every(f => tags.includes(f));
             card.classList.toggle('is-hidden', !matches);
             if (matches) visibleCount++;
@@ -261,13 +307,8 @@ if (projectCards.length && filterTagsContainer) {
     }
 
     function toggleFilter(tag) {
-        activeFilters.has(tag) ? activeFilters.delete(tag) : activeFilters.add(tag);
-        applyFilters();
-    }
-
-    function setSingleFilter(tag) {
-        activeFilters.clear();
-        activeFilters.add(tag);
+        if (activeFilters.has(tag)) activeFilters.delete(tag);
+        else activeFilters.add(tag);
         applyFilters();
     }
 
@@ -276,34 +317,46 @@ if (projectCards.length && filterTagsContainer) {
         applyFilters();
     }
 
+    uniqueTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'skill-tag';
+        btn.dataset.tech = tag;
+        btn.textContent = tag;
+        btn.addEventListener('click', () => toggleFilter(tag));
+        filterTagsContainer.appendChild(btn);
+    });
+
     filterClearBtn.addEventListener('click', clearFilters);
 
-    //Hero skill tags jump to matching (filtered) projects
+    //Hero skill tags jump to the matching (filtered) projects
     const heroTechBtns = document.querySelectorAll('.skills-block button.skill-tag[data-tech]');
-    updateTechTooltips = function () {
-        const d = content[lang];
+
+    function updateTechTooltips() {
+        const d = i18n.strings;
         heroTechBtns.forEach(btn => {
-            const tech = btn.dataset.tech;
-            btn.dataset.tooltip = uniqueTags.includes(tech) ? d.tooltipHas : d.tooltipNone;
+            btn.dataset.tooltip = uniqueTags.includes(btn.dataset.tech) ? d.tooltipHas : d.tooltipNone;
         });
-    };
+    }
+
     updateTechTooltips();
+    i18n.onChange(updateTechTooltips);
+
     heroTechBtns.forEach(btn => {
         const tech = btn.dataset.tech;
         btn.addEventListener('click', () => {
             if (uniqueTags.includes(tech)) {
-                setSingleFilter(tech);
+                activeFilters.clear();
+                activeFilters.add(tech);
+                applyFilters();
             } else {
                 clearFilters();
-                toast.textContent = `> no projects tagged "${tech}" yet`;
-                toast.classList.add('show');
-                clearTimeout(toastTimeout);
-                toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+                showToast(`> no projects tagged "${tech}" yet`);
             }
-            document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('projects').scrollIntoView({ behavior: scrollBehavior() });
         });
     });
-}
+})();
 
 //Background timeline — experience/education switch
 (function () {
@@ -315,6 +368,38 @@ if (projectCards.length && filterTagsContainer) {
 
     const other = mode => mode === 'education' ? 'experience' : 'education';
     const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+    const LINE_SEL = '.timeline-year, .timeline-title, .timeline-place, '
+                   + '.timeline-gpax, .timeline-note, .timeline-hint';
+
+    //Snapshot the copy once. Reading it back live would risk catching an element
+    //mid-scramble and baking the noise in as the new "real" text.
+    const originals = new Map();
+    timeline.querySelectorAll(`.timeline-col-title, ${LINE_SEL}`)
+        .forEach(el => originals.set(el, el.textContent));
+
+    //Timeline copy is English-only — it is not part of the EN/TH toggle — so the
+    //noise pool is pinned to Latin instead of following the active language.
+    const scrambleOpts = { duration: 420, pool: CHARS.en, asText: true };
+    let pending = [];
+
+    function scrambleGroup(group) {
+        pending.forEach(clearTimeout);
+        pending = [];
+        group.querySelectorAll('.timeline-col').forEach(col => {
+            const title = col.querySelector('.timeline-col-title');
+            if (title) scrambleText(title, originals.get(title), scrambleOpts);
+            col.querySelectorAll('.timeline-item').forEach((item, i) => {
+                item.querySelectorAll(LINE_SEL).forEach((el, j) => {
+                    //Stepped so the switch reads as a cascade down the column
+                    //rather than every line twitching at once.
+                    pending.push(setTimeout(
+                        () => scrambleText(el, originals.get(el), scrambleOpts),
+                        120 + i * 70 + j * 35));
+                });
+            });
+        });
+    }
 
     function setMode(mode, animate) {
         timeline.dataset.mode = mode;
@@ -331,10 +416,18 @@ if (projectCards.length && filterTagsContainer) {
                     item.classList.add('is-entering');
                 }
             });
+            if (show && animate) scrambleGroup(group);
         });
 
-        toggleLabel.textContent = capitalize(mode);
-        toggleHint.textContent = `switch to ${other(mode)} →`;
+        const label = capitalize(mode);
+        const hint = `switch to ${other(mode)} →`;
+        if (animate) {
+            scrambleText(toggleLabel, label, scrambleOpts);
+            scrambleText(toggleHint, hint, scrambleOpts);
+        } else {
+            toggleLabel.textContent = label;
+            toggleHint.textContent = hint;
+        }
         toggle.setAttribute('aria-label', `Currently showing ${mode}. Click to switch to ${other(mode)}.`);
     }
 
@@ -359,6 +452,7 @@ if (projectCards.length && filterTagsContainer) {
         lastFocused = document.activeElement;
         lightbox.classList.remove('is-missing');
         lightboxImg.src = item.dataset.image;
+        lightboxImg.alt = item.dataset.caption || '';
         lightboxCaption.textContent = item.dataset.caption || '';
         if (item.dataset.fb) {
             lightboxImgLink.href = item.dataset.fb;
@@ -415,29 +509,25 @@ if (projectCards.length && filterTagsContainer) {
     let controlsEl = null;
     let gameTotal = 0;
     let gamePending = 0;
+    let thinkTimer = null;
+    let thinkingEl = null;
+    let commitTimer = null;
+    let lossTimer = null;
 
     const GAMES = [
         { id: '21', label: '21 — last to 21 loses' },
     ];
 
-    function scrambleTermLine(el, target, duration = 400) {
-        const totalFrames = Math.round(duration / 16);
-        let frame = 0;
-        const tick = setInterval(() => {
-            frame++;
-            const progress = frame / totalFrames;
-            const scrambled = target.split('').map((char, i) => {
-                if (char === ' ') return char;
-                if (i / target.length < progress) return char;
-                return CHARS.en[Math.floor(Math.random() * CHARS.en.length)];
-            }).join('');
-            el.textContent = scrambled;
-            if (frame >= totalFrames) {
-                clearInterval(tick);
-                el.textContent = target;
-            }
-        }, 16);
-    }
+    //Freyr "deliberating" before moving. Randomised so it never reads as a
+    //fixed timer, and varied in wording so it never reads as one script.
+    const THINK_MIN = 700;
+    const THINK_MAX = 1400;
+    const THINKING_LINES = [
+        'freyr is thinking',
+        'counting on fingers',
+        'doing the math',
+        'hmm',
+    ];
 
     function appendLine(text, className) {
         const line = document.createElement('div');
@@ -498,7 +588,10 @@ if (projectCards.length && filterTagsContainer) {
     }
 
     function readEducation() {
-        const items = Array.from(document.querySelectorAll('.timeline-item[data-category="education"]'));
+        const items = Array.from(
+            document.querySelectorAll('.timeline-col[data-track="education"] .timeline-item')
+        );
+        if (!items.length) return ['no education entries found.'];
         const lines = [];
         items.forEach((item, i) => {
             const year = item.querySelector('.timeline-year')?.textContent.trim();
@@ -549,7 +642,43 @@ if (projectCards.length && filterTagsContainer) {
         startGame();
     }
 
+    function cancelPendingTurn() {
+        [thinkTimer, commitTimer, lossTimer].forEach(t => {
+            if (t !== null) clearTimeout(t);
+        });
+        thinkTimer = commitTimer = lossTimer = null;
+        if (thinkingEl) {
+            thinkingEl.remove();
+            thinkingEl = null;
+        }
+        //The row stays in the log as a record of where the game stopped, but its
+        //buttons must not stay clickable — their listeners would resume the game.
+        if (controlsEl) {
+            controlsEl.querySelectorAll('.term-game-btn').forEach(b => { b.disabled = true; });
+            controlsEl.classList.remove('is-committing');
+            controlsEl = null;
+        }
+        panel.classList.remove('is-flash');
+    }
+
+    function popButton(btn) {
+        if (reducedMotion.matches) return;
+        btn.classList.remove('is-hit');
+        void btn.offsetWidth;              //restart the animation on rapid clicks
+        btn.classList.add('is-hit');
+    }
+
+    function floatGain(btn, text) {
+        if (reducedMotion.matches) return;
+        const float = document.createElement('span');
+        float.className = 'term-float';
+        float.textContent = text;
+        btn.appendChild(float);
+        float.addEventListener('animationend', () => float.remove());
+    }
+
     function startGame() {
+        cancelPendingTurn();
         mode = 'game';
         gameTotal = 0;
         input.disabled = true;
@@ -578,21 +707,38 @@ if (projectCards.length && filterTagsContainer) {
             addBtn.disabled = true;
             doneBtn.disabled = true;
             const played = gamePending;
-            gameTotal += played;
-            const summary = document.createElement('div');
-            summary.className = 'term-line';
-            summary.textContent = `you added ${played} → total: ${gameTotal}`;
-            line.replaceWith(summary);
-            output.scrollTop = output.scrollHeight;
-            controlsEl = null;
-            if (gameTotal >= 21) {
-                triggerLossEffect();
-            } else {
-                computerTurn();
+
+            //As with the thinking pause, the total only advances once the result
+            //is on screen, so forfeiting mid-commit leaves the score consistent.
+            const settle = () => {
+                commitTimer = null;
+                gameTotal += played;
+                const summary = document.createElement('div');
+                summary.className = 'term-line term-line-commit';
+                summary.textContent = `you added ${played} → total: ${gameTotal}`;
+                line.replaceWith(summary);
+                output.scrollTop = output.scrollHeight;
+                controlsEl = null;
+                if (gameTotal >= 21) {
+                    triggerLossEffect();
+                } else {
+                    computerTurn();
+                }
+            };
+
+            //This hold exists only so the flash is visible, so it goes away with
+            //motion — unlike the thinking pause, which is game pacing and stays.
+            if (reducedMotion.matches) {
+                settle();
+                return;
             }
+            line.classList.add('is-committing');
+            commitTimer = setTimeout(settle, 260);
         }
 
         addBtn.addEventListener('click', () => {
+            popButton(addBtn);
+            floatGain(addBtn, '+1');
             gamePending = Math.min(3, gamePending + 1);
             status.textContent = `total: ${gameTotal} — adding: ${gamePending}`;
             doneBtn.disabled = false;
@@ -601,12 +747,16 @@ if (projectCards.length && filterTagsContainer) {
                 finishTurn();
             }
         });
-        doneBtn.addEventListener('click', finishTurn);
+        doneBtn.addEventListener('click', () => {
+            popButton(doneBtn);
+            finishTurn();
+        });
     }
 
     function triggerLossEffect() {
         panel.classList.add('is-flash');
-        setTimeout(() => {
+        lossTimer = setTimeout(() => {
+            lossTimer = null;
             panel.classList.remove('is-flash');
             endGame('player');
         }, 380);
@@ -614,13 +764,33 @@ if (projectCards.length && filterTagsContainer) {
 
     function computerTurn() {
         const move = 4 - (gameTotal % 4);
-        gameTotal += move;
-        appendLine(`freyr added ${move} → total: ${gameTotal}`);
-        if (gameTotal >= 21) {
-            endGame('computer');
-        } else {
-            renderPlayerTurn();
-        }
+        const label = THINKING_LINES[Math.floor(Math.random() * THINKING_LINES.length)];
+
+        thinkingEl = appendLine('');
+        thinkingEl.className = 'term-line term-thinking';
+        thinkingEl.innerHTML = `${label}<span class="term-thinking-dots">...</span>`;
+        output.scrollTop = output.scrollHeight;
+
+        //The total only advances once the move is on screen, so forfeiting
+        //mid-think can never leave the state ahead of what the player saw.
+        thinkTimer = setTimeout(() => {
+            thinkTimer = null;
+            const settled = thinkingEl;
+            thinkingEl = null;
+
+            gameTotal += move;
+            const line = document.createElement('div');
+            line.className = 'term-line';
+            line.textContent = `freyr added ${move} → total: ${gameTotal}`;
+            settled.replaceWith(line);
+            output.scrollTop = output.scrollHeight;
+
+            if (gameTotal >= 21) {
+                endGame('computer');
+            } else {
+                renderPlayerTurn();
+            }
+        }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
     }
 
     function endGame(loser) {
@@ -692,7 +862,8 @@ if (projectCards.length && filterTagsContainer) {
 
     function bootSequence() {
         const l1 = appendLine('');
-        scrambleTermLine(l1, "freyr's terminal — type 'help' to get started", 500);
+        scrambleText(l1, "freyr's terminal — type 'help' to get started",
+                     { duration: 500, pool: CHARS.en, asText: true });
         appendLine('');
     }
 
@@ -710,6 +881,7 @@ if (projectCards.length && filterTagsContainer) {
         widget.classList.remove('is-open');
         trigger.setAttribute('aria-expanded', 'false');
         if (mode !== 'command') {
+            cancelPendingTurn();
             mode = 'command';
             input.disabled = false;
             input.placeholder = '';
@@ -748,6 +920,7 @@ if (projectCards.length && filterTagsContainer) {
 
         if (e.key !== 'Escape') return;
         if (mode === 'game') {
+            cancelPendingTurn();
             mode = 'command';
             input.disabled = false;
             input.placeholder = '';

@@ -14,6 +14,7 @@ A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
 - Background section with an Education / Experience timeline toggle and photo lightbox
 - Interactive terminal widget (`help`, `whoami`, `skills`, `projects [tag]`, `education`, `contact`, `game`, `clear`)
 - Fully responsive — mobile, tablet, and desktop
+- Honours `prefers-reduced-motion` — animations and text scrambling are skipped
 
 ---
 
@@ -26,12 +27,12 @@ portfolio/
 ├── index.js            — profile switcher, translation, timeline, and terminal logic
 └── images/
     ├── icon.png             — browser tab favicon
-    ├── myface1.png          — profile photo (default)
-    ├── myface2.png          — profile photo (alternate)
-    ├── MesosuemPic.png      — project screenshot
-    ├── SeriesTracker.png    — project screenshot
-    ├── catimage.png         — terminal easter egg asset
-    ├── cat-terminal.png     — terminal easter egg asset
+    ├── og-card.jpg          — social share card (og:image / twitter:image)
+    ├── myface1.webp         — profile photo (default)
+    ├── myface2.webp         — profile photo (alternate)
+    ├── MesosuemPic.webp     — project screenshot
+    ├── SeriesTracker.webp   — project screenshot
+    ├── cat-terminal.webp    — cat perched on the terminal widget
     └── education/           — photos shown in the background timeline lightbox
 ```
 
@@ -60,6 +61,8 @@ python -m http.server 8000
 - **CSS3** — custom properties, grid, flexbox, keyframe animations
 - **Vanilla JavaScript** — no dependencies, no frameworks
 - **Google Fonts** — JetBrains Mono, IBM Plex Sans Thai
+- **WebP images** — sized to their display box; the social card stays JPEG
+  because link crawlers are unreliable with WebP
 
 ---
 

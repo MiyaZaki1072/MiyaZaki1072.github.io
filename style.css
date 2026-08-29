@@ -19,6 +19,10 @@
     padding: 0;
     box-sizing: border-box;
 }
+:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
 html {
     scroll-behavior: smooth;
     scrollbar-width: thin;
@@ -77,7 +81,7 @@ body::after {
     gap: 10px;
     background: rgba(8, 11, 8, 0.85);
     border: 1px solid var(--border);
-    border-radius: 17px;
+    border-radius: 0;
     padding: 10px 17px;
     backdrop-filter: blur(10px);
 }
@@ -91,7 +95,7 @@ body::after {
     color: var(--text-sec);
     text-decoration: none;
     padding: 8px 21px;
-    border-radius: 10px;
+    border-radius: 0;
     transition: color 0.2s, background 0.2s;
 }
 .nav-link::before,
@@ -138,7 +142,7 @@ body::after {
     animation: fadeUp 0.7s ease both;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 28px;
+    border-radius: 20px;
     padding: 3.5rem 3.85rem;
     position: relative;
     overflow: hidden;
@@ -351,7 +355,7 @@ body::after {
     color: var(--text-sec);
     background: transparent;
     border: 1px solid var(--border);
-    border-radius: 9px;
+    border-radius: 10px;
     padding: 0.45rem 1rem;
     cursor: pointer;
     display: flex;
@@ -459,7 +463,7 @@ body::after {
 .project-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 21px;
+    border-radius: 20px;
     overflow: hidden;
     transition: border-color 0.2s, transform 0.2s;
 }
@@ -596,7 +600,7 @@ body::after {
 }
 .term-trigger-icon {
     pointer-events: none;
-    font-weight: 800;
+    font-weight: 700;
 }
 .term-trigger-label {
     pointer-events: none;
@@ -614,11 +618,11 @@ body::after {
     height: min(560px, 72vh);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     transform-origin: bottom right;
     transform: translateY(12px);
     opacity: 0;
@@ -637,7 +641,7 @@ body::after {
 @keyframes termFlash {
     0% {
         border-color: var(--border);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(34, 197, 94, 0.15);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     }
     25% {
         border-color: #dc2626;
@@ -645,7 +649,7 @@ body::after {
     }
     100% {
         border-color: var(--border);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(34, 197, 94, 0.15);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     }
 }
 .term-widget.is-open .term-trigger {
@@ -760,17 +764,55 @@ body::after {
 .term-menu-item.is-selected {
     color: var(--green);
 }
+.term-thinking {
+    color: var(--text-sec);
+}
+/* The ellipsis animates its width over static "..." text rather than swapping
+   characters, so the aria-live region announces the line once instead of on
+   every tick. The reduced-motion block at the end of this file then settles it
+   on the final frame — all three dots, shown statically. */
+.term-thinking-dots {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    white-space: nowrap;
+    animation: termDots 1.2s steps(4, jump-none) infinite;
+}
+@keyframes termDots {
+    from { width: 0; }
+    to   { width: 3ch; }
+}
 .term-game-controls {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin: 0.3rem 0;
+    /* Padding gives the commit flash a bar to fill; the negative horizontal
+       margin cancels it so the row stays aligned with the other log lines. */
+    margin: 1.5rem -0.4rem 0.3rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 10px;
+}
+.term-game-controls.is-committing {
+    animation: termCommit 0.26s ease-out;
+}
+@keyframes termCommit {
+    0%   { background: transparent; }
+    35%  { background: rgba(34, 197, 94, 0.38); box-shadow: 0 0 22px rgba(34, 197, 94, 0.45); }
+    100% { background: transparent; }
+}
+.term-line-commit {
+    animation: termCommitIn 0.3s ease-out;
+}
+@keyframes termCommitIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
 }
 .term-game-status {
     color: var(--text-sec);
 }
 .term-game-btn {
+    position: relative;                 /* anchors the floating +1 */
     font-family: var(--font);
     font-size: 0.78rem;
     font-weight: 600;
@@ -778,7 +820,7 @@ body::after {
     color: var(--green);
     background: var(--green-dim);
     border: 1px solid rgba(34, 197, 94, 0.35);
-    border-radius: 7px;
+    border-radius: 10px;
     padding: 0.3rem 0.7rem;
     cursor: pointer;
     transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
@@ -790,6 +832,37 @@ body::after {
 .term-game-btn:disabled {
     opacity: 0.35;
     cursor: not-allowed;
+}
+.term-game-btn.is-hit {
+    animation: termBtnPop 0.22s ease-out;
+}
+@keyframes termBtnPop {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(0.9); background: rgba(34, 197, 94, 0.34); }
+    70%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+/* Rises off the button and fades. Ends at opacity 0, so the reduced-motion
+   block settles it invisibly even though the JS already skips creating it. */
+.term-float {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;                       /* clears the button's own label */
+    margin-bottom: 3px;
+    z-index: 4;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    pointer-events: none;
+    color: var(--green-bright);
+    text-shadow: 0 0 8px var(--green-glow);
+    animation: termFloatUp 0.6s ease-out forwards;
+}
+@keyframes termFloatUp {
+    from { opacity: 0; transform: translate(-50%, 6px) scale(0.85); }
+    25%  { opacity: 1; transform: translate(-50%, 0) scale(1.1); }
+    to   { opacity: 0; transform: translate(-50%, -18px) scale(1.15); }
 }
 .project-info {
     padding: 1.75rem 2.1rem 2.1rem;
@@ -819,7 +892,7 @@ body::after {
     color: var(--green);
     background: var(--green-dim);
     border: 1px solid rgba(34,197,94,0.25);
-    border-radius: 7px;
+    border-radius: 10px;
     padding: 3.5px 14px;
 }
 button.skill-tag {
@@ -1109,7 +1182,7 @@ button.skill-tag.is-active {
     max-height: 85vh;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(34, 197, 94, 0.15);
     transform: scale(0.94) translateY(10px);
@@ -1157,7 +1230,7 @@ button.skill-tag.is-active {
     color: var(--green-bright);
     background: rgba(8, 11, 8, 0.6);
     padding: 0.55rem 1rem;
-    border-radius: 8px;
+    border-radius: 10px;
     border: 1px solid var(--green);
 }
 .timeline-lightbox-caption {
@@ -1214,18 +1287,6 @@ button.skill-tag.is-active {
     font-size: clamp(0.7rem, 1vw, 0.95rem);
     color: var(--text-muted);
     opacity: 0.7;
-}
-.spin{
-    animation: coinSpin 1s linear;
-}
-
-@keyframes coinSpin{
-    from{
-        transform: rotateY(0deg);
-    }
-    to{
-        transform: rotateY(360deg);
-    }
 }
 @keyframes blink {
     0%, 100% { opacity: 1; }
@@ -1307,7 +1368,7 @@ button.skill-tag.is-active {
         align-items: center;
         text-align: center;
         padding: 1.15rem 1.15rem;
-        border-radius: 18px;
+        border-radius: 16px;
         gap: 0.45rem;
     }
     .text-section {
@@ -1468,4 +1529,19 @@ button.skill-tag.is-active {
         right: 1.25rem;
     }
     
+}
+
+/* Every keyframe in this file resolves to a visible, neutral end state, so
+   snapping to the last frame is safe: the zzz and the ring pulse land on
+   opacity 0, the cursor lands lit, and entrances land fully faded in. */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
