@@ -6,19 +6,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <meta name="google-site-verification" content="WXzQ9o52w1TLc6XKwlZg3CNsgb2scPfndbog5V-G62I" />
-    <title>Freyr — Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์) | miyazaki1072</title>
-    <meta name="description" content="Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์) — also known as Freyr / miyazaki1072. Computer Engineering student at Chulalongkorn University, focused on backend engineering and competitive programming.">
+    <title>Freyr - Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์) | miyazaki1072</title>
+    <meta name="description" content="Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์) - also known as Freyr / miyazaki1072. Computer Engineering student at Chulalongkorn University, focused on backend engineering and competitive programming.">
     <meta name="keywords" content="Thitiwut Sreewasut, ธิติวุฒิ ศรีวะสุทธิ์, Freyr, Frey, miyazaki1072, miyazaki, Chulalongkorn University, Computer Engineering">
     <meta name="author" content="Thitiwut Sreewasut">
     <link rel="canonical" href="https://miyazaki1072.github.io/">
 
     <meta property="og:type" content="profile">
-    <meta property="og:title" content="Freyr — Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์)">
+    <meta property="og:title" content="Freyr - Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์)">
     <meta property="og:description" content="Computer Engineering student at Chulalongkorn University. Also known as miyazaki1072. Backend engineering & competitive programming.">
     <meta property="og:url" content="https://miyazaki1072.github.io/">
     <meta property="og:image" content="https://miyazaki1072.github.io/images/og-card.jpg">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Freyr — Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์)">
+    <meta name="twitter:title" content="Freyr - Thitiwut Sreewasut (ธิติวุฒิ ศรีวะสุทธิ์)">
     <meta name="twitter:description" content="Computer Engineering student at Chulalongkorn University. Also known as miyazaki1072.">
     <meta name="twitter:image" content="https://miyazaki1072.github.io/images/og-card.jpg">
 
@@ -78,14 +78,12 @@
                 <h1 class="name-txt">Freyr<span class="cursor">_</span></h1>
                 <p class="status-txt">Computer Engineering Student<br>@ Chulalongkorn University</p>
                 <div class="interest-block">
-                    <span class="interest-label">// areas of interest</span>
                     <ul class="interest-list">
                         <li>Backend Engineering</li>
                         <li>Competitive Programming</li>
                     </ul>
                 </div>
                 <div class="skills-block">
-                    <span class="interest-label skills-label">// what i use</span>
                     <div class="skill-group">
                         <span class="skill-group-label group-lang">languages</span>
                         <div class="skill-grid">
@@ -114,15 +112,15 @@
     </section>
     <section class="projects-section" id="projects">
         <div class="section-header">
-            <span class="section-tag">// projects</span>
+            <span class="section-tag" aria-hidden="true">~/projects</span>
             <h2 class="section-title">Things I've Built</h2>
         </div>
         <div class="filter-bar">
-            <span class="filter-label">// filter by stack</span>
+            <span class="filter-label" aria-hidden="true">~/projects/*</span>
             <div class="filter-tags" id="filterTags"></div>
-            <button type="button" class="filter-clear" id="filterClear" hidden>clear filters</button>
+            <button type="button" class="filter-clear" id="filterClear" hidden>unset filter</button>
         </div>
-        <p class="filter-empty" id="filterEmpty" hidden>No projects match this filter yet.</p>
+        <p class="filter-empty" id="filterEmpty" hidden>no matches found</p>
         <div class="project-grid" id="projectGrid">
             <div class="project-card" data-tags="C#,Unity Engine">
                 <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer" class="project-img-link">
@@ -136,7 +134,7 @@
                 </a>
                 <div class="project-info">
                     <p class="project-title">Mesosuem</p>
-                    <p class="project-sub">NSC2024 — Final Round</p>
+                    <p class="project-sub">NSC2024 - Final Round</p>
                     <p class="project-sub">3D Dinosaur musuem building game</p>
                     <div class="skill-container">
                         <span class="skill-tag">C#</span>
@@ -164,12 +162,52 @@
                     </div>
                 </div>
             </div>
-            
+
+        </div>
+        <!-- Hidden until data/contributions.json loads. That file is generated
+             into the Pages artifact at build time and never committed, so it is
+             absent in local dev and on a first deploy: the normal case, not an
+             error. -->
+        <div class="contrib-block" id="contributions" hidden>
+            <h3 class="contrib-title">~/contributions</h3>
+            <div class="contrib-scroll">
+                <div class="contrib-grid" id="contribGrid" role="img"
+                     aria-label="GitHub contribution activity"></div>
+            </div>
+            <div class="contrib-footer">
+                <dl class="contrib-stats">
+                    <div class="contrib-stat">
+                        <dt>total</dt>
+                        <dd id="contribTotal">-</dd>
+                    </div>
+                    <div class="contrib-stat">
+                        <dt>streak</dt>
+                        <dd id="contribCurrent">-</dd>
+                    </div>
+                    <div class="contrib-stat">
+                        <dt>longest</dt>
+                        <dd id="contribLongest">-</dd>
+                    </div>
+                    <div class="contrib-stat">
+                        <dt>busiest</dt>
+                        <dd id="contribBusiest">-</dd>
+                    </div>
+                </dl>
+                <div class="contrib-legend" aria-hidden="true">
+                    <span class="contrib-legend-text">less</span>
+                    <span class="contrib-cell" data-level="0"></span>
+                    <span class="contrib-cell" data-level="1"></span>
+                    <span class="contrib-cell" data-level="2"></span>
+                    <span class="contrib-cell" data-level="3"></span>
+                    <span class="contrib-cell" data-level="4"></span>
+                    <span class="contrib-legend-text">more</span>
+                </div>
+            </div>
         </div>
     </section>
     <section class="background-section" id="background">
         <div class="section-header">
-            <span class="section-tag">// background</span>
+            <span class="section-tag" aria-hidden="true">~/background</span>
             <h2 class="section-title">Background</h2>
         </div>
         <div class="bg-switch">
@@ -187,51 +225,51 @@
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
                                  data-image="images/education/cpcu.webp"
-                                 data-caption="Computer Engineering — Chulalongkorn University"
+                                 data-caption="Computer Engineering - Chulalongkorn University"
                                  data-fb="https://www.facebook.com/cpengchula">
-                                <p class="timeline-year">2026 — present</p>
+                                <p class="timeline-year">2026 - present</p>
                                 <p class="timeline-title">Computer Engineering</p>
                                 <p class="timeline-place">Chulalongkorn University</p>
-                                <span class="timeline-hint">view photo →</span>
+                                <span class="timeline-hint">open →</span>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
                                  data-image="images/education/witcom.jpg"
-                                 data-caption="Wit-Com Program — Rayongwittayakom School"
+                                 data-caption="Wit-Com Program - Rayongwittayakom School"
                                  data-fb="https://www.facebook.com/profile.php?id=100063568503408">
-                                <p class="timeline-year">2023 — 2026</p>
+                                <p class="timeline-year">2023 - 2026</p>
                                 <p class="timeline-title">Wit-Com Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 3.99</p>
-                                <span class="timeline-hint">view photo →</span>
+                                <span class="timeline-hint">open →</span>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
                                  data-image="images/education/gifted.jpg"
-                                 data-caption="Gifted Program — Rayongwittayakom School"
+                                 data-caption="Gifted Program - Rayongwittayakom School"
                                  data-fb="https://www.facebook.com/giftedrayongwit">
-                                <p class="timeline-year">2020 — 2023</p>
+                                <p class="timeline-year">2020 - 2023</p>
                                 <p class="timeline-title">Gifted Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">view photo →</span>
+                                <span class="timeline-hint">open →</span>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content" tabindex="0" role="button"
                                  data-image="images/education/acr.jpg"
-                                 data-caption="IEP Program — Assumption College Rayong"
+                                 data-caption="IEP Program - Assumption College Rayong"
                                  data-fb="https://www.facebook.com/ACR2506">
-                                <p class="timeline-year">2014 — 2020</p>
+                                <p class="timeline-year">2014 - 2020</p>
                                 <p class="timeline-title">IEP Program</p>
                                 <p class="timeline-place">Assumption College Rayong</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">view photo →</span>
+                                <span class="timeline-hint">open →</span>
                             </div>
                         </div>
                     </div>
@@ -242,8 +280,8 @@
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content">
-                                <p class="timeline-year">2025 — early 2026</p>
-                                <p class="timeline-title">Teaching Assistant — POSN Computer</p>
+                                <p class="timeline-year">2025 - early 2026</p>
+                                <p class="timeline-title">Teaching Assistant - POSN Computer</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                             </div>
                         </div>
@@ -257,10 +295,10 @@
                         <div class="timeline-item is-open">
                             <span class="timeline-dot timeline-dot-open" aria-hidden="true"></span>
                             <div class="timeline-content">
-                                <p class="timeline-year">20XX — ?</p>
+                                <p class="timeline-year">20XX - ?</p>
                                 <p class="timeline-title">Your Company Here</p>
                                 <p class="timeline-place">Open position</p>
-                                <p class="timeline-note">this slot's empty — could be you ;)</p>
+                                <p class="timeline-note">this slot's empty - could be you ;)</p>
                             </div>
                         </div>
                     </div>
@@ -290,8 +328,8 @@
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content">
                                 <p class="timeline-year">2024</p>
-                                <p class="timeline-title">NSC2024 — Final Round</p>
-                                <p class="timeline-place">National Software Contest — Mesosuem</p>
+                                <p class="timeline-title">NSC2024 - Final Round</p>
+                                <p class="timeline-place">National Software Contest - Mesosuem</p>
                             </div>
                         </div>
                     </div>
@@ -304,9 +342,9 @@
             <button type="button" class="timeline-lightbox-close" id="timelineLightboxClose" aria-label="Close photo">×</button>
             <a class="timeline-lightbox-img-link" id="timelineLightboxImgLink" target="_blank" rel="noopener noreferrer" aria-label="Visit Facebook page">
                 <img class="timeline-lightbox-img" id="timelineLightboxImg" alt="">
-                <p class="timeline-lightbox-empty" id="timelineLightboxEmpty">no photo added for this one yet</p>
+                <p class="timeline-lightbox-empty" id="timelineLightboxEmpty">no such file</p>
                 <div class="timeline-lightbox-fb-overlay">
-                    <span class="timeline-lightbox-fb-label">visit fb page →</span>
+                    <span class="timeline-lightbox-fb-label">open fb →</span>
                 </div>
             </a>
             <p class="timeline-lightbox-caption" id="timelineLightboxCaption"></p>

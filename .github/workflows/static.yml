@@ -6,6 +6,10 @@ on:
   push:
     branches: ["main"]
 
+  # Rebuilds daily so the contribution heatmap stays current without a push.
+  schedule:
+    - cron: '17 3 * * *'
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -33,6 +37,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      # Baked in here because the contributions calendar is GraphQL-only and
+      # GraphQL needs a token, which can never ship in a public static page.
+      # Prefers CONTRIB_TOKEN (a PAT with read:user) and falls back to the
+      # built-in token, which may not be authorised for this field.
+      - name: Fetch contributions
+        env:
+          GH_LOGIN: MiyaZaki1072
+          GH_TOKEN: ${{ secrets.CONTRIB_TOKEN || secrets.GITHUB_TOKEN }}
+        run: node scripts/fetch-contributions.mjs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

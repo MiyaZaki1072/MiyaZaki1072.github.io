@@ -31,6 +31,14 @@
     /* Amber — achievement earned */
     --amber:         #ffb000;
 
+    /* Contribution heatmap — a 5-step ramp of --green rather than a new hue, so
+       the grid still reads as "green means activity" like everything else. */
+    --contrib-0:     var(--surface-2);
+    --contrib-1:     rgba(34, 197, 94, 0.22);
+    --contrib-2:     rgba(34, 197, 94, 0.45);
+    --contrib-3:     rgba(34, 197, 94, 0.70);
+    --contrib-4:     var(--green);
+
     /* Text — 15.5:1 / 7.4:1 / 5.6:1 on --bg */
     --text-pri:      #dde6dd;
     --text-sec:      #93a393;
@@ -189,7 +197,7 @@ body::after {
 
 /* Hero --------------------------------------------------------------------- */
 .about-section {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -330,7 +338,9 @@ body::after {
     background: var(--green);
     border: 4px solid var(--bg);
     z-index: 2;
-    box-shadow: 0 0 14px var(--green);
+    /* Tight halo, not a neon bloom: the dot reads as live state, and --green-glow
+       is the token that exists for exactly this edge treatment. */
+    box-shadow: 0 0 0 3px var(--green-glow);
 }
 .zzz {
     position: absolute;
@@ -417,12 +427,6 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
-}
-.interest-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-body);
-    color: var(--text-muted);
-    letter-spacing: 0.08em;
 }
 .interest-list {
     list-style: none;
@@ -546,6 +550,90 @@ body::after {
     line-height: 1.1;
 }
 
+/* Contribution heatmap ------------------------------------------------------ */
+/* A sub-block of the projects section, not a section of its own: the hairline
+   and the smaller heading keep it subordinate to "Things I've Built". */
+.contrib-block {
+    margin-top: var(--sp-8);
+    padding-top: var(--sp-6);
+    border-top: 1px solid var(--border);
+}
+.contrib-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-bottom: var(--sp-4);
+}
+/* 53 columns cannot fit a phone, so the grid scrolls inside its own box and the
+   page body never scrolls sideways. */
+.contrib-scroll {
+    overflow-x: auto;
+    padding-bottom: var(--sp-2);
+}
+.contrib-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 1fr);
+    gap: 3px;
+    min-width: max-content;
+}
+.contrib-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    background: var(--contrib-0);
+}
+.contrib-cell[data-level="1"] { background: var(--contrib-1); }
+.contrib-cell[data-level="2"] { background: var(--contrib-2); }
+.contrib-cell[data-level="3"] { background: var(--contrib-3); }
+.contrib-cell[data-level="4"] { background: var(--contrib-4); }
+/* Days outside the reported range: they hold the column's shape without
+   claiming the day was empty. */
+.contrib-cell.is-empty {
+    background: transparent;
+}
+/* Stats and legend share one row, so the block stays compact. */
+.contrib-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-top: var(--sp-4);
+}
+.contrib-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+.contrib-legend-text {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+}
+.contrib-legend-text:first-child { margin-right: var(--sp-1); }
+.contrib-legend-text:last-child  { margin-left: var(--sp-1); }
+.contrib-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-6);
+}
+.contrib-stat dt {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+.contrib-stat dd {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--text-pri);
+    margin-top: var(--sp-1);
+}
+
 /* Project filter ----------------------------------------------------------- */
 .filter-bar {
     display: flex;
@@ -589,6 +677,20 @@ body::after {
 /* Project cards ------------------------------------------------------------ */
 .project-card.is-hidden {
     display: none;
+}
+/* Scroll reveal. The grid was the one section that never animated in, which read
+   as flat next to the hero's fadeUp and the timeline's own entrance.
+
+   Both classes are transient: JS adds .reveal-pending only when motion is
+   allowed, swaps it for .reveal-in at the viewport edge, then strips .reveal-in
+   on animationend. A card that has finished is left with no animation property
+   at all, so the tag filter toggling `display` can never replay it. */
+.project-card.reveal-pending {
+    opacity: 0;
+}
+.project-card.reveal-in {
+    animation: fadeUp 0.5s ease both;
+    animation-delay: calc(var(--reveal-i, 0) * 70ms);
 }
 .project-grid {
     display: grid;

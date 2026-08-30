@@ -16,9 +16,7 @@ const i18n = (function () {
             tagLine: '> whoami',
             name: 'Freyr',
             status: 'Computer Engineering Student\n@ Chulalongkorn University',
-            interestLabel: '// areas of interest',
             interests: ['Backend Engineering', 'Competitive Programming'],
-            skillsLabel: '// what i use',
             skillGroups: ['languages', 'tools & frameworks'],
             tooltipHas: '→ see what i built',
             tooltipNone: '→ no projects yet',
@@ -28,9 +26,7 @@ const i18n = (function () {
             tagLine: '> ฉันคือใคร',
             name: 'เฟรย์',
             status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
-            interestLabel: '// สาขาที่สนใจ',
             interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
-            skillsLabel: '// เทคโนโลยีที่ใช้',
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
             tooltipNone: '→ ยังไม่มีโปรเจคนี้',
@@ -332,8 +328,6 @@ const ASCII_CAT_2 = `
             { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
             { el: document.querySelector('.name-txt'),       text: d.name,          delay: 80,  duration: 650, suffix: CURSOR },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
-            { el: document.querySelector('.interest-label'), text: d.interestLabel, delay: 240, duration: 600 },
-            { el: document.querySelector('.skills-label'),   text: d.skillsLabel,   delay: 300, duration: 600 },
         ];
         targets.forEach(({ el, text, delay, duration, suffix }) => {
             if (el) setTimeout(() => scrambleText(el, text, { duration, suffix }), delay);
@@ -483,6 +477,95 @@ const ASCII_CAT_2 = `
     });
 })();
 
+//Project card scroll reveal -------------------------------------------------
+//Staggered so the eye travels the grid in reading order as the section enters.
+//One-shot by construction: the card is stripped of both reveal classes once its
+//animation ends, so the tag filter's display toggling has no animation left to
+//restart. Under reduced motion no class is ever added and the cards just sit
+//there at full opacity.
+(function () {
+    const cards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
+    if (!cards.length || reducedMotion.matches) return;
+
+    cards.forEach((card, i) => {
+        card.style.setProperty('--reveal-i', i);
+        card.classList.add('reveal-pending');
+    });
+
+    const reveal = card => {
+        card.classList.remove('reveal-pending');
+        card.classList.add('reveal-in');
+        card.addEventListener('animationend', () => card.classList.remove('reveal-in'), { once: true });
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            reveal(entry.target);
+            observer.unobserve(entry.target);
+        });
+    }, { rootMargin: '0px 0px -10% 0px' });
+
+    cards.forEach(card => observer.observe(card));
+})();
+
+//GitHub contributions -------------------------------------------------------
+//The data is baked in at build time by scripts/fetch-contributions.mjs. The
+//calendar is GraphQL-only and GraphQL needs a token, which can never ship in a
+//page served publicly, so there is no client-side path to it.
+//
+//That file is generated into the Pages artifact and never committed, so it is
+//simply absent in local dev and on a first deploy. That is the ordinary case,
+//not a failure: the block stays hidden and nothing is logged.
+(function () {
+    const block = document.getElementById('contributions');
+    const grid = document.getElementById('contribGrid');
+    if (!block || !grid) return;
+
+    fetch('data/contributions.json')
+        .then(response => (response.ok ? response.json() : Promise.reject(response.status)))
+        .then(render)
+        .catch(() => { /* no data yet, leave the section hidden */ });
+
+    function render(data) {
+        if (!Array.isArray(data.weeks) || !data.weeks.length) return;
+
+        //One fragment, one append: 365 individual insertions would lay out the
+        //grid 365 times.
+        const fragment = document.createDocumentFragment();
+        data.weeks.forEach(week => {
+            week.forEach(level => {
+                const cell = document.createElement('span');
+                cell.className = 'contrib-cell';
+                if (level === null) cell.classList.add('is-empty');
+                else cell.dataset.level = level;
+                fragment.appendChild(cell);
+            });
+        });
+        grid.appendChild(fragment);
+
+        //The grid is one image to a screen reader, not 371 unlabelled cells.
+        grid.setAttribute('aria-label', `${data.total} GitHub contributions in the last year`);
+
+        setText('contribTotal', data.total.toLocaleString());
+        setText('contribCurrent', `${data.streak.current} days`);
+        setText('contribLongest', `${data.streak.longest} days`);
+        setText('contribBusiest', data.busiestWeekday);
+
+        block.hidden = false;
+
+        //Newest weeks sit at the right edge, so a narrow screen should open on
+        //them rather than on last year.
+        const scroller = block.querySelector('.contrib-scroll');
+        if (scroller) scroller.scrollLeft = scroller.scrollWidth;
+    }
+
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    }
+})();
+
 //Background timeline — experience/education switch
 (function () {
     const timeline = document.getElementById('timeline');
@@ -545,7 +628,7 @@ const ASCII_CAT_2 = `
         });
 
         const label = capitalize(mode);
-        const hint = `switch to ${other(mode)} →`;
+        const hint = `cd ~/${other(mode)} →`;
         if (animate) {
             scrambleText(toggleLabel, label, scrambleOpts);
             scrambleText(toggleHint, hint, scrambleOpts);
@@ -640,7 +723,7 @@ const ASCII_CAT_2 = `
     let lossTimer = null;
 
     const GAMES = [
-        { id: '21', label: '21 — last to 21 loses' },
+        { id: '21', label: '21 - last to 21 loses' },
     ];
 
     //Freyr "deliberating" before moving. Randomised so it never reads as a
@@ -724,7 +807,7 @@ const ASCII_CAT_2 = `
             const place = item.querySelector('.timeline-place')?.textContent.trim();
             if (i > 0) lines.push('');
             lines.push(year);
-            lines.push(`  ${title} — ${place}`);
+            lines.push(`  ${title} - ${place}`);
         });
         return lines;
     }
@@ -762,7 +845,7 @@ const ASCII_CAT_2 = `
     }
 
     function confirmMenuSelection() {
-        appendLine("21 — take turns adding 1-3 to the total. whoever hits 21 loses.");
+        appendLine("21 - take turns adding 1-3 to the total. whoever hits 21 loses.");
         appendLine("you go first. lose and you owe me an internship. or a job. i'm flexible ;)");
         startGame();
     }
@@ -816,7 +899,7 @@ const ASCII_CAT_2 = `
         const line = document.createElement('div');
         line.className = 'term-line term-game-controls';
         line.innerHTML = `
-            <span class="term-game-status">total: ${gameTotal} — adding: 0</span>
+            <span class="term-game-status">total: ${gameTotal} - adding: 0</span>
             <button type="button" class="term-game-btn" data-action="add">+1</button>
             <button type="button" class="term-game-btn term-game-done" data-action="done" disabled>done</button>
         `;
@@ -865,7 +948,7 @@ const ASCII_CAT_2 = `
             popButton(addBtn);
             floatGain(addBtn, '+1');
             gamePending = Math.min(3, gamePending + 1);
-            status.textContent = `total: ${gameTotal} — adding: ${gamePending}`;
+            status.textContent = `total: ${gameTotal} - adding: ${gamePending}`;
             doneBtn.disabled = false;
             if (gamePending >= 3) addBtn.disabled = true;
             if (gameTotal + gamePending >= 21) {
@@ -920,7 +1003,7 @@ const ASCII_CAT_2 = `
 
     function endGame(loser) {
         if (loser === 'player') {
-            appendLine('💀 total hit 21 — you lose.');
+            appendLine('💀 total hit 21 - you lose.');
             appendLine("per the house rules you now owe freyr an internship (or a job, i'm not picky).");
             appendLine("type 'game' to run it back.");
         } else {
@@ -987,7 +1070,7 @@ const ASCII_CAT_2 = `
 
     function bootSequence() {
         const l1 = appendLine('');
-        scrambleText(l1, "freyr's terminal — type 'help' to get started",
+        scrambleText(l1, "freyr's terminal - type 'help' to get started",
                      { duration: 500, pool: CHARS.en, asText: true });
         appendLine('');
     }
