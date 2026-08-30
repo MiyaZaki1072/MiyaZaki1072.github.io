@@ -3,6 +3,11 @@
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
+//Project cards carry their stack as a comma-separated attribute. The tag filter
+//and the terminal's `projects` command both read it, so the parse lives here
+//rather than once in each.
+const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
+
 const CHARS = {
     en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
     th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
@@ -76,10 +81,12 @@ function scrambleText(el, target, options) {
         return;
     }
 
+    //Split once and reuse: step runs ~60 times a second.
+    const letters = plain.split('');
     const start = performance.now();
     const step = (now) => {
         const progress = Math.min(1, (now - start) / duration);
-        const scrambled = plain.split('').map((char, i) => {
+        const scrambled = letters.map((char, i) => {
             if (char === ' ') return char;
             if (i / plain.length < progress) return char;
             return chars[Math.floor(Math.random() * chars.length)];
@@ -217,13 +224,6 @@ const ASCII_CAT_2 = `
     if (!myFaceImage || !profileChangeRing || !statusDot || !avatarRing) return;
 
     const HOLD_MS = 3000;
-    const profiles = [
-        { src: 'images/myface1.webp', color: 'var(--green)', art: ASCII_CAT_1 },
-        { src: 'images/myface2.webp', color: 'var(--amber)', art: ASCII_CAT_2 },
-    ];
-    let index = -1;
-    let frame = null;
-    let timer = null;
 
     //Each art is written as a template literal to stay legible in the source,
     //which leaves a newline after the opening backtick — and on a CRLF checkout
@@ -234,13 +234,28 @@ const ASCII_CAT_2 = `
     //derived from whichever art is showing rather than hardcoded. Measuring the
     //string itself means new art needs no matching edit in the CSS. A braille
     //glyph advances 0.7em, so the art spans cols*0.7 em across and rows down.
-    function showArt(raw) {
-        if (!asciiFace) return;
+    //
+    //Holding re-runs this every three seconds, so the strip-and-measure happens
+    //once per cat here rather than once per swap.
+    const prepArt = (raw) => {
         const art = raw.replace(/\r/g, '').replace(/^\n/, '');
         const rows = art.split('\n');
+        return { art, cols: ([...rows[0]].length * 0.7).toFixed(2), rows: rows.length };
+    };
+
+    const profiles = [
+        { src: 'images/myface1.webp', color: 'var(--green)', art: prepArt(ASCII_CAT_1) },
+        { src: 'images/myface2.webp', color: 'var(--amber)', art: prepArt(ASCII_CAT_2) },
+    ];
+    let index = -1;
+    let frame = null;
+    let timer = null;
+
+    function showArt({ art, cols, rows }) {
+        if (!asciiFace) return;
         asciiFace.textContent = art;
-        asciiFace.style.setProperty('--ascii-w', ([...rows[0]].length * 0.7).toFixed(2));
-        asciiFace.style.setProperty('--ascii-rows', rows.length);
+        asciiFace.style.setProperty('--ascii-w', cols);
+        asciiFace.style.setProperty('--ascii-rows', rows);
     }
 
     function setProgress(deg) {
@@ -401,20 +416,21 @@ const ASCII_CAT_2 = `
     const filterEmptyMsg = document.getElementById('filterEmpty');
     if (!projectCards.length || !filterTagsContainer || !filterClearBtn || !filterEmptyMsg) return;
 
-    const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
     const activeFilters = new Set();
-    const uniqueTags = [];
-    projectCards.forEach(card => {
-        tagsOf(card).forEach(tag => {
-            if (!uniqueTags.includes(tag)) uniqueTags.push(tag);
-        });
-    });
+    //Tags never change, so each card is parsed once here rather than on every
+    //filter pass, and into a Set so the match below is a lookup, not a scan.
+    const cardTags = new Map(projectCards.map(card => [card, new Set(tagsOf(card))]));
+    //Set keeps insertion order, so the buttons still come out in card order.
+    const uniqueTags = new Set(projectCards.flatMap(tagsOf));
 
     function applyFilters() {
+        //every() on an empty list is already true, so no filters means no match
+        //test — the same shortcut the explicit size check used to spell out.
+        const wanted = [...activeFilters];
         let visibleCount = 0;
         projectCards.forEach(card => {
-            const tags = tagsOf(card);
-            const matches = activeFilters.size === 0 || Array.from(activeFilters).every(f => tags.includes(f));
+            const tags = cardTags.get(card);
+            const matches = wanted.every(f => tags.has(f));
             card.classList.toggle('is-hidden', !matches);
             if (matches) visibleCount++;
         });
@@ -454,7 +470,7 @@ const ASCII_CAT_2 = `
     function updateTechTooltips() {
         const d = i18n.strings;
         heroTechBtns.forEach(btn => {
-            btn.dataset.tooltip = uniqueTags.includes(btn.dataset.tech) ? d.tooltipHas : d.tooltipNone;
+            btn.dataset.tooltip = uniqueTags.has(btn.dataset.tech) ? d.tooltipHas : d.tooltipNone;
         });
     }
 
@@ -464,7 +480,7 @@ const ASCII_CAT_2 = `
     heroTechBtns.forEach(btn => {
         const tech = btn.dataset.tech;
         btn.addEventListener('click', () => {
-            if (uniqueTags.includes(tech)) {
+            if (uniqueTags.has(tech)) {
                 activeFilters.clear();
                 activeFilters.add(tech);
                 applyFilters();
@@ -616,15 +632,19 @@ const ASCII_CAT_2 = `
             const show = group.dataset.category === mode;
             group.hidden = !show;
             const items = group.querySelectorAll('.timeline-item');
+            items.forEach(item => item.classList.remove('is-entering'));
+            if (!show || !animate) return;
+
+            //Reading offsetWidth forces a synchronous layout, which is the point
+            //— it is what makes the re-added class restart the animation. Doing
+            //it once for the column after every class is off costs one layout
+            //instead of one per entry.
+            void group.offsetWidth;
             items.forEach((item, i) => {
-                item.classList.remove('is-entering');
-                if (show && animate) {
-                    void item.offsetWidth;
-                    item.style.animationDelay = `${i * 0.06}s`;
-                    item.classList.add('is-entering');
-                }
+                item.style.animationDelay = `${i * 0.06}s`;
+                item.classList.add('is-entering');
             });
-            if (show && animate) scrambleGroup(group);
+            scrambleGroup(group);
         });
 
         const label = capitalize(mode);
@@ -737,18 +757,20 @@ const ASCII_CAT_2 = `
         'hmm',
     ];
 
+    const scrollOut = () => { output.scrollTop = output.scrollHeight; };
+
     function appendLine(text, className) {
         const line = document.createElement('div');
         line.className = 'term-line' + (className ? ' ' + className : '');
         line.textContent = text;
         output.appendChild(line);
-        output.scrollTop = output.scrollHeight;
+        scrollOut();
         return line;
     }
 
     function appendBlock(lines, className) {
+        //appendLine already scrolls, so the last line has done it.
         (Array.isArray(lines) ? lines : [lines]).forEach(l => appendLine(l, className));
-        output.scrollTop = output.scrollHeight;
     }
 
     //Data readers — DOM is the source of truth, mirrors the tag-filter system's approach
@@ -775,8 +797,9 @@ const ASCII_CAT_2 = `
 
     function readProjects(filterTag) {
         const cards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
-        const filtered = filterTag
-            ? cards.filter(c => c.dataset.tags.split(',').map(t => t.trim().toLowerCase()).includes(filterTag.toLowerCase()))
+        const wanted = filterTag && filterTag.toLowerCase();
+        const filtered = wanted
+            ? cards.filter(c => tagsOf(c).some(t => t.toLowerCase() === wanted))
             : cards;
         if (!filtered.length) {
             return [filterTag ? `no projects tagged "${filterTag}".` : 'no projects found.'];
@@ -869,6 +892,15 @@ const ASCII_CAT_2 = `
         panel.classList.remove('is-flash');
     }
 
+    //Every way out of a game or the menu has to put the same four pieces of
+    //state back. Four hand-written copies is four chances to forget one.
+    function exitToCommandMode() {
+        mode = 'command';
+        controlsEl = null;
+        input.disabled = false;
+        input.placeholder = '';
+    }
+
     function popButton(btn) {
         if (reducedMotion.matches) return;
         btn.classList.remove('is-hit');
@@ -904,7 +936,7 @@ const ASCII_CAT_2 = `
             <button type="button" class="term-game-btn term-game-done" data-action="done" disabled>done</button>
         `;
         output.appendChild(line);
-        output.scrollTop = output.scrollHeight;
+        scrollOut();
         controlsEl = line;
 
         const addBtn = line.querySelector('[data-action="add"]');
@@ -925,7 +957,7 @@ const ASCII_CAT_2 = `
                 summary.className = 'term-line term-line-commit';
                 summary.textContent = `you added ${played} → total: ${gameTotal}`;
                 line.replaceWith(summary);
-                output.scrollTop = output.scrollHeight;
+                scrollOut();
                 controlsEl = null;
                 if (gameTotal >= 21) {
                     triggerLossEffect();
@@ -974,10 +1006,8 @@ const ASCII_CAT_2 = `
         const move = 4 - (gameTotal % 4);
         const label = THINKING_LINES[Math.floor(Math.random() * THINKING_LINES.length)];
 
-        thinkingEl = appendLine('');
-        thinkingEl.className = 'term-line term-thinking';
+        thinkingEl = appendLine('', 'term-thinking');
         thinkingEl.innerHTML = `${label}<span class="term-thinking-dots">...</span>`;
-        output.scrollTop = output.scrollHeight;
 
         //The total only advances once the move is on screen, so forfeiting
         //mid-think can never leave the state ahead of what the player saw.
@@ -991,7 +1021,7 @@ const ASCII_CAT_2 = `
             line.className = 'term-line';
             line.textContent = `freyr added ${move} → total: ${gameTotal}`;
             settled.replaceWith(line);
-            output.scrollTop = output.scrollHeight;
+            scrollOut();
 
             if (gameTotal >= 21) {
                 endGame('computer');
@@ -1009,10 +1039,7 @@ const ASCII_CAT_2 = `
         } else {
             appendLine("...that shouldn't have happened. well played.");
         }
-        mode = 'command';
-        input.disabled = false;
-        input.placeholder = '';
-        controlsEl = null;
+        exitToCommandMode();
         appendLine('');
         input.focus();
     }
@@ -1090,10 +1117,7 @@ const ASCII_CAT_2 = `
         trigger.setAttribute('aria-expanded', 'false');
         if (mode !== 'command') {
             cancelPendingTurn();
-            mode = 'command';
-            input.disabled = false;
-            input.placeholder = '';
-            controlsEl = null;
+            exitToCommandMode();
         }
         trigger.focus();
     }
@@ -1106,9 +1130,7 @@ const ASCII_CAT_2 = `
 
         if (mode === 'menu') {
             if (e.key === 'Escape') {
-                mode = 'command';
-                input.disabled = false;
-                input.placeholder = '';
+                exitToCommandMode();
                 appendLine('cancelled.');
                 input.focus();
             } else if (e.key === 'ArrowUp') {
@@ -1129,10 +1151,7 @@ const ASCII_CAT_2 = `
         if (e.key !== 'Escape') return;
         if (mode === 'game') {
             cancelPendingTurn();
-            mode = 'command';
-            input.disabled = false;
-            input.placeholder = '';
-            controlsEl = null;
+            exitToCommandMode();
             appendLine('game forfeited.');
             input.focus();
         } else {
