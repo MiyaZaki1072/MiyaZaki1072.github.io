@@ -572,12 +572,26 @@ body::after {
 }
 
 /* Contribution heatmap ------------------------------------------------------ */
-/* A sub-block of the projects section, not a section of its own: the hairline
-   and the smaller heading keep it subordinate to "Things I've Built". */
+/* Boxed like .about-inner / .timeline so it reads as its own card above the
+   black hole backdrop — unboxed, the raster showed straight through the gaps
+   between cells. The smaller heading keeps it visually subordinate to
+   "Things I've Built" despite now sharing the card treatment. */
 .contrib-block {
     margin-top: var(--sp-8);
-    padding-top: var(--sp-6);
-    border-top: 1px solid var(--border);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-6) var(--sp-6) var(--sp-7);
+    position: relative;
+    overflow: hidden;
+}
+.contrib-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.5;
 }
 .contrib-title {
     font-family: var(--font-mono);
