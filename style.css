@@ -1,10 +1,12 @@
 /* ---------------------------------------------------------------------------
    Design tokens
 
-   Three jobs, three typefaces: Space Grotesk carries display, IBM Plex Sans
-   carries prose, and JetBrains Mono is reserved for the terminal voice — code,
-   commands, labels. Mono only reads as "code" when it isn't also setting the
-   headings.
+   One typeface, three jobs. JetBrains Mono sets display, prose and the terminal
+   voice alike: once the page became a TUI, a proportional heading was the only
+   thing on it still pretending to be a document. The three tokens stay separate
+   because size, weight and tracking still differ per job — the family is what
+   they now agree on. IBM Plex Sans Thai backs all three, because the EN/TH
+   toggle needs Thai glyphs and JetBrains Mono has none.
 
    Colour is split the same way. Green means live or interactive and nothing
    else; amber means an achievement was earned; structure is neutral. Every text
@@ -74,8 +76,8 @@
     --text-muted:    #7f8c7f;
 
     /* Type */
-    --font-display: 'Space Grotesk', 'IBM Plex Sans Thai', system-ui, sans-serif;
-    --font-body:    'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
+    --font-display: 'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
+    --font-body:    'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
     --font-mono:    'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 
     --fs-display: clamp(2.75rem, 6vw, 5.25rem);
@@ -101,9 +103,13 @@
     --sp-8: 64px;
     --sp-9: 96px;
 
-    /* Radius — small for controls, large for surfaces */
-    --r-sm:   8px;
-    --r-lg:   16px;
+    /* Radius. A character grid cannot draw a curve, so every box on the page is
+       square and these two are 0 — they stay as tokens rather than being deleted
+       because "how round is a box" is still one decision, made in one place.
+       The two exceptions are shapes, not boxes: --r-pill for the terminal
+       trigger and the avatar's own 50%. */
+    --r-sm:   0;
+    --r-lg:   0;
     --r-pill: 999px;
 
     /* Layout spine. Every section on the page resolves its left edge from these
@@ -221,6 +227,63 @@ body::after {
     opacity: 0.05;
 }
 
+/* TUI frame -----------------------------------------------------------------
+   A terminal has no curves: it draws a box out of the rule itself, and titles
+   that box by breaking the rule and dropping a label into the gap —
+
+       ┌─ ~/projects ─────────────────┐
+
+   Every panel here already carried the label it needs (~/projects, the filter
+   path, ~/contributions), so those are lifted onto the border rather than
+   invented, and the panels with no heading of their own get one from content.
+   The green hairline these panels used to wear is retired with it: the notch
+   marks the top edge now, and two markers on one edge read as noise.
+
+   Squaring the corners is what lets the old `overflow: hidden` go — it was
+   clipping that hairline and the corners of the images inside, and a label that
+   straddles the top rule survives neither. */
+.about-inner,
+.section-header,
+.filter-bar,
+.contrib-block,
+.project-card,
+.timeline {
+    position: relative;
+    border-radius: 0;
+}
+/* Half in, half out, painting --bg across the line so the rule is genuinely
+   broken rather than merely covered. */
+.about-inner::before,
+.section-header .section-tag,
+.filter-bar .filter-label,
+.contrib-block .contrib-title,
+.project-card::before,
+.timeline::before {
+    position: absolute;
+    top: 0;
+    left: var(--sp-5);
+    /* Above the panel's own content: .project-img-wrap is positioned and comes
+       later in the DOM, so without this the card's label paints behind its
+       screenshot. */
+    z-index: 1;
+    transform: translateY(-50%);
+    margin: 0;
+    padding: 0 var(--sp-2);
+    background: var(--bg);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.about-inner::before  { content: 'guest@freyr:~'; }
+.project-card::before { content: attr(data-label); }
+/* The timeline titles itself with whichever track is on show. */
+.timeline[data-mode="education"]::before  { content: '~/background/education'; }
+.timeline[data-mode="experience"]::before { content: '~/background/experience'; }
+
 /* Nav ---------------------------------------------------------------------- */
 .navbar {
     position: fixed;
@@ -296,18 +359,7 @@ body::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
     padding: var(--sp-8) var(--sp-8);
-    position: relative;
-    overflow: hidden;
-}
-.about-inner::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--green), transparent);
-    opacity: 0.5;
 }
 /* One variable drives the photo, the ASCII grid and the breakpoints, so the two
    renderings can never drift out of step. The cats are Braille grids of two
@@ -650,7 +702,6 @@ body::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
 }
 /* Annotation, not a live element — neutral, unlike the hero's `> whoami`. */
 .section-tag {
@@ -678,18 +729,7 @@ body::after {
     margin-top: var(--sp-8);
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
     padding: var(--sp-6) var(--sp-6) var(--sp-7);
-    position: relative;
-    overflow: hidden;
-}
-.contrib-block::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--green), transparent);
-    opacity: 0.5;
 }
 .contrib-title {
     font-family: var(--font-mono);
@@ -779,7 +819,6 @@ body::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
 }
 .filter-label {
     font-family: var(--font-mono);
@@ -850,8 +889,6 @@ body::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    overflow: hidden;
     transition: border-color 0.2s, transform 0.2s;
 }
 .project-card:hover {
@@ -1112,18 +1149,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    border-radius: var(--r-lg);
     padding: var(--sp-8);
-    position: relative;
-    overflow: hidden;
-}
-.timeline::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--green), transparent);
-    opacity: 0.5;
 }
 .timeline-columns {
     display: grid;
