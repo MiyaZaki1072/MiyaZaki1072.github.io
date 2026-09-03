@@ -45,6 +45,12 @@
     </script>
 </head>
 <body>
+    <!-- Backdrop, not content: a scroll-driven character raster that sits under
+         every section. aria-hidden because it carries no information a reader
+         needs, and empty because blackhole.js fills it on the first frame. -->
+    <div class="blackhole" id="blackhole" aria-hidden="true">
+        <pre class="blackhole__world"></pre>
+    </div>
     <nav class="navbar">
         <a href="#about" class="nav-link">home</a>
         <a href="#projects" class="nav-link">projects</a>
@@ -378,5 +384,6 @@
         <span class="footer-copy">freyr &copy; 2026</span>
     </footer>
     <script src="index.js"></script>
+    <script src="blackhole.js"></script>
 </body>
 </html>

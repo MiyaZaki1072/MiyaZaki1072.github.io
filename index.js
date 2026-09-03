@@ -1062,6 +1062,7 @@ const ASCII_CAT_2 = `
         "  education         academic background",
         "  contact           email / discord / github",
         "  game              play a game with me",
+        "  blackhole         toggle the backdrop",
         "  clear             clear the screen",
     ];
 
@@ -1074,6 +1075,14 @@ const ASCII_CAT_2 = `
         education: () => readEducation(),
         contact: () => readContact(),
         game: () => cmdGame(),
+        //blackhole.js is a separate script, so it may legitimately not be here
+        //(blocked, failed to load); the command says so rather than throwing.
+        blackhole: () => {
+            if (!window.blackhole) return 'blackhole: no such object in this universe.';
+            return window.blackhole.toggle()
+                ? 'accretion disk spun up. scroll to fall in.'
+                : 'horizon collapsed. the sky is quiet again.';
+        },
         sudo: () => 'permission denied: nice try.',
         clear: () => { output.innerHTML = ''; return null; },
     };

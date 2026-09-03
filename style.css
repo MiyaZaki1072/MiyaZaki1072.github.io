@@ -549,6 +549,11 @@ body::after {
     font-size: var(--fs-micro);
     color: var(--text-muted);
     letter-spacing: 0.1em;
+    /* A dark glow, not a box: this label sits loose in the layout rather than
+       inside a padded container, so a scrim would mean inventing a box just to
+       hold one. The glow separates it from the black hole backdrop the same
+       way without touching geometry. */
+    text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
 }
 .section-title {
     font-family: var(--font-display);
@@ -558,6 +563,12 @@ body::after {
     margin-top: var(--sp-2);
     letter-spacing: -0.02em;
     line-height: 1.1;
+    /* This heading had no protection at all against the backdrop — unlike
+       .section-tag just above it, which already got a glow in the readability
+       pass. Large bold text doesn't fail contrast outright, but its edges pick
+       up the raster's own glyphs right where they overlap, which reads as
+       noise rather than a contrast problem. Same glow, same fix. */
+    text-shadow: 0 0 8px var(--bg), 0 0 4px var(--bg);
 }
 
 /* Contribution heatmap ------------------------------------------------------ */
@@ -932,9 +943,28 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translateY(0);
 }
+/* The same card the hero is built from — surface, hairline border, large
+   radius, green top edge — so the two long-form panels on the page read as one
+   family. The width grew by exactly the padding it gained (1120 + 2 × --sp-8),
+   which keeps the two timeline columns as wide as they were before the card
+   went round them. */
 .timeline {
-    max-width: 1120px;
+    max-width: 1248px;
     margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-8);
+    position: relative;
+    overflow: hidden;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.5;
 }
 .timeline-columns {
     display: grid;
@@ -1555,6 +1585,10 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     color: var(--text-sec);
     letter-spacing: 0.08em;
     border-top: 1px solid var(--border);
+    /* The footer sits where the black hole is largest. A glow, not a scrim,
+       so the contrast fix here stays independent of the AA fix noted below —
+       neither one's margin eats into the other's. */
+    text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
 }
 /* No opacity multiplier here — it used to drag this to 4.14:1, under AA. */
 .footer-copy {
@@ -1601,6 +1635,9 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .timeline {
         max-width: 100%;
+        /* Tracks .about-inner at this breakpoint — the two cards step down
+           together rather than drifting apart. */
+        padding: var(--sp-6) var(--sp-5);
     }
     .timeline-columns {
         grid-template-columns: 1fr;
@@ -1692,6 +1729,9 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     .project-info {
         padding: var(--sp-5) var(--sp-5) var(--sp-5);
     }
+    .timeline {
+        padding: var(--sp-5) var(--sp-4);
+    }
     .timeline-track {
         gap: var(--sp-5);
     }
@@ -1763,6 +1803,54 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         font-size: 2rem;
         padding: var(--sp-3) var(--sp-5);
     }
+}
+
+/* Black hole backdrop -------------------------------------------------------
+   z-index -1 puts this above the body background (which propagates to the
+   canvas, since html sets none) and below every section's own content, so it
+   needs no stacking changes anywhere else. The scanline overlay at z-index 5
+   still lays its texture over the top, which is what we want: the raster is
+   part of the screen, not something in front of it. */
+.blackhole {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    contain: layout paint;
+}
+/* One <pre>, one string per frame. The gradient is clipped to the glyphs, so
+   each character is coloured by where it sits — amber at the core, green at the
+   rim — for the cost of a single paint rather than a second render pass. */
+.blackhole__world {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+    opacity: 0.28;
+    background: radial-gradient(circle var(--bh-glow, 30vmin) at var(--bh-x, 50%) var(--bh-y, 50%),
+        var(--amber) 0%,
+        var(--amber) 24%,
+        var(--green-bright) 50%,
+        var(--green) 74%,
+        rgba(var(--green-rgb), 0.45) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+/* Fewer, larger cells on small screens: the raster's cost is per cell, and a
+   phone reads a coarse ramp better than a fine one anyway. */
+@media (max-width: 1024px) {
+    .blackhole__world { font-size: 18px; opacity: 0.24; }
+}
+@media (max-width: 640px) {
+    .blackhole__world { font-size: 21px; opacity: 0.20; }
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so

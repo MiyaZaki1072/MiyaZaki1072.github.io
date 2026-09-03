@@ -1,18 +1,29 @@
 # Personal Portfolio
 
-A personal portfolio site built with vanilla HTML, CSS, and JavaScript.
+The source for **[miyazaki1072.github.io](https://miyazaki1072.github.io/)** — Thitiwut
+"Freyr" Sreewasut's personal portfolio, built with vanilla HTML, CSS, and JavaScript
+(no frameworks, no build step).
+
+**Recruiter or reviewer poking around this repo?** The code is here for reference, but
+the site is meant to be seen running — → **[visit the live page](https://miyazaki1072.github.io/)**
+for the terminal-styled hero, the scroll-driven black hole backdrop, the project
+showcase, and the education/experience timeline.
 
 ---
 
 ## Features
 
+- Scroll-driven ASCII black hole backdrop (`blackhole.js`) that drifts and grows as you
+  scroll the page, rendered as a single `<pre>` raster for performance
 - Profile picture switcher with a circular progress ring on hover
 - Click the avatar to flip it to a Braille ASCII cat (one per photo), click again to flip back
 - Scramble text animation when switching languages
 - Full Thai / English translation toggle
 - Smooth scroll navigation with a fixed navbar
-- Project showcase with tag filtering and hover overlays
-- Background section with an Education / Experience timeline toggle and photo lightbox
+- Project showcase with tag filtering, hover overlays, and a GitHub contribution heatmap
+- Background section with an Education / Experience toggle across multiple tracks
+  (education, volunteer, work, competitions & awards) and a photo lightbox linking out
+  to each school's Facebook page
 - Interactive terminal widget (`help`, `whoami`, `skills`, `projects [tag]`, `education`, `contact`, `game`, `clear`)
 - Fully responsive — mobile, tablet, and desktop
 - Honours `prefers-reduced-motion` — animations and text scrambling are skipped
@@ -26,6 +37,7 @@ portfolio/
 ├── index.html          — page structure and content
 ├── style.css           — all styling and responsive breakpoints
 ├── index.js            — profile switcher, translation, timeline, and terminal logic
+├── blackhole.js        — scroll-driven ASCII black hole backdrop
 └── images/
     ├── icon.png             — browser tab favicon
     ├── og-card.jpg          — social share card (og:image / twitter:image)
