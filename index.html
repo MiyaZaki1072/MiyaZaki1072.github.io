@@ -84,6 +84,7 @@
                 <h1 class="name-txt">Freyr<span class="cursor">_</span></h1>
                 <p class="status-txt">Computer Engineering Student<br>@ Chulalongkorn University</p>
                 <div class="interest-block">
+                    <span class="interest-label">&gt; interests</span>
                     <ul class="interest-list">
                         <li>Backend Engineering</li>
                         <li>Competitive Programming</li>
@@ -118,13 +119,13 @@
     </section>
     <section class="projects-section" id="projects">
         <div class="section-header">
-            <span class="section-tag" aria-hidden="true">~/projects</span>
+            <span class="section-tag" aria-hidden="true">&gt; ls ~/projects</span>
             <h2 class="section-title">Things I've Built</h2>
         </div>
         <div class="filter-bar">
-            <span class="filter-label" aria-hidden="true">~/projects/*</span>
+            <span class="filter-label" aria-hidden="true">&gt; filter --tag</span>
             <div class="filter-tags" id="filterTags"></div>
-            <button type="button" class="filter-clear" id="filterClear" hidden>unset filter</button>
+            <button type="button" class="filter-clear" id="filterClear" hidden>&gt; unset --tag</button>
         </div>
         <p class="filter-empty" id="filterEmpty" hidden>no matches found</p>
         <div class="project-grid">
@@ -141,7 +142,7 @@
                 <div class="project-info">
                     <p class="project-title">Mesosuem</p>
                     <p class="project-sub">NSC2024 - Final Round</p>
-                    <p class="project-sub">3D Dinosaur musuem building game</p>
+                    <p class="project-sub">3D dinosaur museum building game</p>
                     <div class="skill-container">
                         <span class="skill-tag">C#</span>
                         <span class="skill-tag">Unity Engine</span>
@@ -161,7 +162,7 @@
                 <div class="project-info">
                     <p class="project-title">Series Tracker</p>
                     <p class="project-sub">Discord Bot</p>
-                    <p class="project-sub">A simple alarm to help you remember your favorite series when it uploaded</p>
+                    <p class="project-sub">Pings you when a new episode of a series you follow goes up</p>
                     <div class="skill-container">
                         <span class="skill-tag">Javascript</span>
                         <span class="skill-tag">Node.js</span>
@@ -175,7 +176,7 @@
              absent in local dev and on a first deploy: the normal case, not an
              error. -->
         <div class="contrib-block" id="contributions" hidden>
-            <h3 class="contrib-title">~/contributions</h3>
+            <h3 class="contrib-title">&gt; git log --graph</h3>
             <div class="contrib-scroll">
                 <div class="contrib-grid" id="contribGrid" role="img"
                      aria-label="GitHub contribution activity"></div>
@@ -213,13 +214,18 @@
     </section>
     <section class="background-section" id="background">
         <div class="section-header">
-            <span class="section-tag" aria-hidden="true">~/background</span>
+            <span class="section-tag" aria-hidden="true">&gt; cat ~/background</span>
             <h2 class="section-title">Background</h2>
         </div>
         <div class="bg-switch">
-            <button type="button" class="bg-toggle" id="bgToggle">
-                <span class="bg-toggle-label" id="bgToggleLabel">Education</span>
-                <span class="bg-toggle-hint" id="bgToggleHint">switch to experience →</span>
+            <!-- Both tracks are named on the control at all times. This used to
+                 be a single word that crossfaded to a hint on hover, so a touch
+                 visitor had no way to learn the second track existed at all —
+                 and the medals live on that second track. -->
+            <button type="button" class="bg-toggle" id="bgToggle" data-mode="education">
+                <span class="bg-toggle-thumb" aria-hidden="true"></span>
+                <span class="bg-toggle-seg" data-seg="education">Education</span>
+                <span class="bg-toggle-seg" data-seg="experience">Experience</span>
             </button>
         </div>
         <div class="timeline" id="timeline" data-mode="education">
@@ -236,7 +242,7 @@
                                 <p class="timeline-year">2026 - present</p>
                                 <p class="timeline-title">Computer Engineering</p>
                                 <p class="timeline-place">Chulalongkorn University</p>
-                                <span class="timeline-hint">open →</span>
+                                <span class="timeline-hint">&gt; open</span>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -249,7 +255,7 @@
                                 <p class="timeline-title">Wit-Com Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 3.99</p>
-                                <span class="timeline-hint">open →</span>
+                                <span class="timeline-hint">&gt; open</span>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -262,7 +268,7 @@
                                 <p class="timeline-title">Gifted Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">open →</span>
+                                <span class="timeline-hint">&gt; open</span>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -275,7 +281,7 @@
                                 <p class="timeline-title">IEP Program</p>
                                 <p class="timeline-place">Assumption College Rayong</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">open →</span>
+                                <span class="timeline-hint">&gt; open</span>
                             </div>
                         </div>
                     </div>
@@ -381,7 +387,7 @@
     </div>
     <footer class="footer">
         <span>&gt; echo "thanks for stopping by" <span class="cursor">_</span></span>
-        <span class="footer-copy">freyr &copy; 2026</span>
+        <span class="footer-copy"># freyr &copy; 2026</span>
     </footer>
     <script src="index.js"></script>
     <script src="blackhole.js"></script>

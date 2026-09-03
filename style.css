@@ -26,6 +26,25 @@
     --border:        #232823;
     --border-strong: #333c33;
 
+    /* Glass — for text that sits directly on the black hole raster rather than
+       on a --surface card. The alpha does the contrast work and the blur does
+       the calming; neither is enough alone, which is why they travel as a pair.
+       Every text token below is measured against flat --bg, and the raster
+       breaks that measurement wherever a dense glyph cluster drifts under small
+       type — this is what puts the flat ground back. .navbar has carried the
+       same idiom inline since it was written. */
+    --glass:         rgba(var(--bg-rgb), 0.62);
+    --glass-blur:    blur(14px) saturate(0.85);
+
+    /* The same idiom at panel strength. The three big cards — hero, timeline,
+       project — used to be opaque --surface, which meant the raster was only
+       ever visible in the gutters: the one element the page is built around
+       spent most of the scroll hidden behind the content sitting on top of it.
+       These panels carry long-form text, so they sit denser than --glass, but
+       they let the hole read through as a diffused wash instead of blocking it
+       outright. */
+    --glass-panel:   rgba(var(--bg-rgb), 0.80);
+
     /* Green — live / interactive only */
     --green-rgb:        34, 197, 94;
     --green-bright-rgb: 74, 222, 128;
@@ -86,12 +105,35 @@
     --r-sm:   8px;
     --r-lg:   16px;
     --r-pill: 999px;
+
+    /* Layout spine. Every section on the page resolves its left edge from these
+       two numbers and nothing else, so the hero card, the project grid and the
+       timeline start on the same pixel. They used to each carry their own
+       max-width and padding and landed on three different edges (75 / 48 / 91
+       at 1440), which is what made the page read as assembled rather than
+       designed. Change the spine here, the whole page moves together. */
+    --gutter:      var(--sp-7);
+    --content-max: 1280px;
+    /* What a full-bleed section needs to be so its *content box* is
+       --content-max wide. Sections use this; inner panels use --content-max. */
+    --section-max: calc(var(--content-max) + 2 * var(--gutter));
 }
 
 *, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+/* Form controls don't inherit type by default, so any button that never named a
+   family fell through to the UA font — .avatar-toggle, .term-close and
+   .timeline-lightbox-close were all rendering in Arial, which is not a face
+   this page uses anywhere. Every control that *does* name a family sets it on a
+   class, so those still win on specificity. */
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
 }
 :focus-visible {
     outline: 2px solid var(--green);
@@ -101,6 +143,36 @@ html {
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) var(--bg);
+}
+/* Selecting text on a terminal inverts it into the foreground colour. Green is
+   already the page's "live" channel, so a selection reads as the same idea. */
+::selection {
+    background: var(--green);
+    color: var(--on-green);
+}
+/* Scanlines. The one artifact that says CRT rather than "dark website", and the
+   layer the z-index note further down has always referred to. Held to a 3px
+   period at low alpha: enough to read as phosphor texture at a glance, not
+   enough to band the body copy. It stops below the fixed chrome — the navbar
+   and the terminal panel are the interface, not the screen it's drawn on.
+
+   Removed outright when the reader has asked for more contrast, since this is
+   decoration that costs a little of it. */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 2px,
+        rgba(0, 0, 0, 0.10) 2px,
+        rgba(0, 0, 0, 0.10) 3px);
+}
+@media (prefers-contrast: more) {
+    body::after { display: none; }
 }
 
 ::-webkit-scrollbar {
@@ -211,16 +283,18 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--sp-9) var(--sp-7) var(--sp-8);
+    padding: var(--sp-9) var(--gutter) var(--sp-8);
 }
 .about-inner {
     display: flex;
     align-items: center;
     gap: var(--sp-8);
-    max-width: 1280px;
+    max-width: var(--content-max);
     width: 100%;
     animation: fadeUp 0.7s ease both;
-    background: var(--surface);
+    background: var(--glass-panel);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     padding: var(--sp-8) var(--sp-8);
@@ -432,6 +506,15 @@ body::after {
     font-weight: 400;
     line-height: 1.5;
 }
+/* The same prompt idiom as .tag-line's `> whoami`, one step quieter. The hero
+   reads as two commands and their output: `> whoami` prints the name and the
+   affiliation, `> interests` prints the list under it. */
+.interest-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--green);
+    letter-spacing: 0.08em;
+}
 .interest-block,
 .skills-block {
     display: flex;
@@ -451,9 +534,13 @@ body::after {
     align-items: center;
     gap: var(--sp-3);
 }
-/* Structural marker, not a live element — stays neutral. */
+/* Structural marker, not a live element — stays neutral. A hyphen rather than a
+   triangle because the terminal's own `whoami` prints this same list as
+   "  - Backend Engineering" (readAbout in index.js); the page and the shell it
+   ships with should not disagree about how they bullet the same data. */
 .interest-list li::before {
-    content: '▸';
+    content: '-';
+    font-family: var(--font-mono);
     color: var(--text-muted);
     font-size: 1rem;
 }
@@ -479,13 +566,17 @@ body::after {
     margin-top: var(--sp-2);
     flex-wrap: wrap;
 }
+/* Executables, not labels. Lowercase with a ./ in front is the one change that
+   makes the contact row read as three things you could run rather than three
+   buttons — and the prefix lives in CSS so the EN/TH dictionary keeps holding
+   plain words. */
 .contact-btn {
     text-decoration: none;
     font-family: var(--font-mono);
     font-size: var(--fs-body);
     font-weight: 500;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--text-sec);
     background: transparent;
     border: 1px solid var(--border);
@@ -494,10 +585,18 @@ body::after {
     cursor: pointer;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
+.contact-btn::before {
+    content: './';
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
 .contact-btn:hover {
     color: var(--green);
     border-color: var(--green);
     background: var(--green-dim);
+}
+.contact-btn:hover::before {
+    color: var(--green);
 }
 .translate-btn {
     position: absolute;
@@ -535,13 +634,23 @@ body::after {
 /* Sections ----------------------------------------------------------------- */
 .projects-section,
 .background-section {
-    max-width: 1440px;
+    max-width: var(--section-max);
     margin: 0 auto;
-    padding: var(--sp-9) var(--sp-7);
+    padding: var(--sp-9) var(--gutter);
     border-top: 1px solid var(--border);
 }
+/* Glass rather than a full-width band: max-content keeps the panel the width of
+   the heading itself, so the raster still owns the space either side of it. */
 .section-header {
+    width: max-content;
+    max-width: 100%;
     margin-bottom: var(--sp-5);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
 }
 /* Annotation, not a live element — neutral, unlike the hero's `> whoami`. */
 .section-tag {
@@ -549,11 +658,6 @@ body::after {
     font-size: var(--fs-micro);
     color: var(--text-muted);
     letter-spacing: 0.1em;
-    /* A dark glow, not a box: this label sits loose in the layout rather than
-       inside a padded container, so a scrim would mean inventing a box just to
-       hold one. The glow separates it from the black hole backdrop the same
-       way without touching geometry. */
-    text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
 }
 .section-title {
     font-family: var(--font-display);
@@ -563,12 +667,6 @@ body::after {
     margin-top: var(--sp-2);
     letter-spacing: -0.02em;
     line-height: 1.1;
-    /* This heading had no protection at all against the backdrop — unlike
-       .section-tag just above it, which already got a glow in the readability
-       pass. Large bold text doesn't fail contrast outright, but its edges pick
-       up the raster's own glyphs right where they overlap, which reads as
-       noise rather than a contrast problem. Same glow, same fix. */
-    text-shadow: 0 0 8px var(--bg), 0 0 4px var(--bg);
 }
 
 /* Contribution heatmap ------------------------------------------------------ */
@@ -676,6 +774,12 @@ body::after {
     flex-wrap: wrap;
     gap: var(--sp-3);
     margin-bottom: var(--sp-6);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
 }
 .filter-label {
     font-family: var(--font-mono);
@@ -703,10 +807,19 @@ body::after {
 .filter-clear:hover {
     color: var(--green);
 }
+/* Same glass as the bar above it, hugging the one line of text it holds. */
 .filter-empty {
+    width: max-content;
+    max-width: 100%;
     font-size: var(--fs-small);
     color: var(--text-muted);
     margin-bottom: var(--sp-6);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
 }
 
 /* Project cards ------------------------------------------------------------ */
@@ -733,7 +846,9 @@ body::after {
     gap: var(--sp-7);
 }
 .project-card {
-    background: var(--surface);
+    background: var(--glass-panel);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     overflow: hidden;
@@ -760,15 +875,20 @@ body::after {
     filter: grayscale(20%) brightness(0.85);
     transition: filter 0.3s, transform 0.3s;
 }
+/* The label is always on screen, parked in the corner. It used to live at
+   opacity 0 behind a :hover, which meant that on a touch device — where there
+   is no hover — nothing on the card said it was a link at all. Hover now only
+   *strengthens* an affordance that is already legible, rather than being the
+   only way to discover it. */
 .project-img-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(var(--green-rgb), 0.12);
+    background: transparent;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.25s;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: var(--sp-3);
+    transition: background 0.25s;
 }
 .project-img-wrap:hover .project-img {
     filter: grayscale(0%) brightness(0.75);
@@ -776,14 +896,29 @@ body::after {
 }
 .project-img-wrap:hover .project-img-overlay,
 .project-img-link:focus-visible .project-img-overlay {
-    opacity: 1;
+    background: rgba(var(--green-rgb), 0.12);
 }
+/* Its own chip, because it sits over photographs rather than over a known
+   colour — the fill is what keeps it legible on a light image. */
 .view-label {
     font-family: var(--font-mono);
-    font-size: var(--fs-small);
+    font-size: var(--fs-micro);
     font-weight: 700;
     color: var(--green-bright);
     letter-spacing: 0.05em;
+    padding: var(--sp-1) var(--sp-3);
+    border-radius: var(--r-pill);
+    background: rgba(var(--bg-rgb), 0.82);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--green-line);
+    opacity: 0.85;
+    transition: opacity 0.25s, border-color 0.25s;
+}
+.project-img-wrap:hover .view-label,
+.project-img-link:focus-visible .view-label {
+    opacity: 1;
+    border-color: var(--green);
 }
 .project-info {
     padding: var(--sp-5) var(--sp-6) var(--sp-6);
@@ -908,64 +1043,74 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     max-width: 840px;
     margin: 0 auto var(--sp-7);
 }
+/* A segmented control, not a label. This used to be one word — "Education" —
+   that crossfaded to "cd ~/experience →" on hover, so at rest it looked like a
+   heading and on touch it never revealed itself at all. Both destinations are
+   now on screen permanently and the lit one is the current mode, which is the
+   only arrangement where a visitor can see there is a second track to read
+   without having to guess. The awards and medals live behind this control. */
 .bg-toggle {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 240px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+    min-width: 320px;
     height: 46px;
-    padding: 0 var(--sp-5);
+    padding: 3px;
     font-family: var(--font-mono);
     font-size: var(--fs-micro);
     font-weight: 700;
     letter-spacing: 0.03em;
-    color: var(--green-bright);
-    background: var(--green-dim);
-    border: 1px solid var(--green);
+    /* --green-dim is green at 0.10, so on its own the raster reads straight
+       through the button. Stacking it over the glass keeps the green identity
+       and puts a floor under it. */
+    background: linear-gradient(var(--green-dim), var(--green-dim)), var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--green-line);
     border-radius: var(--r-sm);
     cursor: pointer;
-    overflow: hidden;
-    transition: border-color 0.2s ease, transform 0.15s ease, background 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 .bg-toggle:hover {
-    border-color: var(--green-bright);
+    border-color: var(--green);
 }
-.bg-toggle:active {
-    transform: scale(0.96);
-}
-.bg-toggle-label,
-.bg-toggle-hint {
+/* The lit half. Sliding it rather than restyling both segments means the
+   movement itself carries which way the switch just went. */
+.bg-toggle-thumb {
     position: absolute;
-    inset: 0;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    background: var(--green);
+    border-radius: calc(var(--r-sm) - 2px);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bg-toggle[data-mode="experience"] .bg-toggle-thumb {
+    transform: translateX(100%);
+}
+.bg-toggle-seg {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    color: var(--text-sec);
+    transition: color 0.28s ease;
 }
-.bg-toggle-hint {
-    opacity: 0;
-    transform: translateY(6px);
+.bg-toggle-seg.is-active {
+    color: var(--on-green);
 }
-.bg-toggle:hover .bg-toggle-label,
-.bg-toggle:focus-visible .bg-toggle-label {
-    opacity: 0;
-    transform: translateY(-6px);
-}
-.bg-toggle:hover .bg-toggle-hint,
-.bg-toggle:focus-visible .bg-toggle-hint {
-    opacity: 1;
-    transform: translateY(0);
-}
-/* The same card the hero is built from — surface, hairline border, large
+/* The same card the hero is built from — glass panel, hairline border, large
    radius, green top edge — so the two long-form panels on the page read as one
-   family. The width grew by exactly the padding it gained (1120 + 2 × --sp-8),
-   which keeps the two timeline columns as wide as they were before the card
-   went round them. */
+   family. No max-width of its own: it fills the section's content box, which is
+   how it lands on the same left edge as the hero card and the project grid. */
 .timeline {
-    max-width: 1248px;
+    width: 100%;
     margin: 0 auto;
-    background: var(--surface);
+    background: var(--glass-panel);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: var(--r-lg);
     padding: var(--sp-8);
@@ -983,10 +1128,20 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .timeline-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--sp-4) var(--sp-8);
+    gap: var(--sp-4) var(--sp-6);
 }
 .timeline-columns[hidden] {
     display: none;
+}
+/* The two tracks run at very different lengths — four education entries beside
+   one volunteer entry — so the short column leaves a tall empty block to the
+   right of the long one. The rule makes that a boundary between two tracks
+   instead of an unexplained hole: it says the space belongs to the second
+   column and the column simply has less in it. Full-height by grid stretch, so
+   it holds whichever track happens to be longer. */
+.timeline-columns > .timeline-col + .timeline-col {
+    padding-left: var(--sp-6);
+    border-left: 1px solid var(--border);
 }
 .timeline-col-title {
     font-family: var(--font-mono);
@@ -1101,7 +1256,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .timeline-content[data-image]:hover .timeline-hint,
 .timeline-content[data-image]:focus-visible .timeline-hint {
     opacity: 1;
-    transform: translateY(0);
 }
 .timeline-year {
     font-family: var(--font-mono);
@@ -1136,6 +1290,10 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     letter-spacing: 0.03em;
     margin-top: var(--sp-1);
 }
+/* Visible at rest, brighter on hover. These four cards open a photo, and at
+   opacity 0 there was nothing telling a phone visitor that — the entries read
+   as flat text. Dimmed rather than hidden keeps the hierarchy without hiding
+   the affordance. */
 .timeline-hint {
     display: inline-block;
     margin-top: var(--sp-1);
@@ -1143,8 +1301,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     font-size: var(--fs-micro);
     letter-spacing: 0.04em;
     color: var(--green);
-    opacity: 0;
-    transform: translateY(-2px);
+    opacity: 0.6;
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -1271,9 +1428,14 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     right: var(--sp-5);
     z-index: 300;
 }
+/* Sits *on* the pill, not through it. At 27px the cat's hind legs landed across
+   the middle of the trigger, straight over the word "terminal" — the label was
+   unreadable at the one moment it had a job to do. The trigger is 60px tall, so
+   anything above ~44px leaves the text clear and still reads as a cat perched
+   on the button. */
 .term-cat {
     position: absolute;
-    bottom: 27px;
+    bottom: 44px;
     left: 50%;
     width: 148px;
     transform: translateX(-50%);
@@ -1599,10 +1761,11 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     color: var(--text-sec);
     letter-spacing: 0.08em;
     border-top: 1px solid var(--border);
-    /* The footer sits where the black hole is largest. A glow, not a scrim,
-       so the contrast fix here stays independent of the AA fix noted below —
-       neither one's margin eats into the other's. */
-    text-shadow: 0 0 6px var(--bg), 0 0 3px var(--bg);
+    /* The footer sits where the black hole is largest and brightest, which is
+       why this one is a full-width band rather than a panel hugging its text. */
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
 }
 /* No opacity multiplier here — it used to drag this to 4.14:1, under AA. */
 .footer-copy {
@@ -1621,6 +1784,11 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 
 /* Responsive --------------------------------------------------------------- */
 @media (max-width: 1024px) {
+    /* The spine narrows here once, and all three sections follow it — they no
+       longer each restate their own horizontal padding. */
+    :root {
+        --gutter: var(--sp-5);
+    }
     .navbar {
         top: var(--sp-5);
         right: var(--sp-5);
@@ -1630,7 +1798,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         padding: var(--sp-2) var(--sp-3);
     }
     .about-section {
-        padding: var(--sp-9) var(--sp-5) var(--sp-7);
+        padding: var(--sp-9) var(--gutter) var(--sp-7);
     }
     .about-inner {
         gap: var(--sp-6);
@@ -1641,7 +1809,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .projects-section,
     .background-section {
-        padding: var(--sp-8) var(--sp-5);
+        padding: var(--sp-8) var(--gutter);
     }
     .project-grid {
         grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
@@ -1656,6 +1824,12 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     .timeline-columns {
         grid-template-columns: 1fr;
         gap: var(--sp-7);
+    }
+    /* Stacked here, so the divider would cut across the flow rather than
+       between the tracks. */
+    .timeline-columns > .timeline-col + .timeline-col {
+        padding-left: 0;
+        border-left: none;
     }
 }
 
@@ -1759,13 +1933,43 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         width: 14px;
         height: 14px;
     }
+    /* Docked into the nav strip rather than floating above the page. As a
+       floating widget it sat on top of whatever happened to be underneath it,
+       and on a 390px screen that was the right quarter of the Email button —
+       a tap there opened the terminal instead of the mail client. The bottom
+       nav already reserves this strip, so nothing else can be under it. The
+       nav gets padding-right below to keep its links clear. */
     .term-widget {
-        bottom: 78px;
-        right: var(--sp-4);
+        bottom: 0;
+        right: 0;
+        height: 53px;
+        display: flex;
+        align-items: center;
+        padding-right: var(--sp-3);
+        z-index: 400;
+    }
+    /* Decorative, and the one part that spilled sideways over the page. */
+    .term-cat {
+        display: none;
     }
     .term-trigger {
-        height: 48px;
-        padding: 0 var(--sp-4);
+        height: 38px;
+        padding: 0 var(--sp-3);
+        box-shadow: none;
+    }
+    .term-trigger:hover {
+        transform: none;
+    }
+    .term-trigger-label {
+        display: none;
+    }
+    .term-trigger-icon {
+        font-size: 1.05rem;
+    }
+    /* Clears the docked terminal button (44px + its own 12px inset) with room
+       to spare, so a wider text rendering can't push the last link under it. */
+    .navbar {
+        padding-right: 70px;
     }
     .term-panel {
         position: fixed;
@@ -1796,8 +2000,11 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 
 @media (min-width: 1600px) {
+    :root {
+        --gutter: var(--sp-8);
+    }
     .about-section {
-        padding: var(--sp-9) var(--sp-8);
+        padding: var(--sp-9) var(--gutter);
     }
     .about-inner {
         gap: var(--sp-9);
@@ -1808,7 +2015,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .projects-section,
     .background-section {
-        padding: var(--sp-9) var(--sp-8);
+        padding: var(--sp-9) var(--gutter);
     }
     .project-grid {
         gap: var(--sp-8);
@@ -1847,7 +2054,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     white-space: pre;
     overflow: hidden;
     user-select: none;
-    opacity: 0.28;
+    opacity: 0.42;
     background: radial-gradient(circle var(--bh-glow, 30vmin) at var(--bh-x, 50%) var(--bh-y, 50%),
         var(--amber) 0%,
         var(--amber) 24%,
@@ -1859,12 +2066,46 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     color: transparent;
 }
 /* Fewer, larger cells on small screens: the raster's cost is per cell, and a
-   phone reads a coarse ramp better than a fine one anyway. */
+   phone reads a coarse ramp better than a fine one anyway.
+
+   The opacities went up across the board when the big panels became glass. The
+   panels now sit over the raster instead of hiding it, and glass costs the
+   glyphs underneath roughly a third of their strength — at the old values the
+   hole read as faint grain through the cards, and on a phone it was invisible
+   entirely. */
 @media (max-width: 1024px) {
-    .blackhole__world { font-size: 18px; opacity: 0.24; }
+    .blackhole__world { font-size: 18px; opacity: 0.36; }
 }
 @media (max-width: 640px) {
-    .blackhole__world { font-size: 21px; opacity: 0.20; }
+    .blackhole__world { font-size: 21px; opacity: 0.32; }
+}
+/* The blur is what earns --glass its low alpha: it spreads the raster's bright
+   glyphs into a flat wash before the text is drawn over it. Where there is no
+   backdrop-filter to do that spreading, the alpha has to carry the contrast on
+   its own. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .section-header,
+    .filter-bar,
+    .filter-empty,
+    .footer {
+        background: rgba(var(--bg-rgb), 0.92);
+    }
+    /* The long-form panels went from opaque to glass so the raster could read
+       through them. Without a blur to spread the glyphs first, that trade stops
+       paying — bright characters land under body copy as hard speckle — so
+       here the panels go back to being solid. */
+    .about-inner,
+    .timeline,
+    .project-card {
+        background: var(--surface);
+    }
+    .view-label {
+        background: rgba(var(--bg-rgb), 0.95);
+    }
+    .bg-toggle {
+        background: linear-gradient(var(--green-dim), var(--green-dim)),
+                    rgba(var(--bg-rgb), 0.92);
+    }
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so

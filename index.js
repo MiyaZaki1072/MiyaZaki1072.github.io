@@ -21,6 +21,7 @@ const i18n = (function () {
             tagLine: '> whoami',
             name: 'Freyr',
             status: 'Computer Engineering Student\n@ Chulalongkorn University',
+            interestLabel: '> interests',
             interests: ['Backend Engineering', 'Competitive Programming'],
             skillGroups: ['languages', 'tools & frameworks'],
             tooltipHas: '→ see what i built',
@@ -31,6 +32,7 @@ const i18n = (function () {
             tagLine: '> ฉันคือใคร',
             name: 'เฟรย์',
             status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
+            interestLabel: '> ความสนใจ',
             interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
@@ -343,6 +345,7 @@ const ASCII_CAT_2 = `
             { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
             { el: document.querySelector('.name-txt'),       text: d.name,          delay: 80,  duration: 650, suffix: CURSOR },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
+            { el: document.querySelector('.interest-label'), text: d.interestLabel, delay: 240, duration: 500 },
         ];
         targets.forEach(({ el, text, delay, duration, suffix }) => {
             if (el) setTimeout(() => scrambleText(el, text, { duration, suffix }), delay);
@@ -586,12 +589,10 @@ const ASCII_CAT_2 = `
 (function () {
     const timeline = document.getElementById('timeline');
     const toggle = document.getElementById('bgToggle');
-    const toggleLabel = document.getElementById('bgToggleLabel');
-    const toggleHint = document.getElementById('bgToggleHint');
-    if (!timeline || !toggle || !toggleLabel || !toggleHint) return;
+    const segs = toggle ? Array.from(toggle.querySelectorAll('.bg-toggle-seg')) : [];
+    if (!timeline || !toggle || segs.length !== 2) return;
 
     const other = mode => mode === 'education' ? 'experience' : 'education';
-    const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
 
     const LINE_SEL = '.timeline-year, .timeline-title, .timeline-place, '
                    + '.timeline-award, .timeline-note, .timeline-hint';
@@ -647,15 +648,11 @@ const ASCII_CAT_2 = `
             scrambleGroup(group);
         });
 
-        const label = capitalize(mode);
-        const hint = `cd ~/${other(mode)} →`;
-        if (animate) {
-            scrambleText(toggleLabel, label, scrambleOpts);
-            scrambleText(toggleHint, hint, scrambleOpts);
-        } else {
-            toggleLabel.textContent = label;
-            toggleHint.textContent = hint;
-        }
+        //Both segment labels are static markup now — the control shows where it
+        //is by lighting one half and sliding the thumb under it, so there is
+        //nothing here to rewrite. data-mode drives the slide from CSS.
+        toggle.dataset.mode = mode;
+        segs.forEach(seg => seg.classList.toggle('is-active', seg.dataset.seg === mode));
         toggle.setAttribute('aria-label', `Currently showing ${mode}. Click to switch to ${other(mode)}.`);
     }
 
