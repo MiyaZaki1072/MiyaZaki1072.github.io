@@ -17,11 +17,19 @@
 
     const world = layer.querySelector('.blackhole__world');
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    //A lean needs something to lean away from. Touch has no hovering pointer,
+    //so those readers keep the scroll camera exactly as it is.
+    const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
 
     //Ten levels, densest last. Index 0 is a space, so empty sky costs nothing
     //and the ramp stays a straight brightness scale.
     const RAMP = ' .:-=+*#%@';
     const FRAME = 1000 / 30;
+
+    //How far the pointer may push the hole, in the same units as the drift
+    //below — where the opening offset is 1.45. Small on purpose: this is a
+    //parallax lean on top of an authored camera move, not a second camera.
+    const LEAN = 0.22;
 
     //Cell geometry, rebuilt on resize. nx/ny hold each cell's position in
     //"units" (1 unit = half the shorter viewport edge) measured from the
@@ -34,6 +42,10 @@
     let pCur = 0, lastY = 0, spin = 0;
     let running = false, enabled = true;
     let glowX = -1, glowY = -1, glowR = -1;
+    //Where the pointer asks the hole to be, and where it actually is. They are
+    //separate so the hole trails the cursor instead of being welded to it — a
+    //mass this size does not change direction the instant a mouse does.
+    let leanTX = 0, leanTY = 0, leanX = 0, leanY = 0;
 
     //--- setup ---------------------------------------------------------------
 
@@ -125,8 +137,15 @@
         //card and the navbar above it — and eases to dead centre by the footer.
         //Narrow viewports push it partly off the right edge, which is fine: a
         //hole entering frame reads better than one hidden behind a panel.
-        const offX = 1.45 * (1 - e);
-        const offY = -0.30 * (1 - e);
+        //
+        //The lean rides on top of that, and rides *against* the pointer: this
+        //is parallax, the same camera the scroll drives, so moving your
+        //viewpoint right has to shift a distant object left. Leaning into the
+        //pointer instead would look like attraction, but it would drag the
+        //bright core toward whatever is being read and — at the top of the
+        //page — straight back over the hero card this offset exists to dodge.
+        const offX = 1.45 * (1 - e) + leanX;
+        const offY = -0.30 * (1 - e) + leanY;
 
         //Sky fade, measured from the hole rather than the viewport, so the
         //raster always dies out before it reaches the page's own text.
@@ -286,6 +305,10 @@
         phase = (phase + dt * (0.34 + Math.min(4, spin))) % 100000;
 
         pCur += (progress() - pCur) * 0.12;
+        //Slower than the scroll easing above, so the lean reads as weight being
+        //moved rather than as the backdrop tracking the mouse.
+        leanX += (leanTX - leanX) * 0.06;
+        leanY += (leanTY - leanY) * 0.06;
         render();
     }
 
@@ -309,8 +332,37 @@
         render();
     }
 
+    //Normalised to the same units the camera works in, so LEAN is a cap in the
+    //drift's own currency rather than a pixel count that means something
+    //different on every screen.
+    function onPointer(e) {
+        leanTX = (1 - (e.clientX / window.innerWidth) * 2) * LEAN;
+        leanTY = (1 - (e.clientY / window.innerHeight) * 2) * LEAN;
+    }
+
+    //Pointer gone from the window: return to the scripted path rather than
+    //holding whatever lean the last frame happened to catch.
+    function onPointerOut() {
+        leanTX = leanTY = 0;
+    }
+
+    function applyLean() {
+        window.removeEventListener('pointermove', onPointer);
+        document.removeEventListener('pointerleave', onPointerOut);
+        //Reduced motion means the reader drives every move on the page. A hole
+        //that slides because the mouse passed over it is exactly the motion
+        //they asked not to have.
+        if (fine.matches && !motion.matches) {
+            window.addEventListener('pointermove', onPointer, { passive: true });
+            document.addEventListener('pointerleave', onPointerOut);
+        } else {
+            leanTX = leanTY = leanX = leanY = 0;
+        }
+    }
+
     function applyMotion() {
         window.removeEventListener('scroll', still);
+        applyLean();
         if (motion.matches) {
             stop();
             window.addEventListener('scroll', still, { passive: true });
@@ -332,6 +384,8 @@
     });
 
     if (motion.addEventListener) motion.addEventListener('change', applyMotion);
+    //A mouse plugged into a tablet flips this mid-session.
+    if (fine.addEventListener) fine.addEventListener('change', applyLean);
 
     layout();
     //Fonts decide the cell's advance width, so the first measurement is only
