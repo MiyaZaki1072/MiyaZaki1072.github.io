@@ -112,6 +112,13 @@
     --r-lg:   0;
     --r-pill: 999px;
 
+    /* Scrollbar. The page rail is wide enough to carry a lit core between two
+       --bg gutters; panels get a narrower one so an inner scroller never
+       out-shouts the page's own bar. */
+    --scrollbar-w:      12px;
+    --scrollbar-w-thin: 8px;
+    --scrollbar-inset:  3px;
+
     /* Layout spine. Every section on the page resolves its left edge from these
        two numbers and nothing else, so the hero card, the project grid and the
        timeline start on the same pixel. They used to each carry their own
@@ -147,8 +154,6 @@ button, input, select, textarea {
 }
 html {
     scroll-behavior: smooth;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) var(--bg);
 }
 /* Selecting text on a terminal inverts it into the foreground colour. Green is
    already the page's "live" channel, so a selection reads as the same idea. */
@@ -181,23 +186,127 @@ body::after {
     body::after { display: none; }
 }
 
+/* Scrollbar ------------------------------------------------------------------
+   The last piece of chrome on this page that still read as a dark website. A
+   terminal's scroll rail is a column of the character grid - a hatched track
+   with a solid block riding in it - so that is what this draws. The hatch is a
+   1-on-4 gradient rather than glyphs: the same trick, and near enough the same
+   rhythm, as the scanlines in body::after.
+
+   Green means live everywhere else here, so the thumb is only green while you
+   are actually scrolling; at rest it sits at --border-strong with the rest of
+   the structure. The resting half of that is here. The live half cannot be:
+   Chromium never matches a class on the originating element for the *viewport*
+   scrollbar (html.is-scrolling::-webkit-scrollbar-thumb simply never applies),
+   and var() inside a scrollbar pseudo-element resolves one restyle late, so
+   neither of the two ways of expressing "now it is green" in this file works.
+   What does work is toggling a stylesheet's media attribute, so the live rules
+   live in the #railLive block in index.html and index.js flips it. */
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: var(--scrollbar-w);
+    height: var(--scrollbar-w);
+}
+/* Arrowless. The buttons are the one part of a native bar with no counterpart
+   in a TUI, and they cost the track a chunk at each end. */
+::-webkit-scrollbar-button {
+    display: none;
 }
 ::-webkit-scrollbar-track {
-    background: var(--bg);
+    background-color: var(--bg);
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--border) 0 1px,
+        transparent 1px 4px);
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
+    background-color: var(--border-strong);
+    /* The --bg border is what makes the thumb read as a block sitting *in* a
+       gutter rather than a bar filling it. A solid colour rather than
+       `transparent` plus background-clip, which webkit paints through. */
+    border: var(--scrollbar-inset) solid var(--bg);
     border-radius: var(--r-sm);
-    border: 2px solid var(--bg);
+    transition: background-color 0.25s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--green);
+    background-color: var(--green-bright);
 }
 ::-webkit-scrollbar-corner {
     background: var(--bg);
+}
+
+/* Firefox has no ::-webkit-scrollbar, so it gets the idea rather than the
+   drawing: no hatch, no caps, but the same idle-grey-to-live-green swap.
+
+   The @supports gate is not politeness, it is required. Chromium hands any
+   scroller that declares scrollbar-width or scrollbar-color to its *standard*
+   scrollbar painter and drops every ::-webkit-scrollbar rule for that element —
+   so the two ways of styling a bar are mutually exclusive, and declaring both
+   silently costs you the custom one. This file used to declare both on html,
+   .term-output and .contrib-scroll, which is why the old rail rendered as a
+   default 15px bar in Chrome no matter what the pseudo-elements said. */
+@supports not selector(::-webkit-scrollbar) {
+    html {
+        scrollbar-width: auto;
+        scrollbar-color: var(--border-strong) var(--bg);
+    }
+    html.is-scrolling {
+        scrollbar-color: var(--green) var(--bg);
+    }
+    .term-output,
+    .contrib-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-strong) transparent;
+    }
+}
+/* The hatch is texture, and texture is the first thing to go when a reader has
+   asked for contrast - the same bargain body::after makes just above. */
+@media (prefers-contrast: more) {
+    ::-webkit-scrollbar-track {
+        background-image: none;
+    }
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--green-bright);
+    }
+}
+
+/* Scroll readout. The rail says where you are; this says it in the one idiom a
+   terminal has for it, a ruler percentage. Parked at the vertical middle of the
+   right edge rather than riding the thumb: the top and bottom of that edge
+   already belong to .navbar and .term-widget, and a travelling chip would slide
+   under both at the ends of the scroll. */
+.scroll-readout {
+    position: fixed;
+    top: 50%;
+    right: calc(var(--scrollbar-w) + var(--sp-3));
+    z-index: 90;
+    transform: translateY(-50%);
+    min-width: 5ch;
+    padding: var(--sp-1) var(--sp-2);
+    background: var(--glass);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-align: right;
+    color: var(--text-muted);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, color 0.25s ease;
+}
+/* The sign is CSS so the script only ever writes an integer. */
+.scroll-readout::after {
+    content: '%';
+}
+html.is-scrolling .scroll-readout {
+    opacity: 1;
+    color: var(--green);
+}
+/* Nothing to report on a viewport tall enough to hold the whole page. */
+html:not(.is-scrollable) .scroll-readout {
+    display: none;
 }
 
 body {
@@ -744,6 +853,28 @@ body::after {
 .contrib-scroll {
     overflow-x: auto;
     padding-bottom: var(--sp-2);
+}
+/* The page rail turned on its side. Transparent track rather than --bg, because
+   this one rides a panel: the hatch is drawn in green at low alpha instead of
+   the page's neutral --border. */
+.contrib-scroll::-webkit-scrollbar {
+    height: var(--scrollbar-w-thin);
+}
+.contrib-scroll::-webkit-scrollbar-track {
+    background-color: transparent;
+    background-image: repeating-linear-gradient(
+        to right,
+        rgba(var(--green-rgb), 0.12) 0 1px,
+        transparent 1px 4px);
+}
+.contrib-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    background-image: none;
+    border: none;
+    border-radius: var(--r-sm);
+}
+.contrib-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: var(--green);
 }
 .contrib-grid {
     display: grid;
@@ -1600,22 +1731,27 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     font-size: var(--fs-small);
     line-height: 1.65;
     color: var(--text-pri);
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
 }
 .term-output::-webkit-scrollbar {
-    width: 6px;
+    width: var(--scrollbar-w-thin);
 }
 .term-output::-webkit-scrollbar-track {
-    background: transparent;
+    background-color: transparent;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(var(--green-rgb), 0.12) 0 1px,
+        transparent 1px 4px);
 }
+/* Square, like the page rail and every other box here - the old 3px radius was
+   one of the last curves in the file. */
 .term-output::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
+    background-color: var(--border-strong);
+    background-image: none;
     border: none;
-    border-radius: 3px;
+    border-radius: var(--r-sm);
 }
 .term-output::-webkit-scrollbar-thumb:hover {
-    background: var(--green);
+    background-color: var(--green);
 }
 .term-line {
     white-space: pre-wrap;

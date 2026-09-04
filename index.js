@@ -133,6 +133,77 @@ const showToast = (function () {
     sections.forEach(section => sectionObserver.observe(section));
 })();
 
+//Scroll rail ----------------------------------------------------------------
+//The rail itself is the native scrollbar, styled in style.css. Two things a
+//native bar cannot do on its own live here: the percentage readout, and lighting
+//the thumb green while you scroll, then letting it settle back to
+//structure-grey. This block only ever *reads* scroll position - the browser
+//keeps every bit of its own scrolling, dragging, keyboard and touch behaviour.
+//
+//The readout is an ordinary element and rides an ordinary class. The thumb is
+//not: Chromium never matches a class on the originating element for the
+//viewport scrollbar, and resolves var() in a scrollbar pseudo-element one
+//restyle late, so the lit rules sit in their own #railLive sheet and we switch
+//its media attribute instead. See the comment on that block in index.html.
+(function () {
+    const readout = document.getElementById('scrollReadout');
+    if (!readout) return;
+
+    const railLive = document.getElementById('railLive');
+    const root = document.documentElement;
+    const IDLE_MS = 900;
+    let idleTimer = null;
+    let frame = null;
+
+    //A rail that flashed green on every wheel tick is exactly the kind of motion
+    //this query asks us to stop making, so under it the rail simply stays lit
+    //and the idle timer never runs.
+    const alwaysLit = () => reducedMotion.matches;
+
+    //Also the only place that decides whether there is anything to report: a
+    //viewport tall enough to hold the whole page has no scroll to describe, and
+    //.scroll-readout hides itself on the class this drops.
+    function measure() {
+        const max = root.scrollHeight - root.clientHeight;
+        root.classList.toggle('is-scrollable', max > 0);
+        if (max > 0) readout.textContent = Math.round((root.scrollTop / max) * 100);
+    }
+
+    function light(on) {
+        root.classList.toggle('is-scrolling', on);
+        if (railLive) railLive.media = on ? 'all' : 'not all';
+    }
+
+    function onScroll() {
+        light(true);
+        //The class flip is immediate because that is what the reader is waiting
+        //to see; only the arithmetic waits for a frame.
+        if (!frame) {
+            frame = requestAnimationFrame(() => {
+                frame = null;
+                measure();
+            });
+        }
+        if (alwaysLit()) return;
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => light(false), IDLE_MS);
+    }
+
+    //Startup, and whenever the motion preference itself changes: no scroll is in
+    //flight, so the rail belongs in whichever state that preference asks for.
+    function settle() {
+        clearTimeout(idleTimer);
+        light(alwaysLit());
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', measure, { passive: true });
+    reducedMotion.addEventListener('change', settle);
+
+    measure();
+    settle();
+})();
+
 //Pre-baked ASCII cats for the avatar's click-to-flip, one per profile photo:
 //CAT_1 rides the green photo, CAT_2 the amber one. Braille dot art — each cell
 //is 2x4 dots, so these 90x45 and 50x25 grids are really 180x180 and

@@ -389,6 +389,33 @@
         <span>&gt; echo "thanks for stopping by" <span class="cursor">_</span></span>
         <span class="footer-copy"># freyr &copy; 2026</span>
     </footer>
+    <!-- Scroll position, in the one unit a terminal states it in. Decorative:
+         assistive tech already reports scroll position, so this is hidden from
+         it rather than repeating the same fact in a second voice. -->
+    <div class="scroll-readout" id="scrollReadout" aria-hidden="true">0</div>
+    <!-- The lit half of the scrollbar, and the one block of CSS in this project
+         that cannot live in style.css. Chromium refuses to match a class on the
+         originating element for the viewport scrollbar, and resolves var() in a
+         scrollbar pseudo-element one restyle late, so neither of the usual ways
+         to say "now it is green" reaches this thumb. Flipping a stylesheet's
+         media attribute does, which needs a sheet of its own to flip. index.js
+         switches it to `all` while you are scrolling; style.css owns the
+         resting grey and everything else about the rail. -->
+    <style id="railLive" media="not all">
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--green);
+            /* The two lit caps on the block's ends, painted into the background
+               because a scrollbar pseudo-element carries no children. */
+            background-image: linear-gradient(
+                to bottom,
+                var(--green-bright) 0 2px,
+                transparent 2px calc(100% - 2px),
+                var(--green-bright) calc(100% - 2px) 100%);
+        }
+        @media (prefers-contrast: more) {
+            ::-webkit-scrollbar-thumb { background-image: none; }
+        }
+    </style>
     <script src="index.js"></script>
     <script src="blackhole.js"></script>
 </body>
