@@ -1785,8 +1785,30 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     font-family: var(--font-mono);
     font-weight: 700;
 }
+/* The ghost hint is a second copy of the line rendered underneath the input, so
+   the two have to agree on every metric that moves a glyph — family, size and
+   line box alike. Anything that differs shows up as the hint drifting out from
+   under the caret as the line gets longer, which is worse than no hint at all. */
+.term-input-wrap {
+    position: relative;
+    flex: 1;                            /* moved off .term-input, which is no
+                                           longer a direct child of the row */
+    display: flex;
+    min-width: 0;                       /* lets the input shrink inside the row */
+}
+.term-ghost {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    line-height: inherit;
+    color: var(--text-muted);
+    white-space: pre;
+    overflow: hidden;
+}
 .term-input {
-    flex: 1;
+    width: 100%;
     background: none;
     border: none;
     outline: none;
@@ -1908,6 +1930,39 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     from { opacity: 0; transform: translate(-50%, 6px) scale(0.85); }
     25%  { opacity: 1; transform: translate(-50%, 0) scale(1.1); }
     to   { opacity: 0; transform: translate(-50%, -18px) scale(1.15); }
+}
+/* The named moves in rps and guess sit in the same row as 21's +1, so they
+   inherit its flash and spacing. Only the width is pinned: a row that resized
+   itself as the labels changed would jump under the cursor mid-game. */
+.term-game-btn.is-choice {
+    min-width: 4.5em;
+    text-align: center;
+}
+/* The completion list, and the one line that answers a typo. */
+.term-line-hint {
+    color: var(--text-muted);
+}
+/* Box art and the rain are pictures made of characters, so they need the one
+   thing prose does not: no wrapping at all. .term-line is pre-wrap, which still
+   breaks at spaces — and a space is exactly what holds these drawings apart, so
+   a wrap lands mid-picture and shears it. `pre` keeps each row whole and the
+   overflow scrolls instead, without a visible bar: at this size the bar would
+   be thicker than the art sitting above it. */
+.term-line-art,
+.term-rain {
+    white-space: pre;
+    word-break: normal;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.term-line-art::-webkit-scrollbar,
+.term-rain::-webkit-scrollbar {
+    display: none;
+}
+.term-rain {
+    color: var(--green);
+    line-height: 1.15;
+    text-shadow: 0 0 6px var(--green-glow);
 }
 
 /* Footer ------------------------------------------------------------------- */
@@ -2146,6 +2201,12 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .term-input-row {
         padding-bottom: max(var(--sp-3), env(safe-area-inset-bottom));
+    }
+    /* The completion hint is the first thing to lose on a phone: the on-screen
+       keyboard already takes the bottom half of the panel, and there is no tab
+       key to accept it with. */
+    .term-ghost {
+        display: none;
     }
     .footer {
         padding: var(--sp-6) var(--sp-4) var(--sp-8);
