@@ -379,9 +379,16 @@
             <div class="term-output" id="termOutput" role="log" aria-live="polite"></div>
             <div class="term-input-row">
                 <span class="term-prompt">&gt;</span>
-                <input type="text" class="term-input" id="termInput"
-                       autocomplete="off" autocapitalize="off" spellcheck="false"
-                       aria-label="Terminal command input">
+                <!-- The completion preview sits behind the input, not in it. It is
+                     speculative text the visitor has not accepted yet, and the log
+                     above is a live region, so it stays out of the accessibility
+                     tree rather than being announced as though already typed. -->
+                <span class="term-input-wrap">
+                    <span class="term-ghost" id="termGhost" aria-hidden="true"></span>
+                    <input type="text" class="term-input" id="termInput"
+                           autocomplete="off" autocapitalize="off" spellcheck="false"
+                           aria-label="Terminal command input">
+                </span>
             </div>
         </div>
     </div>

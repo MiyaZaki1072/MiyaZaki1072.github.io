@@ -795,7 +795,8 @@ const ASCII_CAT_2 = `
     const closeBtn = document.getElementById('termClose');
     const output = document.getElementById('termOutput');
     const input = document.getElementById('termInput');
-    if (!widget || !trigger || !panel || !closeBtn || !output || !input) return;
+    const ghost = document.getElementById('termGhost');
+    if (!widget || !trigger || !panel || !closeBtn || !output || !input || !ghost) return;
 
     let hasBooted = false;
     const cmdHistory = [];
@@ -809,9 +810,42 @@ const ASCII_CAT_2 = `
     let thinkingEl = null;
     let commitTimer = null;
     let lossTimer = null;
+    let stopTimer = null;
+    //Any interactive mode can leave work in flight that a timer handle does not
+    //describe — a rAF loop, a listener, a node that has to go. Each one parks
+    //its own undo here so closing the panel stays a single call rather than a
+    //growing list of special cases.
+    let activeCleanup = null;
+    const BOOT_AT = Date.now();
 
+    //Three games, and freyr wins all three by construction — that is the joke,
+    //not a bug. 21 is the misère subtraction game where the multiples of four
+    //are the losing seats; rps answers second; guess never commits to a number.
+    //Two of the three admit it at the end, because a cheat nobody admits to is
+    //just a cheat. Labels are padded here so refreshMenuHighlight can keep
+    //prefixing them without knowing about alignment.
     const GAMES = [
-        { id: '21', label: '21 - last to 21 loses' },
+        {
+            id: '21',
+            label: '21    - last to 21 loses',
+            intro: ['21 - take turns adding 1-3 to the total. whoever hits 21 loses.',
+                    "you go first. lose and you owe me an internship. or a job. i'm flexible ;)"],
+            start: () => start21(),
+        },
+        {
+            id: 'rps',
+            label: 'rps   - rock paper scissors',
+            intro: ['rock paper scissors, best of three.',
+                    "i've already locked my moves in. no peeking."],
+            start: () => startRps(),
+        },
+        {
+            id: 'guess',
+            label: 'guess - i pick a number, you hunt it',
+            intro: ["i'm thinking of a number from 1 to 100. you get seven guesses.",
+                    "i'll tell you higher or lower. honest."],
+            start: () => startGuess(),
+        },
     ];
 
     //Freyr "deliberating" before moving. Randomised so it never reads as a
@@ -935,17 +969,23 @@ const ASCII_CAT_2 = `
         });
     }
 
+    //The menu owns the mode switch and the input bookkeeping for every game, so
+    //a new game is a row in GAMES rather than another copy of these four lines.
     function confirmMenuSelection() {
-        appendLine("21 - take turns adding 1-3 to the total. whoever hits 21 loses.");
-        appendLine("you go first. lose and you owe me an internship. or a job. i'm flexible ;)");
-        startGame();
+        const game = GAMES[menuIndex];
+        appendBlock(game.intro);
+        cancelActive();
+        mode = 'game';
+        input.disabled = true;
+        input.placeholder = 'use the buttons above ↑';
+        game.start();
     }
 
-    function cancelPendingTurn() {
-        [thinkTimer, commitTimer, lossTimer].forEach(t => {
+    function cancelActive() {
+        [thinkTimer, commitTimer, lossTimer, stopTimer].forEach(t => {
             if (t !== null) clearTimeout(t);
         });
-        thinkTimer = commitTimer = lossTimer = null;
+        thinkTimer = commitTimer = lossTimer = stopTimer = null;
         if (thinkingEl) {
             thinkingEl.remove();
             thinkingEl = null;
@@ -957,6 +997,13 @@ const ASCII_CAT_2 = `
             controlsEl.classList.remove('is-committing');
             controlsEl = null;
         }
+        //Whatever the effect parked here knows how to undo itself; this only has
+        //to make sure it runs exactly once.
+        if (activeCleanup) {
+            const undo = activeCleanup;
+            activeCleanup = null;
+            undo();
+        }
         panel.classList.remove('is-flash');
     }
 
@@ -967,6 +1014,9 @@ const ASCII_CAT_2 = `
         controlsEl = null;
         input.disabled = false;
         input.placeholder = '';
+        //The hint is suppressed outside command mode, so coming back has to be
+        //the moment it is allowed to reappear.
+        applyGhost();
     }
 
     function popButton(btn) {
@@ -985,12 +1035,8 @@ const ASCII_CAT_2 = `
         float.addEventListener('animationend', () => float.remove());
     }
 
-    function startGame() {
-        cancelPendingTurn();
-        mode = 'game';
+    function start21() {
         gameTotal = 0;
-        input.disabled = true;
-        input.placeholder = 'use the buttons above ↑';
         renderPlayerTurn();
     }
 
@@ -1066,7 +1112,11 @@ const ASCII_CAT_2 = `
         lossTimer = setTimeout(() => {
             lossTimer = null;
             panel.classList.remove('is-flash');
-            endGame('player');
+            endGame([
+                '💀 total hit 21 - you lose.',
+                "per the house rules you now owe freyr an internship (or a job, i'm not picky).",
+                "type 'game' to run it back.",
+            ]);
         }, 380);
     }
 
@@ -1092,24 +1142,219 @@ const ASCII_CAT_2 = `
             scrollOut();
 
             if (gameTotal >= 21) {
-                endGame('computer');
+                endGame(["...that shouldn't have happened. well played."]);
             } else {
                 renderPlayerTurn();
             }
         }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
     }
 
-    function endGame(loser) {
-        if (loser === 'player') {
-            appendLine('💀 total hit 21 - you lose.');
-            appendLine("per the house rules you now owe freyr an internship (or a job, i'm not picky).");
-            appendLine("type 'game' to run it back.");
-        } else {
-            appendLine("...that shouldn't have happened. well played.");
-        }
+    //The closing copy belongs to whichever game just finished, so this only
+    //owns the part every ending shares: say the words, hand the prompt back.
+    function endGame(lines) {
+        appendBlock(lines);
         exitToCommandMode();
         appendLine('');
         input.focus();
+    }
+
+    //Game: rock paper scissors, rigged by answering second -------------------
+    const RPS_BEATS = { rock: 'paper', paper: 'scissors', scissors: 'rock' };
+    let rpsRound = 0;
+
+    function startRps() {
+        rpsRound = 0;
+        renderRpsTurn();
+    }
+
+    function renderRpsTurn() {
+        const line = document.createElement('div');
+        line.className = 'term-line term-game-controls';
+        line.innerHTML = `
+            <span class="term-game-status">round ${rpsRound + 1} of 3 - your move:</span>
+            <button type="button" class="term-game-btn is-choice" data-action="rock">rock</button>
+            <button type="button" class="term-game-btn is-choice" data-action="paper">paper</button>
+            <button type="button" class="term-game-btn is-choice" data-action="scissors">scissors</button>
+        `;
+        output.appendChild(line);
+        scrollOut();
+        controlsEl = line;
+
+        line.querySelectorAll('.term-game-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pick = btn.dataset.action;
+                popButton(btn);
+                floatGain(btn, pick);
+                line.querySelectorAll('.term-game-btn').forEach(b => { b.disabled = true; });
+
+                //Same shape as 21's finishTurn: nothing advances until the result
+                //is on screen, so forfeiting mid-commit leaves the score honest.
+                const settle = () => {
+                    commitTimer = null;
+                    const summary = document.createElement('div');
+                    summary.className = 'term-line term-line-commit';
+                    summary.textContent = `you played ${pick}`;
+                    line.replaceWith(summary);
+                    scrollOut();
+                    controlsEl = null;
+                    rpsAnswer(pick);
+                };
+
+                if (reducedMotion.matches) {
+                    settle();
+                    return;
+                }
+                line.classList.add('is-committing');
+                commitTimer = setTimeout(settle, 260);
+            });
+        });
+    }
+
+    function rpsAnswer(pick) {
+        //The gimmick, and the whole joke: freyr said he locked his move in before
+        //you chose. He did not. He answers after, which is why the scoreline
+        //never moves. The thinking pause is what sells it — a real opponent
+        //would need a moment here too.
+        const move = RPS_BEATS[pick];
+        const label = THINKING_LINES[Math.floor(Math.random() * THINKING_LINES.length)];
+
+        thinkingEl = appendLine('', 'term-thinking');
+        thinkingEl.innerHTML = `${label}<span class="term-thinking-dots">...</span>`;
+
+        thinkTimer = setTimeout(() => {
+            thinkTimer = null;
+            const settled = thinkingEl;
+            thinkingEl = null;
+
+            rpsRound += 1;
+            const line = document.createElement('div');
+            line.className = 'term-line';
+            line.textContent = `freyr played ${move} → ${move} beats ${pick}. ${rpsRound}-0.`;
+            settled.replaceWith(line);
+            scrollOut();
+
+            if (rpsRound >= 3) {
+                endGame([
+                    '3-0. you may have noticed i always move second.',
+                    "that's not a bug, that's the house edge.",
+                    "type 'game' to run it back anyway.",
+                ]);
+            } else {
+                renderRpsTurn();
+            }
+        }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
+    }
+
+    //Game: guess, rigged by never committing to a number ---------------------
+    //There is no number. The range is the whole game: every answer keeps the
+    //larger half of it alive, so seven guesses can never close it. Same trick as
+    //adversarial hangman, and the ending admits it — the joke only lands if it
+    //is owned up to.
+    let guessLo = 1;
+    let guessHi = 100;
+    let guessesLeft = 7;
+    let guessPending = 50;
+
+    function startGuess() {
+        guessLo = 1;
+        guessHi = 100;
+        guessesLeft = 7;
+        guessPending = 50;
+        renderGuessTurn();
+    }
+
+    function renderGuessTurn() {
+        //The pending value is clamped into the range that is still alive, so a
+        //guess can never fall outside it — an answer of "higher" to a guess of
+        //100 would show the seams immediately.
+        guessPending = Math.min(guessHi, Math.max(guessLo, guessPending));
+
+        const line = document.createElement('div');
+        line.className = 'term-line term-game-controls';
+        line.innerHTML = `
+            <span class="term-game-status">guess: ${guessPending} - ${guessesLeft} left</span>
+            <button type="button" class="term-game-btn" data-step="-10">-10</button>
+            <button type="button" class="term-game-btn" data-step="-1">-1</button>
+            <button type="button" class="term-game-btn" data-step="1">+1</button>
+            <button type="button" class="term-game-btn" data-step="10">+10</button>
+            <button type="button" class="term-game-btn is-choice" data-action="guess">guess</button>
+        `;
+        output.appendChild(line);
+        scrollOut();
+        controlsEl = line;
+
+        const status = line.querySelector('.term-game-status');
+        line.querySelectorAll('[data-step]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                popButton(btn);
+                const step = Number(btn.dataset.step);
+                guessPending = Math.min(guessHi, Math.max(guessLo, guessPending + step));
+                status.textContent = `guess: ${guessPending} - ${guessesLeft} left`;
+            });
+        });
+
+        const goBtn = line.querySelector('[data-action="guess"]');
+        goBtn.addEventListener('click', () => {
+            popButton(goBtn);
+            floatGain(goBtn, String(guessPending));
+            line.querySelectorAll('.term-game-btn').forEach(b => { b.disabled = true; });
+
+            const played = guessPending;
+            const settle = () => {
+                commitTimer = null;
+                const summary = document.createElement('div');
+                summary.className = 'term-line term-line-commit';
+                summary.textContent = `you guessed ${played}`;
+                line.replaceWith(summary);
+                scrollOut();
+                controlsEl = null;
+                guessAnswer(played);
+            };
+
+            if (reducedMotion.matches) {
+                settle();
+                return;
+            }
+            line.classList.add('is-committing');
+            commitTimer = setTimeout(settle, 260);
+        });
+    }
+
+    function guessAnswer(played) {
+        const label = THINKING_LINES[Math.floor(Math.random() * THINKING_LINES.length)];
+        thinkingEl = appendLine('', 'term-thinking');
+        thinkingEl.innerHTML = `${label}<span class="term-thinking-dots">...</span>`;
+
+        thinkTimer = setTimeout(() => {
+            thinkTimer = null;
+            const settled = thinkingEl;
+            thinkingEl = null;
+
+            //Keep whichever half is bigger. That is the entire cheat.
+            const goLower = (played - guessLo) > (guessHi - played);
+            if (goLower) guessHi = played - 1;
+            else guessLo = played + 1;
+            guessesLeft -= 1;
+
+            const line = document.createElement('div');
+            line.className = 'term-line';
+            line.textContent = goLower ? 'lower.' : 'higher.';
+            settled.replaceWith(line);
+            scrollOut();
+
+            if (guessesLeft <= 0 || guessLo > guessHi) {
+                const reveal = guessLo > guessHi
+                    ? played
+                    : guessLo + Math.floor((guessHi - guessLo) / 2);
+                endGame([
+                    `out of guesses. it was ${reveal}.`,
+                    '...it was whatever it needed to be. i never wrote one down.',
+                    "type 'game' to be lied to again.",
+                ]);
+            } else {
+                renderGuessTurn();
+            }
+        }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
     }
 
     function cmdGame() {
@@ -1121,39 +1366,389 @@ const ASCII_CAT_2 = `
         return null;
     }
 
-    const HELP_LINES = [
-        'available commands:',
-        "  help              show this list",
-        "  whoami            who am i",
-        "  skills            tech stack",
-        "  projects [tag]    things i've built",
-        "  education         academic background",
-        "  contact           email / discord / github",
-        "  game              play a game with me",
-        "  blackhole         toggle the backdrop",
-        "  clear             clear the screen",
+    //blackhole.js is a separate script, so it may legitimately not be here
+    //(blocked, failed to load); the command says so rather than throwing.
+    function cmdBlackhole() {
+        if (!window.blackhole) return 'blackhole: no such object in this universe.';
+        return window.blackhole.toggle()
+            ? 'accretion disk spun up. scroll to fall in.'
+            : 'horizon collapsed. the sky is quiet again.';
+    }
+
+    //Commands that reach out of the widget and move the page ------------------
+
+    const SECTIONS = { about: 'about', home: 'about', projects: 'projects', background: 'background' };
+    const narrow = window.matchMedia('(max-width: 768px)');
+
+    function cmdGoto(args) {
+        const key = (args[0] || '').toLowerCase();
+        const id = key === 'top' ? null : SECTIONS[key];
+        if (key !== 'top' && !id) {
+            return `goto: no section "${args[0] || ''}". try: about, projects, background, top.`;
+        }
+        //Below 768px the panel is fixed to the whole viewport, so scrolling
+        //behind it would look like nothing happened at all.
+        const hidden = narrow.matches;
+        if (hidden) closeTerminal();
+        if (key === 'top') window.scrollTo({ top: 0, behavior: scrollBehavior() });
+        else document.getElementById(id)?.scrollIntoView({ behavior: scrollBehavior() });
+        return hidden ? null : `scrolling to ${key === 'top' ? 'the top' : '#' + id}...`;
+    }
+
+    //The translate button owns the language flip *and* the hero scramble that
+    //goes with it. Calling i18n.toggle() straight would move the state without
+    //ever running that animation, so this clicks the button a visitor would.
+    function cmdLang(args) {
+        const want = (args[0] || '').toLowerCase();
+        if (want && want !== 'en' && want !== 'th') return `lang: "${args[0]}"? i speak 'en' and 'th'.`;
+        if (want && want === i18n.lang) return `already ${want}.`;
+        const next = want || (i18n.lang === 'en' ? 'th' : 'en');
+        document.getElementById('translateBtn')?.click();
+        return `switched to ${next}.`;
+    }
+
+    function cmdOpen(args) {
+        const target = (args[0] || '').toLowerCase();
+        if (target === 'email') {
+            const email = document.getElementById('emailBtn')?.dataset.email;
+            if (!email) return 'open: no email on the page.';
+            window.location.href = `mailto:${email}`;
+            return `opening a mail draft to ${email}...`;
+        }
+        const href = target === 'github'
+            ? document.getElementById('githubLink')?.getAttribute('href')
+            : target === 'discord'
+                ? document.getElementById('discordLink')?.getAttribute('href')
+                : null;
+        if (!href) return "open: try 'open github', 'open discord' or 'open email'.";
+        window.open(href, '_blank', 'noopener,noreferrer');
+        return `opening ${target}...`;
+    }
+
+    //Reads the rendered grid rather than data/contributions.json: that file is
+    //generated into the Pages artifact by CI and is an empty calendar in the
+    //working tree, so the JSON would print a blank year everywhere but prod.
+    function cmdContrib() {
+        const cells = Array.from(document.querySelectorAll('#contribGrid .contrib-cell'));
+        if (!cells.length) return 'contrib: no calendar on the page yet.';
+
+        const BLOCKS = ['·', '░', '▒', '▓', '█'];
+        const weeks = [];
+        for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+        //Seven rows, one per weekday, weeks running left to right — the same
+        //shape as the grid on the page, just spelled out in characters.
+        const rows = [];
+        for (let day = 0; day < 7; day++) {
+            rows.push('  ' + weeks.map(w => {
+                const cell = w[day];
+                if (!cell || cell.classList.contains('is-empty')) return ' ';
+                return BLOCKS[Number(cell.dataset.level) || 0];
+            }).join(''));
+        }
+        const total = document.getElementById('contribTotal')?.textContent || '?';
+        const streak = document.getElementById('contribCurrent')?.textContent || '?';
+        return [`${total} contributions in the last year`, '', ...rows, '', `current streak: ${streak}`];
+    }
+
+    //Easter eggs -------------------------------------------------------------
+
+    //Reads the same DOM the hero does, so it can never disagree with the page.
+    function cmdNeofetch() {
+        const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
+        //The status line is two lines of hero copy joined by a <br>, so it comes
+        //back as one long run. Everything here is cut to fit instead: the panel
+        //is 340px at its narrowest, which is about 35 characters, and a card you
+        //have to scroll sideways is not a card.
+        const status = (document.querySelector('.status-txt')?.textContent || '')
+            .replace(/\s+/g, ' ')
+            .split('@')[0]
+            .trim();
+        const role = status.length > 16 ? status.slice(0, 15).trimEnd() + '…' : status;
+        const elapsed = Date.now() - BOOT_AT;
+        const info = [
+            'guest@freyr',
+            '───────────',
+            'host:   miyazaki1072',
+            'shell:  term.js',
+            `name:   ${name}`,
+            `role:   ${role}`,
+            `lang:   ${i18n.lang}`,
+            `uptime: ${Math.floor(elapsed / 60000)}m ${Math.floor(elapsed / 1000) % 60}s`,
+            `cmds:   ${cmdHistory.length}`,
+            'theme:  green on black',
+        ];
+        const art = [
+            ' ╭──────╮ ',
+            ' │ >_   │ ',
+            ' │      │ ',
+            ' ╰──────╯ ',
+            '  ╱    ╲  ',
+            ' ╱      ╲ ',
+        ];
+        const rows = Math.max(art.length, info.length);
+        const out = [];
+        for (let i = 0; i < rows; i++) out.push((art[i] || '          ') + (info[i] || ''));
+        return out;
+    }
+
+    //A cat, not a cow — the widget already has one perched on it.
+    function cmdCowsay(args) {
+        const text = args.join(' ').slice(0, 40) || 'say something.';
+        const bar = '─'.repeat(text.length + 2);
+        return [
+            ` ╭${bar}╮`,
+            ` │ ${text} │`,
+            ` ╰${bar}╯`,
+            '    ╲',
+            '     ╲  ╱\\_/\\',
+            '        ( o.o )',
+            '         > ^ <',
+        ];
+    }
+
+    //The one command that animates instead of printing. It rewrites a node ~18
+    //times a second, so that node is kept out of the accessibility tree
+    //entirely — #termOutput is a polite live region and would otherwise try to
+    //announce every single frame.
+    function cmdMatrix() {
+        const COLS = 32;
+        const ROWS = 12;
+        const pool = CHARS.en;
+        const rain = document.createElement('div');
+        rain.className = 'term-line term-rain';
+        rain.setAttribute('aria-hidden', 'true');
+        output.appendChild(rain);
+        scrollOut();
+
+        const drops = Array.from({ length: COLS }, () => Math.floor(Math.random() * ROWS));
+        const draw = () => {
+            const grid = [];
+            for (let r = 0; r < ROWS; r++) {
+                let row = '';
+                for (let c = 0; c < COLS; c++) {
+                    const head = drops[c];
+                    row += (r > head || r < head - 6)
+                        ? ' '
+                        : pool[Math.floor(Math.random() * pool.length)];
+                }
+                grid.push(row);
+            }
+            rain.textContent = grid.join('\n');
+        };
+
+        //Reduced motion still gets the joke, just as a still.
+        if (reducedMotion.matches) {
+            draw();
+            return 'wake up, neo. (one frame - you asked for less motion.)';
+        }
+
+        mode = 'fx';
+        input.disabled = true;
+        input.placeholder = 'press any key to wake up';
+
+        let raf = null;
+        let last = 0;
+        const step = (now) => {
+            if (now - last > 55) {
+                last = now;
+                for (let c = 0; c < COLS; c++) {
+                    drops[c] = drops[c] > ROWS + 6 ? 0 : drops[c] + 1;
+                }
+                draw();
+            }
+            raf = requestAnimationFrame(step);
+        };
+        raf = requestAnimationFrame(step);
+
+        activeCleanup = () => {
+            if (raf !== null) cancelAnimationFrame(raf);
+            raf = null;
+            rain.remove();
+        };
+        stopTimer = setTimeout(() => { stopTimer = null; stopMatrix(); }, 4200);
+        return null;
+    }
+
+    function stopMatrix() {
+        cancelActive();
+        exitToCommandMode();
+        appendLine('...you were never really in there.');
+        input.focus();
+    }
+
+    //One table, three consumers. `help`, tab-completion and the did-you-mean
+    //suggestion each used to keep their own copy of this list, and the copies
+    //drifted — `about` and `sudo` were live commands that help never mentioned.
+    //Now they all read the same rows.
+    const COMMANDS = [
+        //Help text is kept short on purpose: the panel is as narrow as 340px,
+        //and a description that wraps takes the aligned column with it.
+        { name: 'help',      args: '',      help: 'show this list',      run: () => renderHelp() },
+        { name: 'whoami',    args: '',      help: 'who am i',            run: () => readAbout(), alias: ['about'] },
+        { name: 'skills',    args: '',      help: 'tech stack',          run: () => readSkills() },
+        { name: 'projects',  args: '[tag]', help: "things i've built",   run: (a) => readProjects(a[0]) },
+        { name: 'education', args: '',      help: 'where i studied',     run: () => readEducation() },
+        { name: 'contact',   args: '',      help: 'how to reach me',     run: () => readContact() },
+        { name: 'contrib',   args: '',      help: 'activity heatmap',    run: () => cmdContrib() },
+        { name: 'game',      args: '',      help: 'play a game',        run: () => cmdGame() },
+        { name: 'goto',      args: '<where>',   help: 'jump to a section', run: (a) => cmdGoto(a) },
+        { name: 'lang',      args: '[en|th]',   help: 'switch language',   run: (a) => cmdLang(a) },
+        { name: 'open',      args: '<link>',    help: 'open a link',       run: (a) => cmdOpen(a) },
+        { name: 'blackhole', args: '',      help: 'toggle the sky',     run: () => cmdBlackhole() },
+        { name: 'matrix',    args: '',      help: 'follow the rabbit',   run: () => cmdMatrix() },
+        { name: 'neofetch',  args: '',      help: 'system info',
+          run: () => { appendBlock(cmdNeofetch(), 'term-line-art'); return null; } },
+        { name: 'cowsay',    args: '<text>', help: 'the cat says it',
+          run: (a) => { appendBlock(cmdCowsay(a), 'term-line-art'); return null; } },
+        { name: 'clear',     args: '',      help: 'clear the screen',    run: () => { output.innerHTML = ''; return null; } },
+        { name: 'exit',      args: '',      help: 'close the panel',     run: () => { closeTerminal(); return null; } },
+        //Hidden: kept out of help and out of tab-completion, so finding one is
+        //still finding something.
+        { name: 'sudo', hidden: true, run: (a) => a.length
+            ? `sudo: ${a[0]}: you are not in the sudoers file. this incident has been reported to freyr.`
+            : 'permission denied: nice try.' },
     ];
 
-    const commands = {
-        help: () => HELP_LINES,
-        whoami: () => readAbout(),
-        about: () => readAbout(),
-        skills: () => readSkills(),
-        projects: (args) => readProjects(args[0]),
-        education: () => readEducation(),
-        contact: () => readContact(),
-        game: () => cmdGame(),
-        //blackhole.js is a separate script, so it may legitimately not be here
-        //(blocked, failed to load); the command says so rather than throwing.
-        blackhole: () => {
-            if (!window.blackhole) return 'blackhole: no such object in this universe.';
-            return window.blackhole.toggle()
-                ? 'accretion disk spun up. scroll to fall in.'
-                : 'horizon collapsed. the sky is quiet again.';
-        },
-        sudo: () => 'permission denied: nice try.',
-        clear: () => { output.innerHTML = ''; return null; },
-    };
+    const commandMap = new Map();
+    COMMANDS.forEach(c => {
+        commandMap.set(c.name, c);
+        (c.alias || []).forEach(a => commandMap.set(a, c));
+    });
+
+    //Column width is measured rather than hard-coded: a longer command added
+    //later should not silently un-align the list.
+    function renderHelp() {
+        const visible = COMMANDS.filter(c => !c.hidden);
+        const width = Math.max(...visible.map(c => `${c.name} ${c.args}`.trim().length));
+        return [
+            'available commands:',
+            ...visible.map(c => `  ${`${c.name} ${c.args}`.trim().padEnd(width + 2)}${c.help}`),
+            '',
+            'shortcuts:',
+            '  tab completes - ^C cancels',
+            '  ^L clears - esc closes',
+        ];
+    }
+
+    //Levenshtein, two rows. A typo is worth catching; a different word is not,
+    //so the threshold stays at 2 and the suggestion is silent when nothing is
+    //close enough to be worth guessing at.
+    function editDistance(a, b) {
+        let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+        for (let i = 1; i <= a.length; i++) {
+            const row = [i];
+            for (let j = 1; j <= b.length; j++) {
+                row[j] = Math.min(
+                    prev[j] + 1,
+                    row[j - 1] + 1,
+                    prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            }
+            prev = row;
+        }
+        return prev[b.length];
+    }
+
+    function suggestFor(name) {
+        const best = COMMANDS
+            .filter(c => !c.hidden)
+            .map(c => ({ name: c.name, d: editDistance(name.toLowerCase(), c.name) }))
+            .sort((x, y) => x.d - y.d)[0];
+        return best && best.d <= 2 ? best.name : null;
+    }
+
+    //Completion --------------------------------------------------------------
+
+    //Candidates come from the same table `help` reads, plus — once the first
+    //word is `projects` — the tags the cards actually carry, so the shell can
+    //never offer a filter that would come back empty.
+    function completionsFor(value) {
+        const parts = value.split(/\s+/);
+        if (parts.length <= 1) {
+            return COMMANDS.filter(c => !c.hidden && c.name.startsWith(parts[0])).map(c => c.name);
+        }
+        if (parts[0].toLowerCase() !== 'projects') return [];
+        const tags = new Set();
+        document.querySelectorAll('.project-card[data-tags]')
+            .forEach(card => tagsOf(card).forEach(t => tags.add(t)));
+        const partial = parts[parts.length - 1].toLowerCase();
+        return [...tags].filter(t => t.toLowerCase().startsWith(partial)).sort();
+    }
+
+    //The longest prefix every candidate agrees on. Two matches that share more
+    //letters should still advance the line rather than only listing themselves.
+    function commonPrefix(list) {
+        if (!list.length) return '';
+        return list.reduce((acc, s) => {
+            let i = 0;
+            while (i < acc.length && i < s.length && acc[i] === s[i]) i++;
+            return acc.slice(0, i);
+        });
+    }
+
+    //Called from every path that touches input.value — a hint left behind under
+    //an empty line is the most visible bug this feature can have.
+    function applyGhost() {
+        const value = input.value;
+        if (mode !== 'command' || !value) {
+            ghost.textContent = '';
+            return;
+        }
+        const list = completionsFor(value);
+        const prefix = commonPrefix(list);
+        const last = value.split(/\s+/).pop();
+        ghost.textContent = (list.length && prefix.length > last.length)
+            ? value + prefix.slice(last.length)
+            : '';
+    }
+
+    function completeInput() {
+        const value = input.value;
+        const list = completionsFor(value);
+        if (!list.length) return;
+        const last = value.split(/\s+/).pop();
+        const prefix = commonPrefix(list);
+        if (prefix.length > last.length) {
+            input.value = value.slice(0, value.length - last.length) + prefix;
+            //A lone match is a finished word, so hand it the trailing space and
+            //the next tab starts on the argument.
+            if (list.length === 1) input.value += ' ';
+        } else if (list.length > 1) {
+            appendLine(value, 'term-line-cmd');
+            appendBlock(list.join('   '), 'term-line-hint');
+        }
+        applyGhost();
+    }
+
+    //^L and ^C have to work while a game holds the floor, and a disabled input
+    //fires no keydown of its own — so this lives in one place and both the
+    //input and the document listener call it.
+    function handleControlKey(e) {
+        if (!e.ctrlKey || e.altKey || e.metaKey) return false;
+        const key = e.key.toLowerCase();
+        if (key === 'l') {
+            e.preventDefault();
+            output.innerHTML = '';
+            return true;
+        }
+        if (key === 'c') {
+            //Copying output out of the terminal has to keep working, so a live
+            //selection wins over the cancel.
+            if (window.getSelection()?.toString()) return false;
+            e.preventDefault();
+            appendLine('^C', 'term-line-cmd');
+            input.value = '';
+            applyGhost();
+            if (mode !== 'command') {
+                cancelActive();
+                exitToCommandMode();
+                appendLine('cancelled.');
+                input.focus();
+            }
+            return true;
+        }
+        return false;
+    }
 
     function runCommand(raw) {
         const trimmed = raw.trim();
@@ -1163,12 +1758,15 @@ const ASCII_CAT_2 = `
         historyIndex = cmdHistory.length;
 
         const [name, ...args] = trimmed.split(/\s+/);
-        const handler = commands[name.toLowerCase()];
-        if (!handler) {
-            appendBlock(`command not found: "${name}". type 'help' for a list of commands.`, 'term-line-error');
+        const entry = commandMap.get(name.toLowerCase());
+        if (!entry) {
+            appendBlock(`command not found: "${name}".`, 'term-line-error');
+            const guess = suggestFor(name);
+            appendBlock(guess ? `did you mean '${guess}'?` : "type 'help' for a list of commands.",
+                        'term-line-error');
             return;
         }
-        const result = handler(args);
+        const result = entry.run(args);
         if (result) appendBlock(result);
     }
 
@@ -1193,7 +1791,7 @@ const ASCII_CAT_2 = `
         widget.classList.remove('is-open');
         trigger.setAttribute('aria-expanded', 'false');
         if (mode !== 'command') {
-            cancelPendingTurn();
+            cancelActive();
             exitToCommandMode();
         }
         trigger.focus();
@@ -1204,6 +1802,15 @@ const ASCII_CAT_2 = `
 
     document.addEventListener('keydown', (e) => {
         if (!widget.classList.contains('is-open')) return;
+        if (handleControlKey(e)) return;
+
+        //The rain owns the whole panel while it runs, so any key ends it —
+        //there is nothing else to press.
+        if (mode === 'fx') {
+            e.preventDefault();
+            stopMatrix();
+            return;
+        }
 
         if (mode === 'menu') {
             if (e.key === 'Escape') {
@@ -1227,7 +1834,7 @@ const ASCII_CAT_2 = `
 
         if (e.key !== 'Escape') return;
         if (mode === 'game') {
-            cancelPendingTurn();
+            cancelActive();
             exitToCommandMode();
             appendLine('game forfeited.');
             input.focus();
@@ -1237,25 +1844,45 @@ const ASCII_CAT_2 = `
     });
 
     input.addEventListener('keydown', (e) => {
+        //^L and ^C run whatever mode the terminal is in, so they come first.
+        if (e.ctrlKey) {
+            if (handleControlKey(e)) e.stopPropagation();
+            return;
+        }
         if (mode !== 'command') return;
-        if (e.key === 'Enter') {
+        if (e.key === 'Tab') {
+            //Without this the browser walks focus to the close button and the
+            //visitor carries on typing into nothing.
+            e.preventDefault();
+            completeInput();
+        } else if (e.key === 'Enter') {
+            //A command is free to move focus — `exit` and a mobile `goto` both
+            //close the panel, which parks focus on the trigger. Enter's default
+            //action lands on whatever is focused by then, so without this the
+            //trigger gets clicked and the panel reopens on the way out.
+            e.preventDefault();
             e.stopPropagation();
             runCommand(input.value);
             input.value = '';
+            applyGhost();
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
             if (cmdHistory.length) {
                 historyIndex = Math.max(0, historyIndex - 1);
                 input.value = cmdHistory[historyIndex] || '';
+                applyGhost();
             }
         } else if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (cmdHistory.length) {
                 historyIndex = Math.min(cmdHistory.length, historyIndex + 1);
                 input.value = cmdHistory[historyIndex] || '';
+                applyGhost();
             }
         }
     });
+
+    input.addEventListener('input', applyGhost);
 
     output.addEventListener('click', () => input.focus());
 })();

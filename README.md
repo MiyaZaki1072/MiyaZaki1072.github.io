@@ -24,7 +24,9 @@ showcase, and the education/experience timeline.
 - Background section with an Education / Experience toggle across multiple tracks
   (education, volunteer, work, competitions & awards) and a photo lightbox linking out
   to each school's Facebook page
-- Interactive terminal widget (`help`, `whoami`, `skills`, `projects [tag]`, `education`, `contact`, `game`, `clear`)
+- Interactive terminal widget with tab-completion, command history, did-you-mean
+  suggestions, commands that drive the page, and three games it always wins —
+  see [The terminal](#the-terminal)
 - Fully responsive — mobile, tablet, and desktop
 - Honours `prefers-reduced-motion` — animations and text scrambling are skipped
 
@@ -65,6 +67,52 @@ npx serve .
 # Or using Python
 python -m http.server 8000
 ```
+
+---
+
+## The terminal
+
+Click the `>_` button in the bottom-right corner. Tab completes, `↑`/`↓` walk the history,
+`^C` cancels, `^L` clears, `esc` closes, and a typo gets a suggestion rather than a shrug.
+
+| command | what it does |
+|---|---|
+| `help` | the list below, generated from the command table |
+| `whoami` / `about` | name, status, and areas of interest |
+| `skills` | the tech stack, read off the page |
+| `projects [tag]` | projects, optionally filtered — the tag completes on `Tab` |
+| `education` | academic background |
+| `contact` | email / discord / github |
+| `contrib` | the GitHub heatmap, redrawn in ASCII |
+| `game` | pick one of three games |
+| `goto <section>` | scrolls the page to `about`, `projects`, `background`, or `top` |
+| `lang [en\|th]` | flips the page language, scramble animation and all |
+| `open <link>` | opens `github`, `discord`, or an `email` draft |
+| `blackhole` | toggles the backdrop |
+| `matrix` | four seconds of rain |
+| `neofetch` | system info, such as it is |
+| `cowsay <text>` | the cat says it for you |
+| `clear` / `exit` | clear the screen / close the panel |
+
+There is one more that `help` will not tell you about.
+
+**Adding a command is one row.** `COMMANDS` in `index.js` is a table of
+`{ name, args, help, run }`, and `help`, tab-completion, and the did-you-mean suggestion all
+read it. They used to keep separate copies of the list, which drifted — `about` and `sudo`
+were live commands that `help` never mentioned. A row marked `hidden: true` is skipped by
+help and by completion but still runs.
+
+### The games are rigged
+
+All three. That is the feature, not a bug, and two of them own up to it when they win:
+
+| game | how the house wins | where |
+|---|---|---|
+| `21` | misère subtraction game — the multiples of four are the losing seats, so it just steps to the next one (`4 - total % 4`) | `computerTurn` |
+| `rps` | it claims to have locked its move in first. It has not; it answers **after** you pick | `rpsAnswer` |
+| `guess` | there is no number. It holds a range and every answer keeps the larger half alive, so seven guesses can never close it | `guessAnswer` |
+
+Losing at `21` costs you an internship, per the house rules.
 
 ---
 
