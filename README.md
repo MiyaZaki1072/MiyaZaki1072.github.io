@@ -2,7 +2,8 @@
 
 The source for **[miyazaki1072.github.io](https://miyazaki1072.github.io/)** — Thitiwut
 "Freyr" Sreewasut's personal portfolio, built with vanilla HTML, CSS, and JavaScript
-(no frameworks, no build step).
+(no frameworks, no build step). One library, GSAP, is vendored in for the motion
+layer — see [Motion](#motion).
 
 **Recruiter or reviewer poking around this repo?** The code is here for reference, but
 the site is meant to be seen running — → **[visit the live page](https://miyazaki1072.github.io/)**
@@ -14,7 +15,18 @@ showcase, and the education/experience timeline.
 ## Features
 
 - Scroll-driven ASCII black hole backdrop (`blackhole.js`) that drifts and grows as you
-  scroll the page, rendered as a single `<pre>` raster for performance
+  scroll the page, rendered as a single `<pre>` raster for performance, over a field of
+  fixed stars that the hole lenses as it passes them — each one brightens, splits, and
+  throws a counter-image around the far side of the shadow. A second, whole black hole —
+  shadow, photon ring, tilted disk and lensed halo — rises under the pointer wherever it
+  hovers true blank ground, never over a card or panel. Take it near the big one and the
+  two merge: it is pulled off the cursor, spirals in trailing a stream of matter, and the
+  light left over leaves as one expanding ring. Carry the pointer back out and a new one
+  forms
+- GSAP motion layer (`motion.js`) — the hero prints itself line by line, section prompts
+  type themselves out, project cards arrive as a staggered batch, each timeline's spine
+  draws itself as you scroll past it, the contribution heatmap fills in column by column,
+  and one lit block travels between the nav links — see [Motion](#motion)
 - Profile picture switcher with a circular progress ring on hover
 - Click the avatar to flip it to a Braille ASCII cat (one per photo), click again to flip back
 - Scramble text animation when switching languages
@@ -23,7 +35,8 @@ showcase, and the education/experience timeline.
 - Project showcase with tag filtering, hover overlays, and a GitHub contribution heatmap
 - Background section with an Education / Experience toggle across multiple tracks
   (education, volunteer, work, competitions & awards) and a photo lightbox linking out
-  to each school's Facebook page
+  to each school's Facebook page. Both tracks are dealt the same panel, so the switch
+  never changes the height of the page under you
 - Interactive terminal widget with tab-completion, command history, did-you-mean
   suggestions, commands that drive the page, and three games it always wins —
   see [The terminal](#the-terminal)
@@ -40,6 +53,8 @@ portfolio/
 ├── style.css           — all styling and responsive breakpoints
 ├── index.js            — profile switcher, translation, timeline, and terminal logic
 ├── blackhole.js        — scroll-driven ASCII black hole backdrop
+├── motion.js           — GSAP entrances and scroll-driven moves
+├── vendor/             — GSAP 3.13.0, core + ScrollTrigger, vendored not CDN
 └── images/
     ├── icon.png             — browser tab favicon
     ├── og-card.jpg          — social share card (og:image / twitter:image)
@@ -69,6 +84,56 @@ python -m http.server 8000
 ```
 
 ---
+
+## Motion
+
+`motion.js` holds every GSAP-driven move on the page. Two rules shape the whole file.
+
+**The library is vendored, not linked.** `vendor/gsap.min.js` and
+`vendor/ScrollTrigger.min.js` are pinned copies of GSAP 3.13.0. A CDN would have kept
+the no-build-step property while quietly giving up the other one this project has always
+had: the page opens from a local copy with the network off.
+
+**Nothing in it is load-bearing.** The file returns on its first line if either global is
+missing, so a deleted `vendor/` costs the motion and never the content. That is also why
+no start state for any of this lives in `style.css` — every hidden state is written from
+JS, after GSAP is known to be present, and cleared again once its move has finished. The
+CSS entrances stay in charge until `motion.js` adds `.is-gsap` to `<html>`, which it does
+only once both globals have answered.
+
+| move | what it does |
+|---|---|
+| hero boot | the card, the portrait, then each line under it, in the order you would read them |
+| section prompts | `> ls ~/projects` types itself out a character at a time, and the heading arrives under it |
+| project cards | a staggered batch, tilted a few degrees so the grid arrives as one group settling |
+| timeline spine | draws downward on scroll, each dot popping as the line reaches it |
+| contribution wave | the year of commits draws itself in column by column, left to right |
+| nav highlight | one lit block travelling between the links, stretching across the gap as it goes |
+
+**Reduced motion is not a branch inside each move.** The whole set is built inside one
+`gsap.matchMedia()` keyed on `prefers-reduced-motion`, so under it the callback simply
+never runs — and if the preference changes mid-visit GSAP reverts every tween and start
+state it had written.
+
+**There is no pinning, and there will not be.** Pinning changes `scrollHeight`, and two
+things on this page measure that themselves: the scroll rail's percentage readout, and
+the black hole's camera, which maps scroll progress to how far the hole has drifted. The
+Education / Experience switch is held to the same rule from the CSS side — both tracks
+share one grid cell, so the panel is always as tall as the longer of the two.
+
+Four handoffs between this file and `index.js` are worth knowing about, because each one
+exists to stop two systems claiming the same element:
+
+- **The tag filter.** The first touch of the filter bar ends the card reveal outright —
+  triggers killed, inline state cleared. A card can be filtered out while still below the
+  fold, and would otherwise come back holding a start state with nothing left to play it.
+- **The Education / Experience switch.** The first press hands the timeline back to
+  `index.js`, which already runs its own cascade over a column when it reveals it.
+- **The EN/TH toggle.** Nothing the dictionary rewrites is ever split into characters.
+  `scrambleText` writes straight to those nodes and would drop the spans on first press.
+- **The scrollspy.** It already says which section you are in by moving an `active` class
+  along the nav. The highlight block watches for that rather than measuring scroll a
+  second time, so the two can never disagree about which link is lit.
 
 ## The terminal
 
@@ -151,7 +216,9 @@ what holds the columns aligned.
 
 - **HTML5** — semantic structure
 - **CSS3** — custom properties, grid, flexbox, keyframe animations
-- **Vanilla JavaScript** — no dependencies, no frameworks
+- **Vanilla JavaScript** — no framework, no build step
+- **GSAP 3.13.0** — core and ScrollTrigger, the project's only dependency, vendored
+  under `vendor/` rather than loaded from a CDN
 - **Google Fonts** — Space Grotesk (display), IBM Plex Sans + IBM Plex Sans Thai
   (body, one superfamily so the EN/TH toggle keeps a consistent voice),
   JetBrains Mono (terminal, code, and labels), Noto Sans Symbols 2 (the avatar's

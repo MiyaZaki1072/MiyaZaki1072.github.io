@@ -996,20 +996,11 @@ body::after {
 .project-card.is-hidden {
     display: none;
 }
-/* Scroll reveal. The grid was the one section that never animated in, which read
-   as flat next to the hero's fadeUp and the timeline's own entrance.
-
-   Both classes are transient: JS adds .reveal-pending only when motion is
-   allowed, swaps it for .reveal-in at the viewport edge, then strips .reveal-in
-   on animationend. A card that has finished is left with no animation property
-   at all, so the tag filter toggling `display` can never replay it. */
-.project-card.reveal-pending {
-    opacity: 0;
-}
-.project-card.reveal-in {
-    animation: fadeUp 0.5s ease both;
-    animation-delay: calc(var(--reveal-i, 0) * 70ms);
-}
+/* The grid's own entrance moved to motion.js, where it is a staggered batch.
+   It is written from JS rather than from here for the same reason it used to
+   strip its classes on animationend: the tag filter hides these cards, and a
+   start state this file owned could outlive the animation meant to clear it.
+   See the Motion layer block at the end of this file. */
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
@@ -1282,13 +1273,29 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     border: 1px solid var(--border);
     padding: var(--sp-8);
 }
+/* Both tracks are dealt the same cell, so the panel always stands as tall as
+   the longer of the two and the Education/Experience switch cannot change the
+   height of the page under you. It used to: Education runs four entries to
+   Experience's three, so every press moved the footer, re-seated the scroll
+   position and re-measured every scroll trigger below it. The cost is a band of
+   empty panel under the shorter track, which is the honest reading anyway —
+   the space belongs to the section, not to whichever track is on show. */
+.timeline {
+    display: grid;
+}
 .timeline-columns {
+    grid-area: 1 / 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--sp-4) var(--sp-6);
 }
+/* Laid out but not shown, which is the whole point — `display: none` would give
+   the height back. visibility takes it out of the picture, out of the
+   accessibility tree and out of the tab order just as completely, and index.js
+   goes on setting the `hidden` attribute exactly as it did. */
 .timeline-columns[hidden] {
-    display: none;
+    visibility: hidden;
+    pointer-events: none;
 }
 /* The two tracks run at very different lengths — four education entries beside
    one volunteer entry — so the short column leaves a tall empty block to the
@@ -2329,6 +2336,75 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         background: linear-gradient(var(--green-dim), var(--green-dim)),
                     rgba(var(--bg-rgb), 0.92);
     }
+}
+
+/* Motion layer --------------------------------------------------------------
+   motion.js adds .is-gsap to <html>, and only once the vendored GSAP files are
+   known to have loaded. Every rule under that class hands an entrance over to
+   that file; without it — a missing vendor/, a blocked script — none of them
+   match and the CSS entrances stay in charge.
+
+   Nothing here sets a start state. Content is never hidden by this stylesheet
+   waiting on a script that might not arrive; motion.js writes each hidden state
+   itself and clears it again when the move finishes. */
+.is-gsap .about-inner {
+    animation: none;
+}
+/* Per-character spans for the section prompts. inline-block is what lets each
+   one carry a transform of its own, and pre keeps the spaces the split hands
+   back — a run of them would otherwise collapse and shift the line. */
+.split-char {
+    display: inline-block;
+    white-space: pre;
+}
+/* The timeline's spine, promoted from .timeline-track::before to a real element
+   so a tween can draw it down the track as you scroll. Same 1px in the same
+   place, so the two renderings are interchangeable: the pseudo-element simply
+   stands down wherever motion.js has inserted its replacement. Resting state is
+   the full line, which is what a cleared transform leaves behind. */
+.is-gsap .timeline-track::before {
+    display: none;
+}
+.timeline-rail {
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: var(--border);
+    transform-origin: top center;
+}
+/* The lit block that travels between the nav links. It is the same fill the
+   links used to carry on :hover, lifted out of them and made into one object
+   that moves — so the bar reads as a selection being dragged along a row rather
+   than as three independent buttons lighting up. motion.js positions it. */
+.nav-indicator {
+    position: absolute;
+    top: var(--sp-2);
+    bottom: var(--sp-2);
+    left: 0;
+    width: 0;
+    border-radius: var(--r-sm);
+    background: var(--green-dim);
+    border: 1px solid var(--green-line);
+    pointer-events: none;
+}
+/* Only once the block is actually in the bar. Under reduced motion motion.js
+   builds none of this, the class never lands, and the links keep the fill they
+   have always had. */
+.navbar.has-indicator .nav-link:hover,
+.navbar.has-indicator .nav-link.active {
+    background: transparent;
+}
+/* While you are pointing at the bar, the pointer is the authority on which link
+   is lit — otherwise the section you are in and the link under your cursor both
+   claim it, and the block sits under only one of them. */
+.navbar.has-indicator:hover .nav-link.active:not(:hover) {
+    color: var(--text-sec);
+}
+.navbar.has-indicator:hover .nav-link.active:not(:hover)::before,
+.navbar.has-indicator:hover .nav-link.active:not(:hover)::after {
+    opacity: 0;
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so

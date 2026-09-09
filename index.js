@@ -567,38 +567,6 @@ const ASCII_CAT_2 = `
     });
 })();
 
-//Project card scroll reveal -------------------------------------------------
-//Staggered so the eye travels the grid in reading order as the section enters.
-//One-shot by construction: the card is stripped of both reveal classes once its
-//animation ends, so the tag filter's display toggling has no animation left to
-//restart. Under reduced motion no class is ever added and the cards just sit
-//there at full opacity.
-(function () {
-    const cards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
-    if (!cards.length || reducedMotion.matches) return;
-
-    cards.forEach((card, i) => {
-        card.style.setProperty('--reveal-i', i);
-        card.classList.add('reveal-pending');
-    });
-
-    const reveal = card => {
-        card.classList.remove('reveal-pending');
-        card.classList.add('reveal-in');
-        card.addEventListener('animationend', () => card.classList.remove('reveal-in'), { once: true });
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-            reveal(entry.target);
-            observer.unobserve(entry.target);
-        });
-    }, { rootMargin: '0px 0px -10% 0px' });
-
-    cards.forEach(card => observer.observe(card));
-})();
-
 //GitHub contributions -------------------------------------------------------
 //The data is baked in at build time by scripts/fetch-contributions.mjs. The
 //calendar is GraphQL-only and GraphQL needs a token, which can never ship in a
