@@ -17,9 +17,12 @@ showcase, and the education/experience timeline.
 - Scroll-driven ASCII black hole backdrop (`blackhole.js`) that drifts and grows as you
   scroll the page, rendered as a single `<pre>` raster for performance, over a field of
   fixed stars that the hole lenses as it passes them — each one brightens, splits, and
-  throws a counter-image around the far side of the shadow. A second, small ring —
-  outline only, no filled centre — rises under the pointer wherever it hovers true blank
-  ground, never over a card or panel
+  throws a counter-image around the far side of the shadow. A second, whole black hole —
+  shadow, photon ring, tilted disk and lensed halo — rises under the pointer wherever it
+  hovers true blank ground, never over a card or panel. Take it near the big one and the
+  two merge: it is pulled off the cursor, spirals in trailing a stream of matter, and the
+  light left over leaves as one expanding ring. Carry the pointer back out and a new one
+  forms
 - GSAP motion layer (`motion.js`) — the hero prints itself line by line, section prompts
   type themselves out, project cards arrive as a staggered batch, each timeline's spine
   draws itself as you scroll past it, the contribution heatmap fills in column by column,

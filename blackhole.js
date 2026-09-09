@@ -45,15 +45,26 @@
     //parallax lean on top of an authored camera move, not a second camera.
     const LEAN = 0.22;
 
-    //The ring raised under the pointer over blank ground, in the same units.
-    //RING_R is a little under a fifth of the shorter viewport edge; RING_W is
-    //the Gaussian's width, and the thing that keeps it a line rather than a
-    //disk. RING_V is deliberately high on the ramp: the glyph gradient is
-    //centred on the hole, so a ring out on blank ground is coloured by the
-    //gradient's outermost stop and has only that alpha to be seen through.
-    const RING_R = 0.17;
-    const RING_W = 0.022;
-    const RING_V = 0.92;
+    //The second hole, the one that follows the pointer over blank ground. CUR_S
+    //is its closeness in the same currency the scroll camera uses for the big
+    //one, and every radius it has is cut from that number exactly as the big
+    //one's are — so the two are the same object at two sizes rather than a hole
+    //and an imitation of one.
+    //0.20 rather than something smaller because the shadow is what makes this
+    //read as a hole rather than as a bright smudge, and the shadow is the
+    //smallest feature it has: below about this the horizon lands on two or
+    //three characters and stops being legible as a hole at all.
+    const CUR_S = 0.20;
+    //Its own tilt. Fixed rather than scroll-driven: the big hole's tilt opens up
+    //as the camera closes on it, and this one is never approached.
+    const CUR_KY = 0.16;
+
+    //The merger. GRAB is where the big hole starts to take hold, as a fraction
+    //of its own disk's outer edge; RELEASE is how much further back out the
+    //pointer has to travel before a swallowed hole re-forms, which stops a
+    //cursor sitting exactly on the boundary from strobing in and out.
+    const GRAB = 0.80;
+    const RELEASE = 1.25;
     //Which elements count as blank ground. Everything a reader can actually use
     //is a descendant of one of these, so it is what elementFromPoint returns
     //instead and fails the test on its own — no maintenance as content is added
@@ -87,6 +98,19 @@
     let ringTX = 0, ringTY = 0, ringX = 0, ringY = 0, ringA = 0;
     let pointerClientX = -1, pointerClientY = -1, pointerLive = false;
     let lastHitX = -1, lastHitY = -1, lastHitScrollY = -1, overBlank = false;
+
+    //Where the big hole was on the last frame, and how big. render() is the only
+    //thing that knows the camera, so it publishes these rather than having the
+    //merger re-derive the drift formula and risk the two drifting apart. tick()
+    //reads them one frame stale, which at 30fps is 33ms and invisible.
+    let holeX = 0, holeY = 0, holeRh = 0, holeRout = 0;
+
+    //The merger. `inspiral` runs 0 to 1 as the big hole takes hold of the small
+    //one; `absorbed` latches when the two horizons touch and holds until the
+    //pointer has travelled back out past RELEASE. `flash` and the pulse are the
+    //ringdown: the light left over from a merge, leaving as one expanding ring.
+    let inspiral = 0, absorbed = false;
+    let flash = 0, pulseR = 0, pulseOn = false;
 
     //--- setup ---------------------------------------------------------------
 
@@ -231,31 +255,82 @@
         }
     }
 
-    //--- the cursor ring -------------------------------------------------------
+    //--- disk shading ----------------------------------------------------------
     //
-    //Raised over blank ground under the pointer: the outer ring only, no filled
-    //centre, so it reads as a second small gravity well rather than a spotlight.
+    //Same falloff curve, same turbulence, same shear rate, used by the direct
+    //band and the lensed halo of both holes. They take their disk's inner edge
+    //and radial span as arguments rather than closing over one hole's, which is
+    //what lets the small hole be lit by the same surface as the big one instead
+    //of by a second copy of it that could drift out of step.
+    function diskRadial(R, rin, span) {
+        const u = (R - rin) / span;
+        let radial = 1 - u;
+        radial = radial * radial * radial;
+        if (u < 0.06) radial *= u * 16.7;   // soften the inner lip
+        return radial;
+    }
+    function diskBand(R, angle, rin, span) {
+        const u = (R - rin) / span;
+        //Keplerian shear — inner orbits outrun outer ones. This is what winds
+        //the striations into a spiral; a constant rate would turn instead as one
+        //rigid spoked wheel. `phase` is shared, so both holes turn on one clock.
+        const q = rin / R;
+        const a = angle + phase * q * Math.sqrt(q);
+        return (0.58 + 0.42 * Math.sin(a * 3 + u * 13)) *
+               (0.74 + 0.26 * Math.sin(a * 7 - u * 5));
+    }
+
+    //--- the cursor hole -------------------------------------------------------
+    //
+    //A whole second hole, raised over blank ground under the pointer: shadow,
+    //photon ring, tilted disk and lensed halo, the same silhouette as the big
+    //one at a fraction of the size.
     //
     //This composites over `lines` after the main loop has already written every
-    //cell, rather than folding into that loop. Two reasons. First, the loop's
+    //cell, rather than folding into that loop. Three reasons. First, the loop's
     //own vignette blanks a cell before anything else about it is decided, and
-    //blank ground is mostly out past that line — a ring built into the loop
+    //blank ground is mostly out past that line — a hole built into the loop
     //would be discarded exactly where it needs to show. Second, this only ever
     //touches a couple of dozen short rows around the cursor, against roughly
-    //8,700 cells the main loop walks every frame regardless of where the
-    //pointer is.
-    function drawRing() {
-        if (ringA < 0.02 || !unitPx) return;
+    //8,700 cells the main loop walks every frame regardless of where the pointer
+    //is. Third, a shadow has to be able to *remove* light, and writing a space
+    //over a finished cell is the only way this raster can do that.
+    //
+    //`grow` is the amplitude doing double duty as a scale. A hole that faded in
+    //would be a grey disc resolving out of nothing; one that grows arrives, and
+    //on the way out it collapses — which is exactly what should happen to it
+    //when the big hole finally takes it.
+    function drawCursorHole(drawX, drawY, grow, gain) {
+        if (grow < 0.05 || !unitPx) return;
 
-        //Margin past the line itself for the Gaussian's tail, converted from
-        //unit space to a cell span using cellW/cellH separately — the ring has
-        //to stay round in real pixels, and the two can differ.
-        const reach = RING_R + RING_W * 4;
-        const centerCol = (ringX * unitPx + viewW / 2) / cellW;
-        const centerRow = (ringY * unitPx + viewH / 2) / cellH;
-        const colSpan = Math.ceil((reach * unitPx) / cellW);
-        const rowSpan = Math.ceil((reach * unitPx) / cellH);
+        const s2 = CUR_S * grow;
+        const rh2 = s2 * 0.34;
+        const rph2 = rh2 * 1.42;
+        const rin2 = rh2 * 1.62;
+        const rout2 = rh2 * 4.60;
+        const span2 = rout2 - rin2;
+        const ringW2 = rh2 * 0.15;
+        const haloIn2 = rph2;
+        const haloOut2 = rph2 * 2.45;
+        const haloSpan2 = haloOut2 - haloIn2;
+        const reach = Math.max(rout2, haloOut2);
 
+        //Rows are patched through this rather than written straight back, so the
+        //disk pass and the stream that follows it can both land on a row without
+        //either having to know the other touched it.
+        const dirty = new Map();
+        const rowOf = (y) => {
+            let c = dirty.get(y);
+            if (!c) { c = lines[y].split(''); dirty.set(y, c); }
+            return c;
+        };
+
+        const centerCol = (drawX * unitPx + viewW / 2) / cellW;
+        const centerRow = (drawY * unitPx + viewH / 2) / cellH;
+        //Converted to a cell span with cellW and cellH separately: the hole is
+        //round in real pixels, and a character is not square.
+        const colSpan = Math.ceil((reach * unitPx) / cellW) + 1;
+        const rowSpan = Math.ceil((reach * unitPx) / cellH) + 1;
         const rowFrom = Math.max(0, Math.floor(centerRow - rowSpan));
         const rowTo = Math.min(rows - 1, Math.ceil(centerRow + rowSpan));
         const colFrom = Math.max(0, Math.floor(centerCol - colSpan));
@@ -263,28 +338,99 @@
 
         for (let y = rowFrom; y <= rowTo; y++) {
             const base = y * cols;
-            let chars = null; // split lazily: most rows in range end up untouched
-
             for (let x = colFrom; x <= colTo; x++) {
                 const i = base + x;
-                const ax = nx[i] - ringX;
-                const ay = ny[i] - ringY;
+                const ax = nx[i] - drawX;
+                const ay = ny[i] - drawY;
                 const r = Math.sqrt(ax * ax + ay * ay);
-                const d = (r - RING_R) / RING_W;
-                if (d < -4 || d > 4) continue;
+                if (r > reach) continue;
 
-                const v = RING_V * Math.exp(-d * d) * ringA;
+                let v = 0;
+                const dy = ay / CUR_KY;
+                const R = Math.sqrt(ax * ax + dy * dy);
+                const onDisk = R > rin2 && R < rout2;
+
+                if (onDisk) {
+                    const dopp = Math.max(0.06, 1 + 1.10 * ax / R);
+                    v = diskRadial(R, rin2, span2) * diskBand(R, Math.atan2(dy, ax), rin2, span2) * dopp * 1.30;
+                }
+
+                if (r < rh2) {
+                    //Nothing leaves the horizon, and here that has to be enforced
+                    //against a cell the main loop already filled — so the shadow
+                    //writes a space rather than declining to write light. The one
+                    //exception is the near limb of its own disk, passing between
+                    //us and it rather than behind.
+                    if (!(onDisk && ay > 0)) {
+                        rowOf(y)[x] = ' ';
+                        continue;
+                    }
+                } else {
+                    if (r > haloIn2 && r < haloOut2) {
+                        const t = (r - haloIn2) / haloSpan2;
+                        const R2 = rin2 + t * t * (rout2 - rin2);
+                        const thin = (1 - t) * (1 - t);
+                        const doppH = Math.max(0.06, 1 + 1.10 * ax / r);
+                        const mod = Math.max(0.45, diskBand(R2, Math.atan2(ay, ax), rin2, span2) * doppH);
+                        const haloV = diskRadial(R2, rin2, span2) * mod * thin * 2.2;
+                        if (haloV > v) v = haloV;
+                    }
+                    const d = (r - rph2) / ringW2;
+                    if (d > -3.2 && d < 3.2) {
+                        const beam = 0.45 + 0.55 * ax / r;
+                        v += 1.20 * Math.exp(-d * d) * (beam > 0.08 ? beam : 0.08);
+                    }
+                }
+
                 if (v <= 0) continue;
+                //The same knee the main loop uses, so the small hole's disk sits
+                //on the ramp the same way the big one's does.
+                v = 1.15 * v / (1 + v) * gain * (0.35 + 0.65 * grow);
                 const level = v >= 1 ? 9 : (v * 10) | 0;
+                if (level <= 0) continue;
 
-                const existing = RAMP_LEVEL[lines[y].charCodeAt(x)];
-                if (level <= existing) continue;
-
-                if (!chars) chars = lines[y].split('');
-                chars[x] = RAMP[level];
+                const chars = dirty.get(y);
+                const existing = RAMP_LEVEL[(chars ? chars[x] : lines[y][x]).charCodeAt(0)];
+                if (level > existing) rowOf(y)[x] = RAMP[level];
             }
-            if (chars) lines[y] = chars.join('');
         }
+
+        //The stream. Once the big hole has hold of this one, matter leaves it
+        //along the line between the two, and it is the one part of a merger that
+        //is legible at this resolution — two objects drifting together says very
+        //little; a bright thread running from one into the other says what is
+        //happening to whom. Bowed rather than straight, because it is being
+        //wound in by something turning, and brightest at the far end where it is
+        //moving fastest.
+        if (inspiral > 0.02) {
+            const sx = holeX - drawX;
+            const sy = holeY - drawY;
+            const len = Math.sqrt(sx * sx + sy * sy) || 1;
+            const px = -sy / len, py = sx / len;   // perpendicular, for the bow
+            const steps = 44;
+
+            for (let k = 0; k <= steps; k++) {
+                const t = k / steps;
+                const bow = Math.sin(t * Math.PI) * 0.10 * inspiral;
+                const ux = drawX + sx * t + px * bow;
+                const uy = drawY + sy * t + py * bow;
+
+                const col = Math.floor((ux * unitPx + viewW / 2) / cellW);
+                const row = Math.floor((uy * unitPx + viewH / 2) / cellH);
+                if (col < 0 || row < 0 || col >= cols || row >= rows) continue;
+
+                const flow = 0.5 + 0.5 * Math.sin(t * 15 - phase * 3.4);
+                const v = inspiral * 0.95 * flow * (0.35 + 0.65 * t);
+                const level = v >= 1 ? 9 : (v * 10) | 0;
+                if (level <= 0) continue;
+
+                const chars = dirty.get(row);
+                const existing = RAMP_LEVEL[(chars ? chars[col] : lines[row][col]).charCodeAt(0)];
+                if (level > existing) rowOf(row)[col] = RAMP[level];
+            }
+        }
+
+        dirty.forEach((chars, y) => { lines[y] = chars.join(''); });
     }
 
     //--- the frame -----------------------------------------------------------
@@ -305,6 +451,10 @@
         const rout = rh * 4.60;
         const span = rout - rin;
         const ringW = rh * 0.15;
+        //Thicker than the photon ring it is born at: a ringdown is a pulse
+        //leaving, not a structure standing still, and a hairline would read as
+        //a second photon ring rather than as something on its way out.
+        const pulseW = rh * 0.55;
 
         //The lensed halo. Light leaving the far side of the disk passes over the
         //top and under the bottom of the hole and bends back toward us, so the
@@ -347,29 +497,14 @@
         //screen of glyphs rather than past a distant one. The halo added below
         //covers more of the frame than the direct band alone did, so this
         //gives back more than before.
-        const amp = 1 - 0.48 * p;
+        //`flash` is the light of a merge, and it lifts the whole frame for the
+        //moment it lasts rather than only the ring it came from: a merger is the
+        //brightest thing this object will ever do.
+        const amp = (1 - 0.48 * p) * (1 + flash * 0.35);
 
-        //Shared disk shading — same falloff curve, same turbulence, same shear
-        //rate — used for both the direct band and the lensed halo below, so the
-        //two read as one spinning surface rather than as two unrelated layers
-        //that happen to overlap.
-        function diskRadial(R) {
-            const u = (R - rin) / span;
-            let radial = 1 - u;
-            radial = radial * radial * radial;
-            if (u < 0.06) radial *= u * 16.7;   // soften the inner lip
-            return radial;
-        }
-        function diskBand(R, angle) {
-            const u = (R - rin) / span;
-            //Keplerian shear — inner orbits outrun outer ones. This is what
-            //winds the striations into a spiral; a constant rate would turn
-            //instead as one rigid spoked wheel.
-            const q = rin / R;
-            const a = angle + phase * q * Math.sqrt(q);
-            return (0.58 + 0.42 * Math.sin(a * 3 + u * 13)) *
-                   (0.74 + 0.26 * Math.sin(a * 7 - u * 5));
-        }
+        //What the merger needs to know about the camera, published rather than
+        //re-derived. tick() reads these one frame later; see the declaration.
+        holeX = offX; holeY = offY; holeRh = rh; holeRout = rout;
 
         stampSky(offX, offY, rph, rh, vig);
 
@@ -395,7 +530,7 @@
                     //the other; without it a spinning disk reads as a still ring.
                     //Floored so the dim limb never flips negative and inverts.
                     const dopp = Math.max(0.06, 1 + 1.10 * ax / R);
-                    v = diskRadial(R) * diskBand(R, Math.atan2(dy, ax)) * dopp * 1.30;
+                    v = diskRadial(R, rin, span) * diskBand(R, Math.atan2(dy, ax), rin, span) * dopp * 1.30;
                 }
 
                 //The lensed sky, stamped before this loop ran. max rather than
@@ -431,8 +566,8 @@
                         //the ring's body above the render threshold across a
                         //full sweep of turning phases; the bright limb still
                         //reaches roughly double that on its own.
-                        const mod = Math.max(0.45, diskBand(R2, Math.atan2(ay, ax)) * doppH);
-                        const haloV = diskRadial(R2) * mod * thin * 2.2;
+                        const mod = Math.max(0.45, diskBand(R2, Math.atan2(ay, ax), rin, span) * doppH);
+                        const haloV = diskRadial(R2, rin, span) * mod * thin * 2.2;
                         //max, not +=: where the halo and the direct band overlap
                         //near the disk's own left/right edge, adding them would
                         //weld a bright seam into the join.
@@ -456,6 +591,14 @@
                             ax * 8 - phase * 0.7 + Math.sin(ay * 6 + phase * 0.5) * 1.7);
                         v += 0.34 * hz * hz * hz * reach;
                     }
+                    //Ringdown. What is left over after a merge leaves as one
+                    //expanding ring, and it costs almost nothing to draw here
+                    //because this loop has already measured `r` for every cell —
+                    //a pass of its own would measure the same distance twice.
+                    if (pulseOn) {
+                        const pd = (r - pulseR) / pulseW;
+                        if (pd > -3 && pd < 3) v += flash * 1.8 * Math.exp(-pd * pd);
+                    }
                 }
 
                 //Highlight knee, not a gamma. Raw disk brightness runs past 3
@@ -470,7 +613,24 @@
             lines[y] = String.fromCharCode.apply(null, rowBuf);
         }
 
-        drawRing();
+        //Where the small hole is actually drawn, which is only the cursor while
+        //nothing has hold of it. Under the big hole's pull the offset from big
+        //to small is rotated and shortened together, so the thing spirals in
+        //rather than falling on a straight line — an object with angular
+        //momentum cannot do anything else, and a straight drop would read as
+        //the cursor being snapped to rather than as two masses finding each
+        //other. At full pull the two centres coincide and the merge fires.
+        const t = inspiral * inspiral;
+        const ang = t * 2.4;
+        const k = 1 - t;
+        const ox = ringX - offX;
+        const oy = ringY - offY;
+        const ca = Math.cos(ang), sa = Math.sin(ang);
+        const drawX = offX + (ox * ca - oy * sa) * k;
+        const drawY = offY + (ox * sa + oy * ca) * k;
+        //Falling in makes it brighter: the disk is being fed.
+        drawCursorHole(drawX, drawY, ringA * (1 - t * 0.55), 1 + inspiral * 0.9);
+
         world.textContent = lines.join('\n');
 
         //The glyph-colour gradient follows the hole, but only moves with
@@ -512,9 +672,88 @@
         updateRingTarget(y);
         ringX += (ringTX - ringX) * 0.25;
         ringY += (ringTY - ringY) * 0.25;
-        ringA += ((overBlank ? 1 : 0) - ringA) * 0.12;
+        stepMerger(dt);
+        //A hole the big one has swallowed stays gone until the pointer has
+        //carried it back out, so the amplitude answers to both.
+        ringA += (((overBlank && !absorbed) ? 1 : 0) - ringA) * 0.12;
 
         render();
+    }
+
+    //The merger, in four states, none of which are named anywhere as a state:
+    //apart, held, gone, and the ring leaving after a merge.
+    //
+    //The whole thing keys off one distance — cursor to big hole — measured in
+    //the big hole's own currency, so it holds at every point of the scroll even
+    //though the big hole is four times the size at the footer that it is at the
+    //top. Approach it and it takes hold; keep going and the two merge; the light
+    //left over leaves as one expanding ring; travel back out and a new one forms
+    //under the pointer.
+    function stepMerger(dt) {
+        const dx = holeX - ringX;
+        const dy = holeY - ringY;
+        const d = Math.sqrt(dx * dx + dy * dy);
+
+        //Both distances are capped, and the cap is the whole reason this stays
+        //playable at the bottom of the page. By the footer the big hole's disk
+        //runs to nearly four units — wider than the viewport — so an uncapped
+        //grab radius covers the entire screen and the release radius that
+        //follows from it sits off the screen altogether: the small hole would be
+        //swallowed once and there would be nowhere left to stand to get it back.
+        const grab = Math.min(holeRout * GRAB, 0.95);
+        //Horizons touching, except where the big horizon has grown past the point
+        //where that would fire the instant the pointer entered the grab radius.
+        const mergeR = Math.min(holeRh + CUR_S * 0.34, grab * 0.35);
+
+        if (absorbed) {
+            //Hysteresis, not a threshold. Re-forming at the same distance the
+            //merge fired at would let a cursor parked on the line flicker
+            //between a hole and no hole several times a second.
+            inspiral = 0;
+            if (d > grab * RELEASE) absorbed = false;
+        } else if (grab > 0 && d < grab && ringA > 0.5) {
+            //Always toward 1, never toward a figure derived from the distance.
+            //Easing to `1 - d/grab` looked right and was wrong: it is a fixed
+            //point, so a cursor held at one distance settles there, and at some
+            //distances that settling point sits a thousandth of a unit outside
+            //the merge radius and simply hangs. An inspiral is a decay, not a
+            //balance — once something has hold of you it does not stop having
+            //hold of you. Proximity sets the rate instead: creep at the edge,
+            //snap once it is close.
+            //Cubed, with a floor low enough to be nearly nothing. By the middle
+            //of the page the grab radius covers most of the viewport, so a
+            //linear rate meant the small hole was always quietly winding in and
+            //never simply sat where it was put. The fringe now takes upwards of
+            //ten seconds to pull anything anywhere — long enough to read as a
+            //hole that is merely near something — and the last quarter of the
+            //approach is where it turns decisive.
+            const pull = 1 - d / grab;
+            inspiral += (1 - inspiral) * (0.002 + 0.12 * pull * pull * pull);
+            //Measured against where the small hole is actually drawn rather than
+            //where the pointer is — by this point the two have parted company.
+            const t = inspiral * inspiral;
+            if (d * (1 - t) < mergeR) {
+                absorbed = true;
+                inspiral = 0;
+                flash = 1;
+                pulseR = holeRh;
+                pulseOn = true;
+            }
+        } else {
+            inspiral += (0 - inspiral) * 0.18;
+        }
+
+        if (pulseOn) {
+            //Fast out of the merge and slowing as it goes, which is what a
+            //ringdown does and, more to the point, what makes it read as one
+            //event rather than as a ring that was always expanding.
+            pulseR += dt * holeRout * (0.9 + flash * 2.6);
+            flash *= 0.90;
+            if (flash < 0.02 || pulseR > holeRout * 2.4) {
+                pulseOn = false;
+                flash = 0;
+            }
+        }
     }
 
     //elementFromPoint forces a style flush, so this only runs when something
@@ -599,6 +838,8 @@
             ringTX = ringTY = ringX = ringY = ringA = 0;
             pointerLive = overBlank = false;
             lastHitX = lastHitY = lastHitScrollY = -1;
+            inspiral = flash = pulseR = 0;
+            absorbed = pulseOn = false;
         }
     }
 
