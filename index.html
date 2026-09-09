@@ -423,7 +423,15 @@
             ::-webkit-scrollbar-thumb { background-image: none; }
         }
     </style>
+    <!-- GSAP, vendored rather than pulled from a CDN. The two properties this
+         project is built on are "no build step" and "opens from a file:// copy",
+         and a CDN keeps the first while quietly giving up the second. Pinned at
+         3.13.0; motion.js checks for both globals before it does anything, so a
+         missing vendor/ costs the motion and never the content. -->
+    <script src="vendor/gsap.min.js"></script>
+    <script src="vendor/ScrollTrigger.min.js"></script>
     <script src="index.js"></script>
+    <script src="motion.js"></script>
     <script src="blackhole.js"></script>
 </body>
 </html>
