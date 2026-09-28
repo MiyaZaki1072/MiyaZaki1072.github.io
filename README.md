@@ -15,7 +15,7 @@ showcase, and the education/experience timeline.
 ## Features
 
 - Scroll-driven ASCII black hole backdrop (`blackhole.js`) that drifts and grows as you
-  scroll the page, rendered as a single `<pre>` raster for performance, over a field of
+  scroll the page, drawn as a character raster onto one `<canvas>`, one `fillText` per row, over a field of
   fixed stars that the hole lenses as it passes them — each one brightens, splits, and
   throws a counter-image around the far side of the shadow. A second, whole black hole —
   shadow, photon ring, tilted disk and lensed halo — rises under the pointer wherever it
@@ -27,12 +27,19 @@ showcase, and the education/experience timeline.
   type themselves out, project cards arrive as a staggered batch, each timeline's spine
   draws itself as you scroll past it, the contribution heatmap fills in column by column,
   and one lit block travels between the nav links — see [Motion](#motion)
+- Motion spring layer (`springs.js`) — project cards lift and trail a green spotlight along
+  their border after the pointer, the tag filter shrinks cards out and springs the rest into place, pointing at a tag
+  lights the projects built with it, and the contribution stats count up — see
+  [Springs](#springs)
 - Profile picture switcher with a circular progress ring on hover
 - Click the avatar to flip it to a Braille ASCII cat (one per photo), click again to flip back
 - Scramble text animation when switching languages
 - Full Thai / English translation toggle
 - Smooth scroll navigation with a fixed navbar
 - Project showcase with tag filtering, hover overlays, and a GitHub contribution heatmap
+- Organizing section — Kit2Code, the contest group I founded (formerly RYWCC, Rayongwit Coding
+  Challenge) for POSN Computer students: what it is, the tools built for it, and a log
+  of the contests run on Codeforces and those planned on its own CMS
 - Background section with an Education / Experience toggle across multiple tracks
   (education, volunteer, work, competitions & awards) and a photo lightbox linking out
   to each school's Facebook page. Both tracks are dealt the same panel, so the switch
@@ -54,7 +61,8 @@ portfolio/
 ├── index.js            — profile switcher, translation, timeline, and terminal logic
 ├── blackhole.js        — scroll-driven ASCII black hole backdrop
 ├── motion.js           — GSAP entrances and scroll-driven moves
-├── vendor/             — GSAP 3.13.0, core + ScrollTrigger, vendored not CDN
+├── springs.js          — Motion spring moves: card spotlight, filter FLIP, tag preview, stat count
+├── vendor/             — GSAP 3.13.0 (core + ScrollTrigger) and Motion 13.4.4, vendored not CDN
 └── images/
     ├── icon.png             — browser tab favicon
     ├── og-card.jpg          — social share card (og:image / twitter:image)
@@ -62,6 +70,8 @@ portfolio/
     ├── myface2.webp         — profile photo (alternate)
     ├── MesosuemPic.webp     — project screenshot
     ├── SeriesTracker.webp   — project screenshot
+    ├── TaskMaker.webp       — project screenshot
+    ├── CmsAdminHelper.webp  — project screenshot
     ├── cat-terminal.webp    — cat perched on the terminal widget
     └── education/           — photos shown in the background timeline lightbox
 ```
@@ -120,6 +130,28 @@ things on this page measure that themselves: the scroll rail's percentage readou
 the black hole's camera, which maps scroll progress to how far the hole has drifted. The
 Education / Experience switch is held to the same rule from the CSS side — both tracks
 share one grid cell, so the panel is always as tall as the longer of the two.
+
+### Springs
+
+`springs.js` holds the moves that answer the pointer, built on
+[Motion](https://motion.dev/) 13.4.4, vendored as `vendor/motion.min.js` under the same
+rules as GSAP: no CDN, and the file returns on its first line if `window.Motion` is
+missing. GSAP keeps the scroll entrances; every move here stands aside while GSAP still
+holds a card.
+
+| move | what it does |
+|---|---|
+| card spotlight | the card lifts under a mouse pointer and a green light trails after it on a spring, lighting a stretch of the border and a faint wash inside |
+| filter FLIP | cards that stop matching shrink out, the rest spring to their new grid slots, arrivals fade in |
+| tag preview | pointing at a filter chip or hero tag lights the matching projects and dims the rest |
+| stat count | total, streak and longest count up from zero the first time the block is on screen |
+
+Every transform on a card goes through one rig of motion values, so the lift and the
+filter slide compose into a single inline transform instead of overwriting each
+other, and at rest the rig removes it again. The filter is still decided in `index.js`:
+it hands `window.animateProjectFilter` the result and a `commit()` that applies it, and
+without `springs.js` it simply calls `commit()` itself. Reduced motion is checked at
+the moment of each move, so all of it snaps when the preference is set.
 
 Four handoffs between this file and `index.js` are worth knowing about, because each one
 exists to stop two systems claiming the same element:

@@ -10,16 +10,21 @@
 //them: each one splits, brightens and throws a counter-image around the far
 //side of the shadow when the drift brings it close. See the starfield block.
 //
-//The frame is built as one string and handed to one <pre>, so a frame costs a
-//single text layout rather than tens of thousands of canvas glyph draws. Colour
-//comes from a radial gradient clipped to that text, which is why the glyphs can
-//run amber at the core and green at the rim without a second pass.
+//The frame is built as one string per row and painted onto one canvas with a
+//fillText per row: a few dozen draws a frame, not one per glyph. It used to be
+//handed to a <pre> instead, which meant the browser re-laid-out ~8,700 glyphs
+//of page text thirty times a second; measured, that was most of the page's
+//frame time while scrolling. Colour is a radial canvas gradient used as the
+//fill, which is why the glyphs can still run amber at the core and green at
+//the rim in a single pass.
 
 (function () {
     const layer = document.getElementById('blackhole');
     if (!layer) return;
 
     const world = layer.querySelector('.blackhole__world');
+    const ctx = world && world.getContext && world.getContext('2d');
+    if (!ctx) return;
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     //A lean needs something to lean away from. Touch has no hovering pointer,
     //so those readers keep the scroll camera exactly as it is.
@@ -69,7 +74,7 @@
     //is a descendant of one of these, so it is what elementFromPoint returns
     //instead and fails the test on its own — no maintenance as content is added
     //inside a section.
-    const GROUND = 'body, .about-section, .projects-section, .background-section, .footer';
+    const GROUND = 'body, .about-section, .projects-section, .organizing-section, .background-section, .footer';
 
     //Cell geometry, rebuilt on resize. nx/ny hold each cell's position in
     //"units" (1 unit = half the shorter viewport edge) measured from the
@@ -83,6 +88,9 @@
     let pCur = 0, lastY = 0, spin = 0;
     let running = false, enabled = true;
     let glowX = -1, glowY = -1, glowR = -1;
+    //The current gradient fill, and an all-space row to compare against so an
+    //empty row is skipped without scanning it.
+    let glowFill = null, blankRow = '';
     //Where the pointer asks the hole to be, and where it actually is. They are
     //separate so the hole trails the cursor instead of being welded to it — a
     //mass this size does not change direction the instant a mouse does.
@@ -116,16 +124,31 @@
 
     //Measured rather than assumed: which font actually wins depends on what
     //loaded, and a wrong advance width shears the whole raster into diagonals.
+    //The font comes from style.css, so the breakpoints there still set the
+    //cell size exactly as they did when this was typeset text.
+    let font = '16px monospace';
     function cellSize() {
-        const probe = document.createElement('span');
-        probe.textContent = '0'.repeat(100);
-        probe.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;';
-        world.appendChild(probe);
-        const w = probe.getBoundingClientRect().width / 100;
-        probe.remove();
         const cs = getComputedStyle(world);
-        const h = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize);
+        const size = parseFloat(cs.fontSize) || 16;
+        font = `${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+        ctx.font = font;
+        const w = ctx.measureText('0'.repeat(100)).width / 100;
+        const h = parseFloat(cs.lineHeight) || size;
         return { w: w > 0 ? w : 9, h: h > 0 ? h : 16 };
+    }
+
+    //Read once per layout rather than per frame: the palette only changes if
+    //the stylesheet does.
+    let palette = null;
+    function readPalette() {
+        const root = getComputedStyle(document.documentElement);
+        const prop = name => root.getPropertyValue(name).trim();
+        palette = {
+            amber: prop('--amber') || '#f5a524',
+            bright: prop('--green-bright') || '#4ade80',
+            green: prop('--green') || '#22c55e',
+            rim: `rgba(${prop('--green-rgb') || '34, 197, 94'}, 0.45)`,
+        };
     }
 
     function layout() {
@@ -136,6 +159,25 @@
         const cell = cellSize();
         cols = Math.max(8, Math.ceil(vw / cell.w) + 1);
         rows = Math.max(6, Math.ceil(vh / cell.h) + 1);
+
+        //Backing store at device resolution so the glyphs stay crisp, capped at
+        //2x: a 3x phone would triple the pixels painted for no visible gain at
+        //this opacity. Resizing a canvas resets its whole context, so the font
+        //and baseline go back on after it.
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        world.width = Math.round(vw * dpr);
+        world.height = Math.round(vh * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.font = font;
+        ctx.textBaseline = 'middle';
+        //JetBrains Mono ships programming ligatures, and the ramp is made of
+        //exactly the runs they fire on (==, -=, :=, ...). Shaping every row
+        //through them measured ~5x slower than drawing plain glyphs, and a
+        //ligature merging two cells into one glyph breaks the grid anyway.
+        //optimizeSpeed turns ligatures and kerning off.
+        if ('textRendering' in ctx) ctx.textRendering = 'optimizeSpeed';
+        readPalette();
+        blankRow = ' '.repeat(cols);
         unitPx = Math.min(vw, vh) * 0.5;
         //Kept because the starfield works the other way round from this loop: it
         //holds positions and has to find their cells, rather than holding cells
@@ -159,6 +201,7 @@
             }
         }
         glowX = glowY = glowR = -1;
+        glowFill = null;
         render();
     }
 
@@ -631,20 +674,48 @@
         //Falling in makes it brighter: the disk is being fed.
         drawCursorHole(drawX, drawY, ringA * (1 - t * 0.55), 1 + inspiral * 0.9);
 
-        world.textContent = lines.join('\n');
-
         //The glyph-colour gradient follows the hole, but only moves with
-        //scroll — never with spin. Repainting a full-viewport gradient every
-        //frame for a value that did not change is the one avoidable cost here.
-        const gx = Math.round(layer.clientWidth / 2 + offX * unitPx);
-        const gy = Math.round(layer.clientHeight / 2 + offY * unitPx);
-        const gr = Math.round(rout * unitPx * 0.70);
-        if (Math.abs(gx - glowX) > 2 || Math.abs(gy - glowY) > 2 || Math.abs(gr - glowR) > 2) {
+        //scroll — never with spin — so it is only rebuilt when it has moved.
+        //viewW/viewH rather than the layer's clientWidth: reading layout here,
+        //straight after a frame's worth of writes, is exactly the forced reflow
+        //this file used to pay for every frame.
+        const gx = Math.round(viewW / 2 + offX * unitPx);
+        const gy = Math.round(viewH / 2 + offY * unitPx);
+        const gr = Math.max(1, Math.round(rout * unitPx * 0.70));
+        if (!glowFill || Math.abs(gx - glowX) > 2 || Math.abs(gy - glowY) > 2 || Math.abs(gr - glowR) > 2) {
             glowX = gx; glowY = gy; glowR = gr;
-            layer.style.setProperty('--bh-x', gx + 'px');
-            layer.style.setProperty('--bh-y', gy + 'px');
-            layer.style.setProperty('--bh-glow', gr + 'px');
+            //The same stops the old CSS gradient had, out to the same radius;
+            //past it the last stop carries on, as it did there.
+            glowFill = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+            glowFill.addColorStop(0, palette.amber);
+            glowFill.addColorStop(0.24, palette.amber);
+            glowFill.addColorStop(0.50, palette.bright);
+            glowFill.addColorStop(0.74, palette.green);
+            glowFill.addColorStop(1, palette.rim);
         }
+
+        //Glyphs first in one flat colour, then the gradient laid over them in a
+        //single fill that only lands where a glyph already is (source-in).
+        //Filling the text with the gradient directly looks the same but
+        //measured about 4.5x slower: the gradient is then shaded per glyph.
+        ctx.clearRect(0, 0, viewW, viewH);
+        ctx.fillStyle = '#fff';
+        for (let y = 0; y < rows; y++) {
+            const line = lines[y];
+            if (line === blankRow) continue;
+            //Only the lit stretch of a row is drawn. Past the sky fade most of
+            //every row is spaces, and shaping them costs the same as glyphs.
+            let from = 0;
+            while (from < cols && line.charCodeAt(from) === 32) from++;
+            let to = cols;
+            while (to > from && line.charCodeAt(to - 1) === 32) to--;
+            if (from >= to) continue;
+            ctx.fillText(from || to < cols ? line.slice(from, to) : line, from * cellW, (y + 0.5) * cellH);
+        }
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.fillStyle = glowFill;
+        ctx.fillRect(0, 0, viewW, viewH);
+        ctx.globalCompositeOperation = 'source-over';
     }
 
     //--- driving it ----------------------------------------------------------

@@ -49,11 +49,12 @@
          every section. aria-hidden because it carries no information a reader
          needs, and empty because blackhole.js fills it on the first frame. -->
     <div class="blackhole" id="blackhole" aria-hidden="true">
-        <pre class="blackhole__world"></pre>
+        <canvas class="blackhole__world"></canvas>
     </div>
     <nav class="navbar">
         <a href="#about" class="nav-link">home</a>
         <a href="#projects" class="nav-link">projects</a>
+        <a href="#organizing" class="nav-link">organizing</a>
         <a href="#background" class="nav-link">background</a>
     </nav>
     <section class="about-section" id="about">
@@ -99,6 +100,7 @@
                             <button type="button" class="skill-tag" data-tech="C#">C#</button>
                             <button type="button" class="skill-tag" data-tech="Javascript">Javascript</button>
                             <button type="button" class="skill-tag" data-tech="Python">Python</button>
+                            <button type="button" class="skill-tag" data-tech="TypeScript">TypeScript</button>
                         </div>
                     </div>
                     <div class="skill-group">
@@ -106,6 +108,9 @@
                         <div class="skill-grid">
                             <button type="button" class="skill-tag" data-tech="Unity Engine">Unity Engine</button>
                             <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
+                            <button type="button" class="skill-tag" data-tech="Docker">Docker</button>
+                            <button type="button" class="skill-tag" data-tech="PostgreSQL">PostgreSQL</button>
+                            <button type="button" class="skill-tag" data-tech="Browser Extension">Browser Extension</button>
                         </div>
                     </div>
                 </div>
@@ -129,6 +134,47 @@
         </div>
         <p class="filter-empty" id="filterEmpty" hidden>no matches found</p>
         <div class="project-grid">
+            <div class="project-card" data-tags="TypeScript,Browser Extension" data-label="~/projects/cms-admin-helper">
+                <a href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer" class="project-img-link">
+                    <div class="project-img-wrap">
+                        <img src="images/CmsAdminHelper.webp" class="project-img" alt="CMS Admin Helper"
+                             width="800" height="514" loading="lazy" decoding="async">
+                        <div class="project-img-overlay">
+                            <span class="view-label">View on GitHub →</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="project-info">
+                    <p class="project-title">CMS Admin Helper</p>
+                    <p class="project-sub">Chrome &amp; Firefox Extension</p>
+                    <p class="project-sub">Contest-day tools for the CMS admin site: contestant tracker, bulk import, Bangkok time</p>
+                    <div class="skill-container">
+                        <span class="skill-tag">TypeScript</span>
+                        <span class="skill-tag">Browser Extension</span>
+                    </div>
+                </div>
+            </div>
+            <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL" data-label="~/projects/taskmaker">
+                <a href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer" class="project-img-link">
+                    <div class="project-img-wrap">
+                        <img src="images/TaskMaker.webp" class="project-img" alt="TaskMaker"
+                             width="800" height="538" loading="lazy" decoding="async">
+                        <div class="project-img-overlay">
+                            <span class="view-label">View on GitHub →</span>
+                        </div>
+                    </div>
+                </a>
+                <div class="project-info">
+                    <p class="project-title">TaskMaker</p>
+                    <p class="project-sub">Problem Studio for RYWCC</p>
+                    <p class="project-sub">Write olympiad problems in YAML, preview live, export print-ready PDFs</p>
+                    <div class="skill-container">
+                        <span class="skill-tag">TypeScript</span>
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">PostgreSQL</span>
+                    </div>
+                </div>
+            </div>
             <div class="project-card" data-tags="C#,Unity Engine" data-label="~/projects/mesosuem">
                 <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
@@ -209,6 +255,62 @@
                     <span class="contrib-cell" data-level="4"></span>
                     <span class="contrib-legend-text">more</span>
                 </div>
+            </div>
+        </div>
+    </section>
+    <section class="organizing-section" id="organizing">
+        <div class="section-header">
+            <span class="section-tag" aria-hidden="true">&gt; ls ~/organizing</span>
+            <h2 class="section-title">Organizing</h2>
+        </div>
+        <div class="k2c-panel" data-label="~/organizing/kit2code.md">
+            <div class="k2c-intro">
+                <p class="k2c-role"><span class="k2c-role-dot" aria-hidden="true"></span>founder</p>
+                <h3 class="k2c-group">Kit2Code</h3>
+                <p class="k2c-lead">A contest group I founded to host competitive programming
+                    contests for POSN Computer students.</p>
+                <p class="k2c-aka">formerly RYWCC &middot; Rayongwit Coding Challenge</p>
+                <p class="k2c-body">Problems are written in Thai and judged on Codeforces, and
+                    from this year on our own CMS, the contest system the IOI runs on.</p>
+                <p class="k2c-tools">built for it:
+                    <a href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer">TaskMaker</a>
+                    <span aria-hidden="true">&middot;</span>
+                    <a href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer">CMS Admin Helper</a>
+                </p>
+                <div class="contact-row k2c-links">
+                    <a class="contact-btn" href="https://codeforces.com/group/NGBiOfh0FE/contests" target="_blank" rel="noopener noreferrer">codeforces</a>
+                    <a class="contact-btn" href="https://cms.rywcc.org" target="_blank" rel="noopener noreferrer">cms</a>
+                </div>
+            </div>
+            <div class="k2c-log">
+                <p class="k2c-log-title">&gt; contests --all</p>
+                <ol class="k2c-list">
+                    <li class="k2c-contest is-done">
+                        <span class="k2c-status">done</span>
+                        <div class="k2c-contest-body">
+                            <p class="k2c-name">RYWCC Pre POSN1 2025</p>
+                            <p class="k2c-meta">onsite &middot; Codeforces &middot; Oct&nbsp;15,&nbsp;2025 &middot; 1h30</p>
+                        </div>
+                        <a class="k2c-go" href="https://codeforces.com/group/NGBiOfh0FE/contest/566921" target="_blank" rel="noopener noreferrer"
+                           aria-label="RYWCC Pre POSN1 2025 on Codeforces">&gt; view</a>
+                    </li>
+                    <li class="k2c-contest is-planned">
+                        <span class="k2c-status">planned</span>
+                        <div class="k2c-contest-body">
+                            <p class="k2c-name">Online contest</p>
+                            <p class="k2c-meta">online &middot; this&nbsp;year &middot; date&nbsp;TBA</p>
+                        </div>
+                    </li>
+                    <li class="k2c-contest is-planned">
+                        <span class="k2c-status">planned</span>
+                        <div class="k2c-contest-body">
+                            <p class="k2c-name">Onsite contest</p>
+                            <p class="k2c-meta">onsite &middot; cms.rywcc.org &middot; date&nbsp;TBA</p>
+                        </div>
+                        <a class="k2c-go" href="https://cms.rywcc.org" target="_blank" rel="noopener noreferrer"
+                           aria-label="Kit2Code CMS at cms.rywcc.org">&gt; cms</a>
+                    </li>
+                </ol>
             </div>
         </div>
     </section>
@@ -430,8 +532,10 @@
          missing vendor/ costs the motion and never the content. -->
     <script src="vendor/gsap.min.js"></script>
     <script src="vendor/ScrollTrigger.min.js"></script>
+    <script src="vendor/motion.min.js"></script>
     <script src="index.js"></script>
     <script src="motion.js"></script>
+    <script src="springs.js"></script>
     <script src="blackhole.js"></script>
 </body>
 </html>
