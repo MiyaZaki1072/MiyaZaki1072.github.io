@@ -356,6 +356,7 @@ body::after {
 .filter-bar,
 .contrib-block,
 .project-card,
+.k2c-panel,
 .timeline {
     position: relative;
     border-radius: 0;
@@ -367,6 +368,7 @@ body::after {
 .filter-bar .filter-label,
 .contrib-block .contrib-title,
 .project-card::before,
+.k2c-panel::before,
 .timeline::before {
     position: absolute;
     top: 0;
@@ -388,7 +390,8 @@ body::after {
     white-space: nowrap;
 }
 .about-inner::before  { content: 'guest@freyr:~'; }
-.project-card::before { content: attr(data-label); }
+.project-card::before,
+.k2c-panel::before { content: attr(data-label); }
 /* The timeline titles itself with whichever track is on show. */
 .timeline[data-mode="education"]::before  { content: '~/background/education'; }
 .timeline[data-mode="experience"]::before { content: '~/background/experience'; }
@@ -807,6 +810,7 @@ body::after {
 
 /* Sections ----------------------------------------------------------------- */
 .projects-section,
+.organizing-section,
 .background-section {
     max-width: var(--section-max);
     margin: 0 auto;
@@ -2045,6 +2049,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         --avatar-size: 200px;
     }
     .projects-section,
+    .organizing-section,
     .background-section {
         padding: var(--sp-8) var(--gutter);
     }
@@ -2165,6 +2170,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         border-width: 3px;
     }
     .projects-section,
+    .organizing-section,
     .background-section {
         padding: var(--sp-7) var(--sp-4);
     }
@@ -2278,6 +2284,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         --avatar-size: 320px;
     }
     .projects-section,
+    .organizing-section,
     .background-section {
         padding: var(--sp-9) var(--gutter);
     }
@@ -2304,30 +2311,22 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     overflow: hidden;
     contain: layout paint;
 }
-/* One <pre>, one string per frame. The gradient is clipped to the glyphs, so
-   each character is coloured by where it sits — amber at the core, green at the
-   rim — for the cost of a single paint rather than a second render pass. */
+/* One canvas, one fillText per row. It used to be a <pre> whose text was
+   replaced every frame, and laying out ~8,700 glyphs 30 times a second was the
+   single most expensive thing on the page. The font rules stay here even though
+   nothing is typeset: blackhole.js reads them to size its cells, so the three
+   breakpoints below still decide the raster's resolution. The amber-to-green
+   colouring is a canvas gradient now, built from the same custom properties. */
 .blackhole__world {
     position: absolute;
     inset: 0;
-    margin: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
     font-family: var(--font-mono);
     font-size: 16px;
     line-height: 1;
-    letter-spacing: 0;
-    white-space: pre;
-    overflow: hidden;
-    user-select: none;
     opacity: 0.42;
-    background: radial-gradient(circle var(--bh-glow, 30vmin) at var(--bh-x, 50%) var(--bh-y, 50%),
-        var(--amber) 0%,
-        var(--amber) 24%,
-        var(--green-bright) 50%,
-        var(--green) 74%,
-        rgba(var(--green-rgb), 0.45) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
 }
 /* Fewer, larger cells on small screens: the raster's cost is per cell, and a
    phone reads a coarse ramp better than a fine one anyway.
@@ -2360,6 +2359,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
        here the panels go back to being solid. */
     .about-inner,
     .timeline,
+    .k2c-panel,
     .project-card {
         background: var(--surface);
     }
@@ -2369,6 +2369,240 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     .bg-toggle {
         background: linear-gradient(var(--green-dim), var(--green-dim)),
                     rgba(var(--bg-rgb), 0.92);
+    }
+}
+
+/* Organizing --------------------------------------------------------------- */
+/* One panel, two columns: what the group is on the left, and on the right the
+   contest log, read like shell output — done runs first, then what is planned. */
+.k2c-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--sp-8);
+    padding: var(--sp-8);
+    background: var(--glass-panel);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+}
+.k2c-intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+}
+.k2c-role {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+}
+.k2c-role-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    box-shadow: 0 0 10px rgba(var(--green-rgb), 0.7);
+}
+/* The group's own name, now that the section heading is the generic one. */
+.k2c-group {
+    font-family: var(--font-display);
+    font-size: var(--fs-card);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--text-pri);
+}
+.k2c-lead {
+    font-size: var(--fs-lead);
+    line-height: 1.45;
+    color: var(--text-pri);
+}
+.k2c-aka {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+.k2c-body {
+    font-size: var(--fs-body);
+    line-height: 1.6;
+    color: var(--text-sec);
+}
+.k2c-tools {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+}
+.k2c-tools a {
+    color: var(--green);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--green-line);
+    transition: border-color 0.2s;
+}
+.k2c-tools a:hover {
+    border-bottom-color: var(--green);
+}
+.k2c-links {
+    margin-top: var(--sp-2);
+}
+.k2c-log {
+    padding-left: var(--sp-7);
+    border-left: 1px solid var(--border);
+}
+.k2c-log-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: var(--sp-3);
+}
+.k2c-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.k2c-contest {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-4) 0;
+    border-bottom: 1px dashed var(--border);
+}
+.k2c-contest:last-child {
+    border-bottom: none;
+}
+.k2c-status {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.08em;
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid var(--border);
+}
+.k2c-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+}
+.is-done .k2c-status {
+    color: var(--green);
+    border-color: var(--green-line);
+    background: var(--green-dim);
+}
+.is-planned .k2c-status {
+    color: var(--text-sec);
+    border-style: dashed;
+}
+/* Planned blinks like a cursor waiting for input: it is the one thing on the
+   panel that is still going to happen. */
+.is-planned .k2c-status::before {
+    animation: k2cWait 1.2s steps(1, end) infinite;
+}
+@keyframes k2cWait {
+    50% { opacity: 0; }
+}
+.k2c-name {
+    font-family: var(--font-mono);
+    font-size: var(--fs-body);
+    font-weight: 500;
+    color: var(--text-pri);
+}
+.is-planned .k2c-name {
+    color: var(--text-sec);
+}
+.k2c-meta {
+    margin-top: var(--sp-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+}
+.k2c-go {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--text-sec);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.k2c-go:hover,
+.k2c-go:focus-visible {
+    color: var(--green);
+    border-color: var(--green);
+    background: var(--green-dim);
+}
+@media (max-width: 900px) {
+    .k2c-panel {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--sp-6);
+        padding: var(--sp-6) var(--sp-5);
+    }
+    .k2c-log {
+        padding-left: 0;
+        padding-top: var(--sp-5);
+        border-left: none;
+        border-top: 1px solid var(--border);
+    }
+}
+/* Four links now share the docked phone bar with the terminal button. The
+   brackets take their width even while invisible, so they go, and the lit
+   block (or the plain fill under reduced motion) marks the active link alone. */
+@media (max-width: 640px) {
+    .navbar {
+        justify-content: flex-start;
+        gap: 0;
+        padding-left: var(--sp-2);
+    }
+    .nav-link {
+        font-size: var(--fs-small);
+        letter-spacing: 0;
+        padding: var(--sp-2) var(--sp-2);
+    }
+    .nav-link::before,
+    .nav-link::after {
+        display: none;
+    }
+}
+/* Up to 420 rather than 400: at --fs-small the four links need ~350px, and the
+   docked terminal button starts at 100vw - 56px, so 401-406px would overlap. */
+@media (max-width: 420px) {
+    .nav-link {
+        font-size: var(--fs-micro);
+        padding: var(--sp-2) 6px;
+    }
+}
+/* Below that the row simply cannot fit beside the button, so it scrolls
+   sideways instead of sliding a link underneath it. */
+@media (max-width: 370px) {
+    .navbar {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .navbar::-webkit-scrollbar {
+        display: none;
+    }
+    .nav-link {
+        flex-shrink: 0;
+        padding: var(--sp-2) var(--sp-1);
+    }
+}
+@media (max-width: 480px) {
+    /* The status chip moves above the name rather than squeezing it. */
+    .k2c-contest {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: var(--sp-2) var(--sp-3);
+    }
+    .k2c-status {
+        grid-column: 1 / -1;
     }
 }
 
@@ -2439,6 +2673,65 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .navbar.has-indicator:hover .nav-link.active:not(:hover)::before,
 .navbar.has-indicator:hover .nav-link.active:not(:hover)::after {
     opacity: 0;
+}
+
+/* Spring layer --------------------------------------------------------------
+   springs.js drives these with Motion. Like the GSAP block above, nothing here
+   hides anything: every class is added from JS, so without the script none of
+   these rules match and the cards behave as they always did. */
+.project-card {
+    transition: border-color 0.2s, transform 0.2s, filter 0.25s, box-shadow 0.25s;
+}
+/* While a spring is writing the transform every frame, the CSS ease on it only
+   drags behind, so it comes off for as long as the spring owns the card. */
+.project-card.is-rigged {
+    transition: border-color 0.2s, filter 0.25s, box-shadow 0.25s;
+    will-change: transform;
+}
+/* The spotlight springs.js trails after the pointer. Two layers: a faint wash
+   across the face, and a lit stretch of the border drawn by masking the same
+   gradient down to a 1px ring. Both sit above the screenshot and the label but
+   take no pointer events, so the link underneath still clicks. */
+.card-glare,
+.card-edge {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+.card-glare {
+    inset: 0;
+    background: radial-gradient(420px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+                rgba(var(--green-rgb), 0.10), transparent 65%);
+}
+.card-edge {
+    inset: -1px;
+    padding: 1px;
+    background: radial-gradient(320px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+                rgba(var(--green-bright-rgb), 0.95), transparent 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.project-card.is-lit .card-glare,
+.project-card.is-lit .card-edge {
+    opacity: 1;
+}
+/* The plain :hover rule lights the whole border, which would drown the lit
+   stretch; with the spotlight on, the rest of the border stays dim. */
+.project-card.is-lit {
+    border-color: var(--green-line);
+}
+/* Tag preview: the projects built with the tag under the pointer light up, and
+   the rest dim. Dimmed with filter rather than opacity because the filter
+   animation already owns the cards' opacity. */
+.project-card.is-linked {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green-line), 0 0 28px rgba(var(--green-rgb), 0.18);
+}
+.project-grid.is-previewing .project-card:not(.is-linked) {
+    filter: brightness(0.5) saturate(0.4);
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so
