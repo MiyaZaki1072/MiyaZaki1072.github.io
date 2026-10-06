@@ -19,7 +19,10 @@ const i18n = (function () {
     const content = {
         en: {
             tagLine: '> whoami',
-            name: 'Freyr',
+            //Split three ways so the nickname alone can carry the display size.
+            nameGiven: 'Thitiwut',
+            nameNick: '"Freyr"',
+            nameFamily: 'Sreewasut',
             status: 'Computer Engineering Student\n@ Chulalongkorn University',
             interestLabel: '> interests',
             interests: ['Backend Engineering', 'Competitive Programming'],
@@ -30,7 +33,9 @@ const i18n = (function () {
         },
         th: {
             tagLine: '> ฉันคือใคร',
-            name: 'เฟรย์',
+            nameGiven: 'ธิติวุฒิ',
+            nameNick: '"เฟรย์"',
+            nameFamily: 'ศรีวะสุทธิ์',
             status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
             interestLabel: '> ความสนใจ',
             interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
@@ -414,7 +419,11 @@ const ASCII_CAT_2 = `
 
         const targets = [
             { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
-            { el: document.querySelector('.name-txt'),       text: d.name,          delay: 80,  duration: 650, suffix: CURSOR },
+            //Same delay for all three: the name is one word visually, so the
+            //parts have to resolve together rather than cascade.
+            { el: document.querySelector('.name-given'),     text: d.nameGiven,     delay: 80,  duration: 650 },
+            { el: document.querySelector('.name-nick'),      text: d.nameNick,      delay: 80,  duration: 650 },
+            { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650, suffix: CURSOR },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
             { el: document.querySelector('.interest-label'), text: d.interestLabel, delay: 240, duration: 500 },
         ];
@@ -575,6 +584,7 @@ const ASCII_CAT_2 = `
 //That file is generated into the Pages artifact and never committed, so it is
 //simply absent in local dev and on a first deploy. That is the ordinary case,
 //not a failure: the block stays hidden and nothing is logged.
+//real
 (function () {
     const block = document.getElementById('contributions');
     const grid = document.getElementById('contribGrid');

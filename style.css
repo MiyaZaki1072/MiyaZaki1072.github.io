@@ -646,7 +646,10 @@ body::after {
 }
 .name-txt {
     font-family: var(--font-display);
-    font-size: var(--fs-display);
+    /* Deliberately below --fs-display: that step was sized for the single word
+       "Freyr". This line now carries a full name, and at display size the last
+       name broke onto a second line on its own. */
+    font-size: clamp(1.9rem, 4vw, 4rem);
     font-weight: 700;
     color: var(--text-pri);
     letter-spacing: -0.03em;
@@ -655,6 +658,16 @@ body::after {
        vertical metrics, and .about-inner clips overflow — so at this size the
        mark got cut off whenever the EN/TH toggle switched to Thai. */
     line-height: 1.15;
+}
+/* The nickname keeps the display size; the legal name around it drops to a
+   fraction of it. Three elements rather than one string because CSS cannot
+   size part of a text node, and the EN/TH scramble rewrites each part on its
+   own. .name-nick needs no rule — inheriting --fs-display is the whole point. */
+.name-given,
+.name-family {
+    font-size: 0.45em;
+    letter-spacing: -0.01em;
+    color: var(--text-sec);
 }
 .cursor {
     font-family: var(--font-mono);
@@ -2058,6 +2071,13 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 
 @media (max-width: 640px) {
+    :root {
+        /* The nav goes fixed here, so it contributes nothing to layout and any
+           section ending at the viewport floor renders underneath it. 59px is
+           its measured box (sp-2 block padding + the link); the inset clears
+           the iOS home indicator on top of that. */
+        --nav-h: calc(59px + env(safe-area-inset-bottom, 0px));
+    }
     .navbar {
         top: auto;
         bottom: 0;
@@ -2071,12 +2091,18 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         justify-content: center;
         padding: var(--sp-2) var(--sp-4);
     }
+    /* The bar centres its links into what is left beside the docked terminal
+       pill, and a centred row that outgrows its box spills off *both* edges —
+       which is how the first link kept losing its bracket off screen. Rather
+       than stepping the size down per breakpoint, solve for it: the row needs
+       roughly 20.7x the font size, and has (100vw - 86px) to live in. */
     .nav-link {
-        padding: var(--sp-2) var(--sp-3);
+        padding: var(--sp-2) var(--sp-1);
+        font-size: clamp(0.66rem, calc(4.6vw - 4.2px), 1rem);
         letter-spacing: 0.04em;
     }
     .about-section {
-        padding: var(--sp-7) var(--sp-4) var(--sp-7);
+        padding: var(--sp-7) var(--sp-4) calc(var(--sp-7) + var(--nav-h));
         min-height: 100svh;
     }
     /* With one fewer skill group the hero fits without crushing its gaps to
@@ -2092,22 +2118,33 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         align-items: center;
         gap: var(--sp-3);
     }
+    /* The full name needs about 9.9x the nickname's size to stay on one line,
+       and has (100vw - 64px) of hero to do it in. Below the desktop clamp's
+       1.9rem floor that stopped being true and the last name orphaned onto a
+       line of its own, so the floor comes down here. */
+    .name-txt {
+        font-size: clamp(1.35rem, calc(9.6vw - 6px), 1.9rem);
+    }
     .interest-list li {
         justify-content: center;
     }
     .skill-grid {
         justify-content: center;
     }
+    /* Stacked full-width these ran 171px tall — on a 390x844 screen that alone
+       pushed the hero past 100svh and slid the buttons under the fixed nav.
+       Wrapping is worth the narrower tap targets: they still clear 44px. */
     .contact-row {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
         justify-content: center;
         gap: var(--sp-2);
         width: 100%;
     }
     .contact-btn {
         text-align: center;
-        padding: var(--sp-3) var(--sp-4);
+        padding: var(--sp-3) var(--sp-3);
     }
     .translate-btn {
         position: relative;
@@ -2216,16 +2253,13 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         display: none;
     }
     .footer {
-        padding: var(--sp-6) var(--sp-4) var(--sp-8);
+        padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + var(--nav-h));
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 440px) {
     .navbar {
         gap: 0;
-    }
-    .nav-link {
-        padding: var(--sp-2);
     }
 }
 

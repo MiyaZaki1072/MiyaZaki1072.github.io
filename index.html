@@ -81,7 +81,11 @@
             </div>
             <div class="text-section">
                 <span class="tag-line">&gt; whoami</span>
-                <h1 class="name-txt">Freyr<span class="cursor">_</span></h1>
+                <!-- Kept on one line on purpose: the terminal's whoami reads this
+                     element's textContent, which preserves literal newlines and
+                     indentation rather than collapsing them the way rendering does.
+                     Breaking these spans across lines puts raw whitespace in the name. -->
+                <h1 class="name-txt"><span class="name-given">Thitiwut</span> <span class="name-nick">"Freyr"</span> <span class="name-family">Sreewasut<span class="cursor">_</span></span></h1>
                 <p class="status-txt">Computer Engineering Student<br>@ Chulalongkorn University</p>
                 <div class="interest-block">
                     <span class="interest-label">&gt; interests</span>
