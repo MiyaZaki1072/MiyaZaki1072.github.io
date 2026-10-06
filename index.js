@@ -510,13 +510,16 @@ const ASCII_CAT_2 = `
         //every() on an empty list is already true, so no filters means no match
         //test — the same shortcut the explicit size check used to spell out.
         const wanted = [...activeFilters];
-        let visibleCount = 0;
-        projectCards.forEach(card => {
+        const next = new Map(projectCards.map(card => {
             const tags = cardTags.get(card);
-            const matches = wanted.every(f => tags.has(f));
-            card.classList.toggle('is-hidden', !matches);
-            if (matches) visibleCount++;
-        });
+            return [card, wanted.every(f => tags.has(f))];
+        }));
+        const visibleCount = [...next.values()].filter(Boolean).length;
+        //springs.js, when it loaded, animates the cards across; it still hands
+        //the class change back to commit(), so which cards show stays decided here.
+        const commit = () => next.forEach((matches, card) => card.classList.toggle('is-hidden', !matches));
+        if (typeof window.animateProjectFilter === 'function') window.animateProjectFilter(next, commit);
+        else commit();
         filterEmptyMsg.hidden = visibleCount !== 0;
         filterClearBtn.hidden = activeFilters.size === 0;
         filterTagsContainer.querySelectorAll('.skill-tag').forEach(btn => {
@@ -1355,14 +1358,18 @@ const ASCII_CAT_2 = `
 
     //Commands that reach out of the widget and move the page ------------------
 
-    const SECTIONS = { about: 'about', home: 'about', projects: 'projects', background: 'background' };
+    const SECTIONS = {
+        about: 'about', home: 'about', projects: 'projects',
+        organizing: 'organizing', contests: 'organizing', kit2code: 'organizing',
+        background: 'background',
+    };
     const narrow = window.matchMedia('(max-width: 768px)');
 
     function cmdGoto(args) {
         const key = (args[0] || '').toLowerCase();
         const id = key === 'top' ? null : SECTIONS[key];
         if (key !== 'top' && !id) {
-            return `goto: no section "${args[0] || ''}". try: about, projects, background, top.`;
+            return `goto: no section "${args[0] || ''}". try: about, projects, organizing, background, top.`;
         }
         //Below 768px the panel is fixed to the whole viewport, so scrolling
         //behind it would look like nothing happened at all.
@@ -1424,8 +1431,14 @@ const ASCII_CAT_2 = `
                 return BLOCKS[Number(cell.dataset.level) || 0];
             }).join(''));
         }
-        const total = document.getElementById('contribTotal')?.textContent || '?';
-        const streak = document.getElementById('contribCurrent')?.textContent || '?';
+        //springs.js may be mid-count on these, or parked at 0 until they scroll
+        //into view; it keeps the real figure in data-final while it does.
+        const stat = id => {
+            const el = document.getElementById(id);
+            return (el && (el.dataset.final || el.textContent)) || '?';
+        };
+        const total = stat('contribTotal');
+        const streak = stat('contribCurrent');
         return [`${total} contributions in the last year`, '', ...rows, '', `current streak: ${streak}`];
     }
 

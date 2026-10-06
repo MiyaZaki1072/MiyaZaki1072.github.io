@@ -84,6 +84,7 @@ if (!days.length) {
 }
 
 // Streaks are counted over real days, before any padding is added.
+//
 const counts = days.map(day => day.contributionCount);
 
 let longest = 0;
