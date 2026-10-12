@@ -2483,6 +2483,12 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     letter-spacing: 0.06em;
     color: var(--text-muted);
 }
+.k2c-stats {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    letter-spacing: 0.04em;
+    color: var(--amber);
+}
 .k2c-body {
     font-size: var(--fs-body);
     line-height: 1.6;
