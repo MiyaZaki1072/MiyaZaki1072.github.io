@@ -89,14 +89,18 @@
                      Breaking these spans across lines puts raw whitespace in the name. -->
                 <h1 class="name-txt"><span class="name-given">Thitiwut</span> <span class="name-family">Sreewasut</span> <span class="name-nick">"Freyr"</span></h1>
                 <p class="status-txt">Computer Engineering @ Chulalongkorn · 2× TOI Bronze · Builds contest infrastructure &amp; backend tools</p>
-                <p class="availability-txt">Open to internships · Summer 2027</p>
+                <!-- The résumé rides with the availability line, not the contact
+                     row: it is a document about the internship ask, not a way to
+                     reach me. No href until resume.pdf exists: RESUME_READY in
+                     index.js adds it, so it can never lead to a 404. -->
+                <div class="availability-row">
+                    <p class="availability-txt">Open to internships · Summer 2027</p>
+                    <a class="resume-link" id="resumeLink" aria-disabled="true">Résumé · coming soon</a>
+                </div>
                 <div class="contact-row">
                     <button type="button" class="contact-btn contact-btn--primary" id="emailBtn" data-email="titiwutfay2550@gmail.com">Email</button>
-                    <a class="contact-btn contact-btn--link" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a class="contact-btn contact-btn--link" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer">Codeforces</a>
-                    <!-- No href until resume.pdf exists: RESUME_READY in index.js adds
-                         it, so the button can never lead to a 404. -->
-                    <a class="contact-btn contact-btn--soon" id="resumeLink" aria-disabled="true">Résumé · coming soon</a>
+                    <a class="contact-btn" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a class="contact-btn" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer">Codeforces</a>
                     <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
                 <div class="skills-block">

@@ -683,6 +683,12 @@ body::after {
     font-weight: 400;
     line-height: 1.5;
 }
+.availability-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-4);
+}
 .availability-txt {
     font-family: var(--font-mono);
     font-size: var(--fs-small);
@@ -692,6 +698,40 @@ body::after {
 .availability-txt::before {
     content: '● ';
     text-shadow: 0 0 8px var(--green-glow);
+}
+/* A quiet chip beside the availability line, so it reads as part of the
+   internship ask rather than a sixth way to contact me. Dashed and grey while
+   there is no file behind it; index.js drops aria-disabled once there is. */
+.resume-link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
+    text-decoration: none;
+    color: var(--green-bright);
+    border: 1px solid var(--green-line);
+    border-radius: var(--r-sm);
+    padding: 2px var(--sp-2);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.resume-link::before {
+    content: '↓ ';
+}
+.resume-link:hover {
+    border-color: var(--green);
+    background: var(--green-dim);
+}
+.resume-link[aria-disabled="true"] {
+    color: var(--text-muted);
+    border-style: dashed;
+    cursor: default;
+}
+.resume-link[aria-disabled="true"]::before {
+    content: '';
+}
+.resume-link[aria-disabled="true"]:hover {
+    border-color: var(--green-line);
+    background: transparent;
 }
 .skills-block {
     display: flex;
@@ -731,9 +771,9 @@ body::after {
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: lowercase;
-    color: var(--text-sec);
-    background: transparent;
-    border: 1px solid var(--border);
+    color: var(--green-bright);
+    background: var(--green-dim);
+    border: 1px solid rgba(var(--green-rgb), 0.5);
     border-radius: var(--r-sm);
     padding: var(--sp-3) var(--sp-5);
     cursor: pointer;
@@ -741,18 +781,19 @@ body::after {
 }
 .contact-btn::before {
     content: './';
-    color: var(--text-muted);
+    color: var(--green);
     transition: color 0.2s;
 }
 .contact-btn:hover {
-    color: var(--green);
-    border-color: var(--green);
-    background: var(--green-dim);
+    color: var(--green-bright);
+    border-color: var(--green-bright);
+    background: rgba(var(--green-rgb), 0.18);
 }
 .contact-btn:hover::before {
     color: var(--green);
 }
-/* Ranked, so the row reads as "email first" rather than five equal greys. */
+/* One family: every contact shares the green outline, and email alone is
+   filled because it is the one to use first. */
 .contact-btn--primary,
 .contact-btn--primary::before,
 .contact-btn--primary:hover::before {
@@ -768,35 +809,6 @@ body::after {
     color: var(--on-green);
     background: var(--green-bright);
     border-color: var(--green-bright);
-}
-.contact-btn--link,
-.contact-btn--link::before {
-    color: var(--green-bright);
-}
-.contact-btn--link {
-    background: var(--green-dim);
-    border-color: rgba(var(--green-rgb), 0.5);
-}
-.contact-btn--link:hover {
-    color: var(--green-bright);
-    border-color: var(--green-bright);
-}
-.contact-btn--soon {
-    color: var(--text-muted);
-    border: 1px dashed var(--green-line);
-    cursor: default;
-}
-.contact-btn--soon:hover {
-    color: var(--text-muted);
-    border-color: var(--green-line);
-    background: transparent;
-}
-.contact-btn--soon:hover::before {
-    color: var(--text-muted);
-}
-#discordLink {
-    color: var(--text-sec);
-    border-color: var(--border-strong);
 }
 .translate-btn {
     position: absolute;
@@ -2199,6 +2211,9 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .availability-txt {
         font-size: var(--fs-micro);
+    }
+    .availability-row {
+        justify-content: center;
     }
     .skill-grid {
         justify-content: center;

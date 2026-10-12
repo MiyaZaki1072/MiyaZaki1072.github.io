@@ -34,7 +34,8 @@ const i18n = (function () {
             tooltipHas: '→ see what i built',
             tooltipNone: '→ no projects yet',
             //Same order as the .contact-row buttons in index.html.
-            btns: ['Email', 'GitHub', 'Codeforces', RESUME_READY ? 'Résumé' : 'Résumé · coming soon', 'Discord'],
+            btns: ['Email', 'GitHub', 'Codeforces', 'Discord'],
+            resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },
         th: {
             tagLine: '> ฉันคือใคร',
@@ -46,7 +47,8 @@ const i18n = (function () {
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
             tooltipNone: '→ ยังไม่มีโปรเจคนี้',
-            btns: ['อีเมล', 'กิตฮับ', 'โค้ดฟอร์เซส', RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้', 'ดิสคอร์ด'],
+            btns: ['อีเมล', 'กิตฮับ', 'โค้ดฟอร์เซส', 'ดิสคอร์ด'],
+            resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
         },
     };
     let lang = 'en';
@@ -429,6 +431,7 @@ const ASCII_CAT_2 = `
             { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650 },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
             { el: document.querySelector('.availability-txt'), text: d.availability, delay: 240, duration: 500 },
+            { el: document.getElementById('resumeLink'),      text: d.resume,       delay: 280, duration: 450 },
         ];
         targets.forEach(({ el, text, delay, duration }) => {
             if (el) setTimeout(() => scrambleText(el, text, { duration }), delay);
@@ -451,7 +454,7 @@ const ASCII_CAT_2 = `
     });
 })();
 
-//Résumé button --------------------------------------------------------------
+//Résumé link ----------------------------------------------------------------
 (function () {
     const link = document.getElementById('resumeLink');
     if (!link || !RESUME_READY) return;
@@ -459,9 +462,7 @@ const ASCII_CAT_2 = `
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.removeAttribute('aria-disabled');
-    link.classList.remove('contact-btn--soon');
-    link.classList.add('contact-btn--link');
-    link.textContent = i18n.strings.btns[3];
+    link.textContent = i18n.strings.resume;
 })();
 
 //Email copy-to-clipboard ----------------------------------------------------
