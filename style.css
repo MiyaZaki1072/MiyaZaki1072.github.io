@@ -760,6 +760,9 @@ body::after {
     margin-top: var(--sp-2);
     flex-wrap: wrap;
 }
+.contact-row--secondary {
+    margin-top: 0;
+}
 /* Executables, not labels. Lowercase with a ./ in front is the one change that
    makes the contact row read as three things you could run rather than three
    buttons — and the prefix lives in CSS so the EN/TH dictionary keeps holding
@@ -792,8 +795,8 @@ body::after {
 .contact-btn:hover::before {
     color: var(--green);
 }
-/* One family: every contact shares the green outline, and email alone is
-   filled because it is the one to use first. */
+/* One family: every contact shares the green outline, and the three a
+   recruiter needs (email, GitHub, LinkedIn) are filled. */
 .contact-btn--primary,
 .contact-btn--primary::before,
 .contact-btn--primary:hover::before {

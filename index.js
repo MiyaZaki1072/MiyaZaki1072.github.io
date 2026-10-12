@@ -34,7 +34,7 @@ const i18n = (function () {
             tooltipHas: '→ see what i built',
             tooltipNone: '→ no projects yet',
             //Same order as the .contact-row buttons in index.html.
-            btns: ['Email', 'GitHub', 'Codeforces', 'Discord'],
+            btns: ['Email', 'GitHub', 'LinkedIn', 'Codeforces', 'Discord'],
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },
         th: {
@@ -47,7 +47,7 @@ const i18n = (function () {
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
             tooltipNone: '→ ยังไม่มีโปรเจคนี้',
-            btns: ['อีเมล', 'กิตฮับ', 'โค้ดฟอร์เซส', 'ดิสคอร์ด'],
+            btns: ['อีเมล', 'กิตฮับ', 'ลิงก์อิน', 'โค้ดฟอร์เซส', 'ดิสคอร์ด'],
             resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
         },
     };
@@ -463,29 +463,6 @@ const ASCII_CAT_2 = `
     link.rel = 'noopener noreferrer';
     link.removeAttribute('aria-disabled');
     link.textContent = i18n.strings.resume;
-})();
-
-//Email copy-to-clipboard ----------------------------------------------------
-(function () {
-    const emailBtn = document.getElementById('emailBtn');
-    if (!emailBtn) return;
-
-    emailBtn.addEventListener('click', async () => {
-        const email = emailBtn.dataset.email;
-        try {
-            await navigator.clipboard.writeText(email);
-        } catch (err) {
-            const scratch = document.createElement('textarea');
-            scratch.value = email;
-            scratch.style.position = 'fixed';
-            scratch.style.opacity = '0';
-            document.body.appendChild(scratch);
-            scratch.select();
-            document.execCommand('copy');
-            document.body.removeChild(scratch);
-        }
-        showToast(`> copied "${email}" to clipboard`);
-    });
 })();
 
 //Project card click ripple --------------------------------------------------
@@ -937,10 +914,12 @@ const ASCII_CAT_2 = `
         const email = document.getElementById('emailBtn')?.dataset.email || 'n/a';
         const discord = document.getElementById('discordLink')?.getAttribute('href') || 'n/a';
         const github = document.getElementById('githubLink')?.getAttribute('href') || 'n/a';
+        const linkedin = document.getElementById('linkedinLink')?.getAttribute('href') || 'n/a';
         const codeforces = document.getElementById('codeforcesLink')?.getAttribute('href') || 'n/a';
         return [
             `email:      ${email}`,
             `github:     ${github}`,
+            `linkedin:   ${linkedin}`,
             `codeforces: ${codeforces}`,
             `discord:    ${discord}`,
         ];
@@ -1417,9 +1396,9 @@ const ASCII_CAT_2 = `
             window.location.href = `mailto:${email}`;
             return `opening a mail draft to ${email}...`;
         }
-        const ids = { github: 'githubLink', codeforces: 'codeforcesLink', discord: 'discordLink' };
+        const ids = { github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink', discord: 'discordLink' };
         const href = ids[target] ? document.getElementById(ids[target])?.getAttribute('href') : null;
-        if (!href) return "open: try 'open github', 'open codeforces', 'open discord' or 'open email'.";
+        if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open discord' or 'open email'.";
         window.open(href, '_blank', 'noopener,noreferrer');
         return `opening ${target}...`;
     }
