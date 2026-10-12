@@ -28,7 +28,7 @@ const i18n = (function () {
             nameGiven: 'Thitiwut',
             nameNick: '"Freyr"',
             nameFamily: 'Sreewasut',
-            status: 'Computer Engineering @ Chulalongkorn · 2× TOI Bronze · NSC2024 Finalist',
+            status: 'Computer Engineering @ Chulalongkorn\n2× TOI Bronze · NSC2024 Finalist',
             availability: 'Open to internships · Summer 2027',
             skillGroups: ['languages', 'tools & frameworks'],
             tooltipHas: '→ see what i built',
@@ -42,7 +42,7 @@ const i18n = (function () {
             nameGiven: 'ธิติวุฒิ',
             nameNick: '"เฟรย์"',
             nameFamily: 'ศรีวะสุทธิ์',
-            status: 'วิศวกรรมคอมพิวเตอร์ @ จุฬาฯ · เหรียญทองแดง TOI 2 สมัย · ผ่านเข้ารอบสุดท้าย NSC2024',
+            status: 'วิศวกรรมคอมพิวเตอร์ @ จุฬาฯ\nเหรียญทองแดง TOI 2 สมัย · ผ่านเข้ารอบสุดท้าย NSC2024',
             availability: 'เปิดรับฝึกงาน · ซัมเมอร์ 2027',
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
@@ -875,11 +875,11 @@ const ASCII_CAT_2 = `
     //Data readers — DOM is the source of truth, mirrors the tag-filter system's approach
     function readAbout() {
         const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
-        const status = document.querySelector('.status-txt')?.textContent.trim() || '';
+        const status = document.querySelector('.status-txt')?.innerText.trim() || '';
         const availability = document.querySelector('.availability-txt')?.textContent.trim() || '';
         return [
             `name: ${name}`,
-            ...status.split(' · '),
+            ...status.split(/\n| · /),
             '',
             availability,
         ];
