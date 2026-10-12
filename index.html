@@ -86,14 +86,17 @@
                      element's textContent, which preserves literal newlines and
                      indentation rather than collapsing them the way rendering does.
                      Breaking these spans across lines puts raw whitespace in the name. -->
-                <h1 class="name-txt"><span class="name-given">Thitiwut</span> <span class="name-nick">"Freyr"</span> <span class="name-family">Sreewasut<span class="cursor">_</span></span></h1>
-                <p class="status-txt">Computer Engineering Student<br>@ Chulalongkorn University</p>
-                <div class="interest-block">
-                    <span class="interest-label">&gt; interests</span>
-                    <ul class="interest-list">
-                        <li>Backend Engineering</li>
-                        <li>Competitive Programming</li>
-                    </ul>
+                <h1 class="name-txt"><span class="name-given">Thitiwut</span> <span class="name-family">Sreewasut<span class="cursor">_</span></span> <span class="name-nick">"Freyr"</span></h1>
+                <p class="status-txt">Computer Engineering @ Chulalongkorn · 2× TOI Bronze · Builds contest infrastructure &amp; backend tools</p>
+                <p class="availability-txt">Open to internships · Summer 2027</p>
+                <div class="contact-row">
+                    <button type="button" class="contact-btn contact-btn--primary" id="emailBtn" data-email="titiwutfay2550@gmail.com">Email</button>
+                    <a class="contact-btn contact-btn--link" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a class="contact-btn contact-btn--link" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer">Codeforces</a>
+                    <!-- No href until resume.pdf exists: RESUME_READY in index.js adds
+                         it, so the button can never lead to a 404. -->
+                    <a class="contact-btn contact-btn--soon" id="resumeLink" aria-disabled="true">Résumé · coming soon</a>
+                    <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
                 <div class="skills-block">
                     <div class="skill-group">
@@ -102,7 +105,7 @@
                             <button type="button" class="skill-tag" data-tech="C">C</button>
                             <button type="button" class="skill-tag" data-tech="C++">C++</button>
                             <button type="button" class="skill-tag" data-tech="C#">C#</button>
-                            <button type="button" class="skill-tag" data-tech="Javascript">Javascript</button>
+                            <button type="button" class="skill-tag" data-tech="JavaScript">JavaScript</button>
                             <button type="button" class="skill-tag" data-tech="Python">Python</button>
                             <button type="button" class="skill-tag" data-tech="TypeScript">TypeScript</button>
                         </div>
@@ -114,14 +117,8 @@
                             <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
                             <button type="button" class="skill-tag" data-tech="Docker">Docker</button>
                             <button type="button" class="skill-tag" data-tech="PostgreSQL">PostgreSQL</button>
-                            <button type="button" class="skill-tag" data-tech="Browser Extension">Browser Extension</button>
                         </div>
                     </div>
-                </div>
-                <div class="contact-row">
-                    <button type="button" class="contact-btn" id="emailBtn" data-email="titiwutfay2550@gmail.com">Email</button>
-                    <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" target="_blank" rel="noopener noreferrer">Discord</a>
-                    <a class="contact-btn" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
                 </div>
             </div>
         </div>
@@ -199,7 +196,7 @@
                     </div>
                 </div>
             </div>
-            <div class="project-card" data-tags="Javascript,Node.js" data-label="~/projects/series-tracker">
+            <div class="project-card" data-tags="JavaScript,Node.js" data-label="~/projects/series-tracker">
                 <a href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/SeriesTracker.webp" class="project-img" alt="SeriesTracker"
@@ -214,7 +211,7 @@
                     <p class="project-sub">Discord Bot</p>
                     <p class="project-sub">Pings you when a new episode of a series you follow goes up</p>
                     <div class="skill-container">
-                        <span class="skill-tag">Javascript</span>
+                        <span class="skill-tag">JavaScript</span>
                         <span class="skill-tag">Node.js</span>
                     </div>
                 </div>

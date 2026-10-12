@@ -8,6 +8,10 @@ const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 //rather than once in each.
 const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
 
+//Flip to true once resume.pdf is committed at the site root. Until then the
+//button stays visibly disabled with no href, so it can never lead to a 404.
+const RESUME_READY = false;
+
 const CHARS = {
     en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
     th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
@@ -19,30 +23,30 @@ const i18n = (function () {
     const content = {
         en: {
             tagLine: '> whoami',
-            //Split three ways so the nickname alone can carry the display size.
+            //Split three ways so the legal name carries the display size and
+            //the nickname sits small on a line under it.
             nameGiven: 'Thitiwut',
             nameNick: '"Freyr"',
             nameFamily: 'Sreewasut',
-            status: 'Computer Engineering Student\n@ Chulalongkorn University',
-            interestLabel: '> interests',
-            interests: ['Backend Engineering', 'Competitive Programming'],
+            status: 'Computer Engineering @ Chulalongkorn · 2× TOI Bronze · Builds contest infrastructure & backend tools',
+            availability: 'Open to internships · Summer 2027',
             skillGroups: ['languages', 'tools & frameworks'],
             tooltipHas: '→ see what i built',
             tooltipNone: '→ no projects yet',
-            btns: ['Email', 'Discord', 'GitHub'],
+            //Same order as the .contact-row buttons in index.html.
+            btns: ['Email', 'GitHub', 'Codeforces', RESUME_READY ? 'Résumé' : 'Résumé · coming soon', 'Discord'],
         },
         th: {
             tagLine: '> ฉันคือใคร',
             nameGiven: 'ธิติวุฒิ',
             nameNick: '"เฟรย์"',
             nameFamily: 'ศรีวะสุทธิ์',
-            status: 'วิศวกรรมคอมพิวเตอร์\n@ จุฬาลงกรณ์มหาวิทยาลัย',
-            interestLabel: '> ความสนใจ',
-            interests: ['ซอฟต์แวร์ระบบหลังบ้าน', 'การเขียนโปรเเกรมเชิงเเข่งขัน'],
+            status: 'วิศวกรรมคอมพิวเตอร์ @ จุฬาฯ · เหรียญทองแดง TOI 2 สมัย · สร้างระบบจัดการแข่งขันและเครื่องมือหลังบ้าน',
+            availability: 'เปิดรับฝึกงาน · ซัมเมอร์ 2027',
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจคที่ผมทำ',
             tooltipNone: '→ ยังไม่มีโปรเจคนี้',
-            btns: ['อีเมล', 'ดิสคอร์ด', 'กิตฮับ'],
+            btns: ['อีเมล', 'กิตฮับ', 'โค้ดฟอร์เซส', RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้', 'ดิสคอร์ด'],
         },
     };
     let lang = 'en';
@@ -425,7 +429,7 @@ const ASCII_CAT_2 = `
             { el: document.querySelector('.name-nick'),      text: d.nameNick,      delay: 80,  duration: 650 },
             { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650, suffix: CURSOR },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
-            { el: document.querySelector('.interest-label'), text: d.interestLabel, delay: 240, duration: 500 },
+            { el: document.querySelector('.availability-txt'), text: d.availability, delay: 240, duration: 500 },
         ];
         targets.forEach(({ el, text, delay, duration, suffix }) => {
             if (el) setTimeout(() => scrambleText(el, text, { duration, suffix }), delay);
@@ -441,12 +445,24 @@ const ASCII_CAT_2 = `
             });
         };
 
-        scrambleList('.interest-list li',   d.interests,  550, 320, 80);
         scrambleList('.skill-group-label',  d.skillGroups, 450, 320, 80);
-        scrambleList('.contact-btn',        d.btns,        450, 400, 60);
+        scrambleList('.about-section .contact-btn', d.btns, 450, 400, 60);
 
         setTimeout(() => { animating = false; }, 1100);
     });
+})();
+
+//Résumé button --------------------------------------------------------------
+(function () {
+    const link = document.getElementById('resumeLink');
+    if (!link || !RESUME_READY) return;
+    link.href = 'resume.pdf';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.removeAttribute('aria-disabled');
+    link.classList.remove('contact-btn--soon');
+    link.classList.add('contact-btn--link');
+    link.textContent = i18n.strings.btns[3];
 })();
 
 //Email copy-to-clipboard ----------------------------------------------------
@@ -860,13 +876,12 @@ const ASCII_CAT_2 = `
     function readAbout() {
         const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
         const status = document.querySelector('.status-txt')?.textContent.trim() || '';
-        const interests = Array.from(document.querySelectorAll('.interest-list li')).map(li => li.textContent.trim());
+        const availability = document.querySelector('.availability-txt')?.textContent.trim() || '';
         return [
             `name: ${name}`,
-            status,
+            ...status.split(' · '),
             '',
-            'areas of interest:',
-            ...interests.map(i => `  - ${i}`),
+            availability,
         ];
     }
 
@@ -922,10 +937,12 @@ const ASCII_CAT_2 = `
         const email = document.getElementById('emailBtn')?.dataset.email || 'n/a';
         const discord = document.getElementById('discordLink')?.getAttribute('href') || 'n/a';
         const github = document.getElementById('githubLink')?.getAttribute('href') || 'n/a';
+        const codeforces = document.getElementById('codeforcesLink')?.getAttribute('href') || 'n/a';
         return [
-            `email:   ${email}`,
-            `discord: ${discord}`,
-            `github:  ${github}`,
+            `email:      ${email}`,
+            `github:     ${github}`,
+            `codeforces: ${codeforces}`,
+            `discord:    ${discord}`,
         ];
     }
 
@@ -1400,12 +1417,9 @@ const ASCII_CAT_2 = `
             window.location.href = `mailto:${email}`;
             return `opening a mail draft to ${email}...`;
         }
-        const href = target === 'github'
-            ? document.getElementById('githubLink')?.getAttribute('href')
-            : target === 'discord'
-                ? document.getElementById('discordLink')?.getAttribute('href')
-                : null;
-        if (!href) return "open: try 'open github', 'open discord' or 'open email'.";
+        const ids = { github: 'githubLink', codeforces: 'codeforcesLink', discord: 'discordLink' };
+        const href = ids[target] ? document.getElementById(ids[target])?.getAttribute('href') : null;
+        if (!href) return "open: try 'open github', 'open codeforces', 'open discord' or 'open email'.";
         window.open(href, '_blank', 'noopener,noreferrer');
         return `opening ${target}...`;
     }

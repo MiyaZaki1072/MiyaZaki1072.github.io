@@ -80,7 +80,6 @@
     --font-body:    'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
     --font-mono:    'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
 
-    --fs-display: clamp(2.75rem, 6vw, 5.25rem);
     --fs-h2:      clamp(1.85rem, 3.6vw, 3.15rem);
     /* Card headings sit between h2 and lead. */
     --fs-card:    clamp(1.25rem, 2vw, 1.75rem);
@@ -649,7 +648,7 @@ body::after {
 }
 .name-txt {
     font-family: var(--font-display);
-    /* Deliberately below --fs-display: that step was sized for the single word
+    /* Deliberately below display size: that step was sized for the single word
        "Freyr". This line now carries a full name, and at display size the last
        name broke onto a second line on its own. */
     font-size: clamp(1.9rem, 4vw, 4rem);
@@ -662,15 +661,16 @@ body::after {
        mark got cut off whenever the EN/TH toggle switched to Thai. */
     line-height: 1.15;
 }
-/* The nickname keeps the display size; the legal name around it drops to a
-   fraction of it. Three elements rather than one string because CSS cannot
-   size part of a text node, and the EN/TH scramble rewrites each part on its
-   own. .name-nick needs no rule — inheriting --fs-display is the whole point. */
-.name-given,
-.name-family {
-    font-size: 0.45em;
-    letter-spacing: -0.01em;
+/* The legal name carries the display size; the nickname drops to a small line
+   under it. Three elements rather than one string because CSS cannot size part
+   of a text node, and the EN/TH scramble rewrites each part on its own. */
+.name-nick {
+    display: block;
+    font-size: 0.4em;
+    font-weight: 500;
+    letter-spacing: 0;
     color: var(--text-sec);
+    margin-top: var(--sp-1);
 }
 .cursor {
     font-family: var(--font-mono);
@@ -683,43 +683,20 @@ body::after {
     font-weight: 400;
     line-height: 1.5;
 }
-/* The same prompt idiom as .tag-line's `> whoami`, one step quieter. The hero
-   reads as two commands and their output: `> whoami` prints the name and the
-   affiliation, `> interests` prints the list under it. */
-.interest-label {
+.availability-txt {
     font-family: var(--font-mono);
     font-size: var(--fs-small);
     color: var(--green);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
 }
-.interest-block,
+.availability-txt::before {
+    content: '● ';
+    text-shadow: 0 0 8px var(--green-glow);
+}
 .skills-block {
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
-}
-.interest-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
-}
-.interest-list li {
-    font-size: var(--fs-lead);
-    color: var(--text-pri);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-}
-/* Structural marker, not a live element — stays neutral. A hyphen rather than a
-   triangle because the terminal's own `whoami` prints this same list as
-   "  - Backend Engineering" (readAbout in index.js); the page and the shell it
-   ships with should not disagree about how they bullet the same data. */
-.interest-list li::before {
-    content: '-';
-    font-family: var(--font-mono);
-    color: var(--text-muted);
-    font-size: 1rem;
 }
 .skill-group {
     display: flex;
@@ -774,6 +751,52 @@ body::after {
 }
 .contact-btn:hover::before {
     color: var(--green);
+}
+/* Ranked, so the row reads as "email first" rather than five equal greys. */
+.contact-btn--primary,
+.contact-btn--primary::before,
+.contact-btn--primary:hover::before {
+    color: var(--on-green);
+}
+.contact-btn--primary {
+    font-weight: 700;
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 18px var(--green-glow);
+}
+.contact-btn--primary:hover {
+    color: var(--on-green);
+    background: var(--green-bright);
+    border-color: var(--green-bright);
+}
+.contact-btn--link,
+.contact-btn--link::before {
+    color: var(--green-bright);
+}
+.contact-btn--link {
+    background: var(--green-dim);
+    border-color: rgba(var(--green-rgb), 0.5);
+}
+.contact-btn--link:hover {
+    color: var(--green-bright);
+    border-color: var(--green-bright);
+}
+.contact-btn--soon {
+    color: var(--text-muted);
+    border: 1px dashed var(--green-line);
+    cursor: default;
+}
+.contact-btn--soon:hover {
+    color: var(--text-muted);
+    border-color: var(--green-line);
+    background: transparent;
+}
+.contact-btn--soon:hover::before {
+    color: var(--text-muted);
+}
+#discordLink {
+    color: var(--text-sec);
+    border-color: var(--border-strong);
 }
 .translate-btn {
     position: absolute;
@@ -2128,10 +2151,24 @@ button.skill-tag[data-tooltip]:focus-visible::after {
        1.9rem floor that stopped being true and the last name orphaned onto a
        line of its own, so the floor comes down here. */
     .name-txt {
-        font-size: clamp(1.35rem, calc(9.6vw - 6px), 1.9rem);
+        font-size: clamp(1.2rem, calc(8.2vw - 6px), 1.9rem);
     }
-    .interest-list li {
-        justify-content: center;
+    /* The name, tagline, availability and contact row all have to clear the
+       fold on a 375x667 phone, so everything above them gives some height
+       back: a smaller avatar, the language switch pinned to the corner
+       instead of taking a row of its own, and a body-size tagline. */
+    .about-section {
+        padding-top: var(--sp-5);
+    }
+    .about-inner {
+        padding-top: var(--sp-6);
+        gap: var(--sp-3);
+    }
+    .status-txt {
+        font-size: var(--fs-small);
+    }
+    .availability-txt {
+        font-size: var(--fs-micro);
     }
     .skill-grid {
         justify-content: center;
@@ -2149,18 +2186,20 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .contact-btn {
         text-align: center;
-        padding: var(--sp-3) var(--sp-3);
+        font-size: var(--fs-micro);
+        letter-spacing: 0.04em;
+        padding: var(--sp-3) var(--sp-2);
     }
     .translate-btn {
-        position: relative;
-        top: auto;
-        right: auto;
-        align-self: flex-end;
-        font-size: var(--fs-body);
-        padding: var(--sp-2) var(--sp-3);
+        position: absolute;
+        top: var(--sp-3);
+        right: var(--sp-2);
+        font-size: var(--fs-micro);
+        letter-spacing: 0.04em;
+        padding: var(--sp-1) var(--sp-2);
     }
     .avatar-wrap {
-        --avatar-size: 150px;
+        --avatar-size: 104px;
     }
     .status-dot {
         width: 18px;
