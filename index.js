@@ -410,7 +410,6 @@ const ASCII_CAT_2 = `
     const translateLabel = document.getElementById('translateLabel');
     if (!translateBtn || !translateLabel) return;
 
-    const CURSOR = '<span class="cursor">_</span>';
     let animating = false;
 
     translateBtn.addEventListener('click', () => {
@@ -427,12 +426,12 @@ const ASCII_CAT_2 = `
             //parts have to resolve together rather than cascade.
             { el: document.querySelector('.name-given'),     text: d.nameGiven,     delay: 80,  duration: 650 },
             { el: document.querySelector('.name-nick'),      text: d.nameNick,      delay: 80,  duration: 650 },
-            { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650, suffix: CURSOR },
+            { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650 },
             { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
             { el: document.querySelector('.availability-txt'), text: d.availability, delay: 240, duration: 500 },
         ];
-        targets.forEach(({ el, text, delay, duration, suffix }) => {
-            if (el) setTimeout(() => scrambleText(el, text, { duration, suffix }), delay);
+        targets.forEach(({ el, text, delay, duration }) => {
+            if (el) setTimeout(() => scrambleText(el, text, { duration }), delay);
         });
 
         //These three are matched to their dictionary entry by position, so an
