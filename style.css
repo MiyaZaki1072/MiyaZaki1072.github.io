@@ -840,6 +840,24 @@ body::after {
     padding: var(--sp-9) var(--gutter);
     border-top: 1px solid var(--border);
 }
+/* Highlights — project-card panels without the screenshot. Not links, so they
+   keep the green border on hover but not the lift that says "click me". */
+.highlights-section {
+    max-width: var(--section-max);
+    margin: 0 auto;
+    padding: var(--sp-7) var(--gutter);
+}
+.highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: var(--sp-5);
+}
+.highlight-card:hover {
+    transform: none;
+}
+.highlight-card .project-info {
+    padding-top: var(--sp-6);
+}
 /* Glass rather than a full-width band: max-content keeps the panel the width of
    the heading itself, so the raster still owns the space either side of it. */
 .section-header {

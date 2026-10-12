@@ -74,7 +74,7 @@
     //is a descendant of one of these, so it is what elementFromPoint returns
     //instead and fails the test on its own — no maintenance as content is added
     //inside a section.
-    const GROUND = 'body, .about-section, .projects-section, .organizing-section, .background-section, .footer';
+    const GROUND = 'body, .about-section, .highlights-section, .projects-section, .organizing-section, .background-section, .footer';
 
     //Cell geometry, rebuilt on resize. nx/ny hold each cell's position in
     //"units" (1 unit = half the shorter viewport edge) measured from the
