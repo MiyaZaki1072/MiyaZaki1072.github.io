@@ -184,12 +184,61 @@ const runeMode = (function () {
         .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
     //The terminal stays readable (it is how keyboard visitors get here), and
     //the toasts are what explain the joke.
-    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti';
+    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop';
 
     let active = false;
     let frame = null;
     let endTimer = null;
     let emberTimer = null;
+    //Freyr as the Rällinge figure is often read: pointed cap and braided beard
+    //(no horns, which are nineteenth-century opera), holding the antler he
+    //fought Beli with once he had given his sword away, the sun behind him.
+    const FREYR_ART = String.raw`          \    |    /
+       '.  \   |   /  .'
+         '. \  |  / .'
+    ------    .^.    ------
+             /   \
+            /  .  \
+    Y      /_______\
+   \|/     | () () |
+    |  /   |   <   |
+    | /     \ '-' /
+    |/     _/|||||\_
+    |     / ||||||| \
+    |    /  |||||||  \
+    |   |   |||||||   |
+         '._'''''''_.'`;
+    const POP_MS = 3800;
+
+    //The art greets the change and then gets out of the way: it fades on its
+    //own, or on a click, while the page turns to runes behind it.
+    function showPortrait() {
+        const old = document.querySelector('.freyr-pop');
+        if (old) old.remove();
+        const pop = document.createElement('div');
+        pop.className = 'freyr-pop';
+        pop.setAttribute('aria-hidden', 'true');
+        const pre = document.createElement('pre');
+        pre.className = 'freyr-pop-art';
+        pre.textContent = FREYR_ART;
+        const name = document.createElement('p');
+        name.className = 'freyr-pop-name';
+        name.textContent = `${NAME_RUNES} · FREYR`;
+        const line = document.createElement('p');
+        line.className = 'freyr-pop-line';
+        //Snorri's three: rain, the shining of the sun, the fruit of the earth.
+        line.textContent = 'rain · sunshine · harvest';
+        pop.append(pre, name, line);
+        const close = () => {
+            if (!pop.isConnected || pop.classList.contains('is-leaving')) return;
+            pop.classList.add('is-leaving');
+            setTimeout(() => pop.remove(), reducedMotion.matches ? 0 : 400);
+        };
+        pop.addEventListener('click', close);
+        setTimeout(close, POP_MS);
+        document.body.appendChild(pop);
+    }
+
     let swapped = [];
     let sweepFrame = null;
     let titleBefore = '';
@@ -272,6 +321,7 @@ const runeMode = (function () {
         active = true;
         root.classList.add('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
+        showPortrait();
         swapped = collect();
         sweep(swapped, true);
         titleBefore = document.title;
@@ -282,8 +332,10 @@ const runeMode = (function () {
         }
         if (typeof window.runGullinbursti === 'function') window.runGullinbursti();
         //Snorri, Gylfaginning 24 (Brodeur 1916): "he rules over the rain and the
-        //shining of the sun".
-        showToast('ᚠ Freyr rules the rain and the shining of the sun');
+        //shining of the sun". It follows the portrait rather than landing on it.
+        setTimeout(() => {
+            if (active) showToast('ᚠ Freyr rules the rain and the shining of the sun');
+        }, POP_MS);
         endTimer = setTimeout(end, LAST_MS);
         return true;
     }
@@ -293,6 +345,8 @@ const runeMode = (function () {
         active = false;
         clearTimeout(endTimer);
         clearInterval(emberTimer);
+        const pop = document.querySelector('.freyr-pop');
+        if (pop) pop.remove();
         root.classList.remove('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
         sweep(swapped, false, () => { swapped = []; });

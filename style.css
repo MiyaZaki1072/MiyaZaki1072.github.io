@@ -601,6 +601,66 @@ body::after {
     100% { opacity: 0; transform: translate(var(--drift, 0px), -170px) scale(1.15); }
 }
 
+/* The portrait that greets rune mode: centred, in the terminal's own voice,
+   gold because the page has just turned gold. A click or a few seconds and it
+   fades; the page behind is already in runes by then. */
+.freyr-pop {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 190;
+    transform: translate(-50%, -50%);
+    /* Wider than the art on purpose, so the caption keeps to one or two lines
+       instead of stacking a word at a time on a phone. */
+    width: min(440px, calc(100vw - 32px));
+    padding: var(--sp-5) var(--sp-4);
+    text-align: center;
+    background: rgba(var(--bg-rgb), 0.94);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--green);
+    box-shadow: 0 0 0 1px var(--green-line), 0 0 60px rgba(var(--green-rgb), 0.25);
+    cursor: pointer;
+    animation: freyrPopIn 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.freyr-pop.is-leaving {
+    animation: freyrPopOut 0.4s ease forwards;
+}
+.freyr-pop-art {
+    margin: 0 auto var(--sp-4);
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 2.6vw, 0.95rem);
+    line-height: 1.15;
+    text-align: left;
+    white-space: pre;
+    color: var(--green-bright);
+    text-shadow: 0 0 8px rgba(var(--green-bright-rgb), 0.45);
+    width: max-content;
+}
+.freyr-pop-name {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-h3);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+    color: var(--green-bright);
+}
+.freyr-pop-line {
+    margin: var(--sp-2) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    letter-spacing: 0.08em;
+    color: var(--text-sec);
+}
+@keyframes freyrPopIn {
+    from { opacity: 0; transform: translate(-50%, -46%) scale(0.92); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes freyrPopOut {
+    to { opacity: 0; transform: translate(-50%, -54%) scale(0.97); }
+}
+
 /* Gullinbursti, Freyr's boar, "whose bristles light the dark": one pass along
    the bottom of the screen per rune mode. The sprite is two 130x65 frames side
    by side; steps(2) flips between them for the trot while the element itself
