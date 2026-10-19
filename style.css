@@ -606,6 +606,11 @@ body::after {
     transition: color 0.2s, border-color 0.2s, background 0.2s;
     z-index: 2;
 }
+/* The display above outranks the UA's [hidden] rule, so the attribute alone
+   left the button on screen. It stays in the markup for `lang th`. */
+.translate-btn[hidden] {
+    display: none;
+}
 .translate-btn:hover,
 .translate-btn.active {
     color: var(--green);
