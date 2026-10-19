@@ -22,7 +22,6 @@ const CHARS = {
 const i18n = (function () {
     const content = {
         en: {
-            tagLine: '> whoami',
             //Split three ways so the legal name carries the display size and
             //the nickname sits small on a line under it.
             nameGiven: 'Thitiwut',
@@ -38,7 +37,6 @@ const i18n = (function () {
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },
         th: {
-            tagLine: '> ฉันคือใคร',
             nameGiven: 'ธิติวุฒิ',
             nameNick: '"เฟรย์"',
             nameFamily: 'ศรีวะสุทธิ์',
@@ -352,7 +350,6 @@ const ASCII_CAT_2 = `
         translateBtn.classList.toggle('active', i18n.lang === 'th');
 
         const targets = [
-            { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
             //Same delay for all three: the name is one word visually, so the
             //parts have to resolve together rather than cascade.
             { el: document.querySelector('.name-given'),     text: d.nameGiven,     delay: 80,  duration: 650 },
@@ -405,7 +402,7 @@ const ASCII_CAT_2 = `
             document.execCommand('copy');
             document.body.removeChild(scratch);
         }
-        showToast(`> copied "${email}" to clipboard`);
+        showToast('Email copied to clipboard');
     });
 })();
 

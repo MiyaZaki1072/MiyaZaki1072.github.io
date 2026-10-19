@@ -54,10 +54,10 @@
         <canvas class="blackhole__world"></canvas>
     </div>
     <nav class="navbar">
-        <a href="#about" class="nav-link">home</a>
-        <a href="#projects" class="nav-link">projects</a>
-        <a href="#organizing" class="nav-link">organizing</a>
-        <a href="#background" class="nav-link">background</a>
+        <a href="#about" class="nav-link">Home</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#organizing" class="nav-link">Organizing</a>
+        <a href="#background" class="nav-link">Background</a>
     </nav>
     <section class="about-section" id="about">
         <div class="about-inner">
@@ -83,7 +83,6 @@
                 <span class="zzz z3">z</span>
             </div>
             <div class="text-section">
-                <span class="tag-line">&gt; whoami</span>
                 <!-- Kept on one line on purpose: the terminal's whoami reads this
                      element's textContent, which preserves literal newlines and
                      indentation rather than collapsing them the way rendering does.
@@ -141,7 +140,7 @@
          the nav scrollspy watches section[id], and this has no nav link. -->
     <section class="highlights-section" aria-label="Highlights">
         <div class="highlight-grid">
-            <div class="project-card highlight-card" data-label="~/highlights/toi">
+            <div class="project-card highlight-card">
                 <div class="project-info">
                     <p class="timeline-year">2025 · 2026</p>
                     <p class="project-title">2× TOI Bronze</p>
@@ -149,7 +148,7 @@
                     <p class="timeline-award">National final · ~90 students · bronze at TOI21 and TOI22</p>
                 </div>
             </div>
-            <div class="project-card highlight-card" data-label="~/highlights/nsc">
+            <div class="project-card highlight-card">
                 <div class="project-info">
                     <p class="timeline-year">2024</p>
                     <p class="project-title">NSC2024 Finalist</p>
@@ -157,7 +156,7 @@
                     <p class="timeline-award">Mesosuem · 3D museum-building game in Unity</p>
                 </div>
             </div>
-            <div class="project-card highlight-card" data-label="~/highlights/kit2code">
+            <div class="project-card highlight-card">
                 <div class="project-info">
                     <p class="timeline-year">formerly RYWCC</p>
                     <p class="project-title">Kit2Code Founder</p>
@@ -169,8 +168,7 @@
     </section>
     <section class="projects-section" id="projects">
         <div class="section-header">
-            <span class="section-tag" aria-hidden="true">&gt; ls ~/projects</span>
-            <h2 class="section-title">Things I've Built</h2>
+            <h2 class="section-title">Projects</h2>
         </div>
         <div class="filter-bar">
             <span class="filter-label" aria-hidden="true">&gt; filter --tag</span>
@@ -179,7 +177,7 @@
         </div>
         <p class="filter-empty" id="filterEmpty" hidden>no matches found</p>
         <div class="project-grid">
-            <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL" data-label="~/projects/taskmaker">
+            <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL">
                 <a href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/TaskMaker.webp" class="project-img" alt="TaskMaker"
@@ -202,7 +200,7 @@
                     </div>
                 </div>
             </div>
-            <div class="project-card" data-tags="TypeScript,Browser Extension" data-label="~/projects/cms-admin-helper">
+            <div class="project-card" data-tags="TypeScript,Browser Extension">
                 <a href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/CmsAdminHelper.webp" class="project-img" alt="CMS Admin Helper"
@@ -223,7 +221,7 @@
                     </div>
                 </div>
             </div>
-            <div class="project-card" data-tags="C#,Unity Engine" data-label="~/projects/mesosuem">
+            <div class="project-card" data-tags="C#,Unity Engine">
                 <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/MesosuemPic.webp" class="project-img" alt="Mesosuem"
@@ -243,7 +241,7 @@
                     </div>
                 </div>
             </div>
-            <div class="project-card" data-tags="JavaScript,Node.js" data-label="~/projects/series-tracker">
+            <div class="project-card" data-tags="JavaScript,Node.js">
                 <a href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" rel="noopener noreferrer" class="project-img-link">
                     <div class="project-img-wrap">
                         <img src="images/SeriesTracker.webp" class="project-img" alt="SeriesTracker"
@@ -270,7 +268,7 @@
              absent in local dev and on a first deploy: the normal case, not an
              error. -->
         <div class="contrib-block" id="contributions" hidden>
-            <h3 class="contrib-title">&gt; git log --graph</h3>
+            <h3 class="contrib-title">GitHub activity</h3>
             <div class="contrib-scroll">
                 <div class="contrib-grid" id="contribGrid" role="img"
                      aria-label="GitHub contribution activity"></div>
@@ -308,10 +306,9 @@
     </section>
     <section class="organizing-section" id="organizing">
         <div class="section-header">
-            <span class="section-tag" aria-hidden="true">&gt; ls ~/organizing</span>
             <h2 class="section-title">Organizing</h2>
         </div>
-        <div class="k2c-panel" data-label="~/organizing/kit2code.md">
+        <div class="k2c-panel">
             <div class="k2c-intro">
                 <p class="k2c-role"><span class="k2c-role-dot" aria-hidden="true"></span>founder</p>
                 <h3 class="k2c-group">Kit2Code</h3>
@@ -327,12 +324,12 @@
                     <a href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer">CMS Admin Helper</a>
                 </p>
                 <div class="contact-row k2c-links">
-                    <a class="contact-btn" href="https://codeforces.com/group/NGBiOfh0FE/contests" target="_blank" rel="noopener noreferrer">codeforces</a>
-                    <a class="contact-btn" href="https://cms.rywcc.org" target="_blank" rel="noopener noreferrer">cms</a>
+                    <a class="contact-btn" href="https://codeforces.com/group/NGBiOfh0FE/contests" target="_blank" rel="noopener noreferrer">Codeforces</a>
+                    <a class="contact-btn" href="https://cms.rywcc.org" target="_blank" rel="noopener noreferrer">CMS</a>
                 </div>
             </div>
             <div class="k2c-log">
-                <p class="k2c-log-title">&gt; contests --all</p>
+                <p class="k2c-log-title">Contests</p>
                 <ol class="k2c-list">
                     <li class="k2c-contest is-done">
                         <span class="k2c-status">done</span>
@@ -341,7 +338,7 @@
                             <p class="k2c-meta">onsite &middot; Codeforces &middot; Oct&nbsp;15,&nbsp;2025 &middot; 1h30</p>
                         </div>
                         <a class="k2c-go" href="https://codeforces.com/group/NGBiOfh0FE/contest/566921" target="_blank" rel="noopener noreferrer"
-                           aria-label="RYWCC Pre POSN1 2025 on Codeforces">&gt; view</a>
+                           aria-label="RYWCC Pre POSN1 2025 on Codeforces">View</a>
                     </li>
                     <!-- Hidden until they have real dates.
                     <li class="k2c-contest is-planned">
@@ -358,7 +355,7 @@
                             <p class="k2c-meta">onsite &middot; cms.rywcc.org &middot; date&nbsp;TBA</p>
                         </div>
                         <a class="k2c-go" href="https://cms.rywcc.org" target="_blank" rel="noopener noreferrer"
-                           aria-label="Kit2Code CMS at cms.rywcc.org">&gt; cms</a>
+                           aria-label="Kit2Code CMS at cms.rywcc.org">CMS</a>
                     </li>
                     -->
                 </ol>
@@ -367,7 +364,6 @@
     </section>
     <section class="background-section" id="background">
         <div class="section-header">
-            <span class="section-tag" aria-hidden="true">&gt; cat ~/background</span>
             <h2 class="section-title">Background</h2>
         </div>
         <div class="bg-switch">
@@ -395,7 +391,7 @@
                                 <p class="timeline-year">2026 - present</p>
                                 <p class="timeline-title">Computer Engineering</p>
                                 <p class="timeline-place">Chulalongkorn University</p>
-                                <span class="timeline-hint">&gt; open</span>
+                                <span class="timeline-hint">View photo</span>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -408,7 +404,7 @@
                                 <p class="timeline-title">Wit-Com Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 3.99</p>
-                                <span class="timeline-hint">&gt; open</span>
+                                <span class="timeline-hint">View photo</span>
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -421,7 +417,7 @@
                                 <p class="timeline-title">Gifted Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">&gt; open</span>
+                                <span class="timeline-hint">View photo</span>
                             </div>
                         </div>
                     </div>
@@ -480,9 +476,9 @@
             <button type="button" class="timeline-lightbox-close" id="timelineLightboxClose" aria-label="Close photo">×</button>
             <a class="timeline-lightbox-img-link" id="timelineLightboxImgLink" target="_blank" rel="noopener noreferrer" aria-label="Visit Facebook page">
                 <img class="timeline-lightbox-img" id="timelineLightboxImg" alt="">
-                <p class="timeline-lightbox-empty">no such file</p>
+                <p class="timeline-lightbox-empty">Photo unavailable</p>
                 <div class="timeline-lightbox-fb-overlay">
-                    <span class="timeline-lightbox-fb-label">open fb →</span>
+                    <span class="timeline-lightbox-fb-label">Facebook page →</span>
                 </div>
             </a>
             <p class="timeline-lightbox-caption" id="timelineLightboxCaption"></p>
@@ -519,8 +515,7 @@
         </div>
     </div>
     <footer class="footer">
-        <span>&gt; echo "thanks for stopping by" <span class="cursor">_</span></span>
-        <span class="footer-copy"># freyr &copy; 2026</span>
+        <span>&copy; 2026 Thitiwut Sreewasut</span>
     </footer>
     <!-- GSAP, vendored rather than pulled from a CDN. The two properties this
          project is built on are "no build step" and "opens from a file:// copy",
