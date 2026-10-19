@@ -216,7 +216,9 @@ seconds and find out. It lasts ten seconds. The page's letters go to runes by th
 modern Latin-to-Futhark convention, which is a gimmick, not a historical spelling; the
 nickname alone keeps the Viking Age runestone form. Every lore line is quoted from
 public-domain translations (Brodeur 1916, Bellows 1923). The terminal has a way in
-too, for anyone who cannot hold.
+too, for anyone who cannot hold. The praying-hands cursor over the photo is the 🙏 of
+[Noto Color Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), saved as two
+32px PNGs.
 
 ## The cat
 

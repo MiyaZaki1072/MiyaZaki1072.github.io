@@ -402,18 +402,19 @@ body::after {
 }
 /* The photo is something to hold, not to drag or long-press-save: without these
    a phone opens its image menu before the ring can fill. The cursor is the only
-   hint it does anything: an amber ring, three-quarters drawn, like the one that
-   fills when it is held, then the busy cursor while it fills. A dark outline
-   under the amber keeps it visible on the photo's light patches. */
+   hint it does anything: praying hands, which light up while the photo is held
+   and the ring fills. They are the 🙏 of Noto Color Emoji (Apache-2.0), baked
+   into PNGs so every system shows the same hands, since an emoji drawn live in
+   a cursor varies by platform and some browsers will not draw one at all. */
 .avatar-wrap .myFaceImage {
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23080b08' stroke-width='4'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23ffb000' stroke-width='2' stroke-dasharray='52 17.1'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffb000' stroke='%23080b08' stroke-width='1.5'/%3E%3C/svg%3E") 16 16, pointer;
+    cursor: url('images/cursor-pray.png') 16 16, pointer;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
 }
 .avatar-wrap.is-holding .myFaceImage {
-    cursor: progress;
+    cursor: url('images/cursor-pray-lit.png') 16 16, progress;
 }
 .avatar-ring {
     position: absolute;
