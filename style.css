@@ -462,7 +462,7 @@ body::after {
     text-shadow: 0 0 8px var(--green-glow);
 }
 /* A quiet chip beside the availability line, so it reads as part of the
-   internship ask rather than a sixth way to contact me. Dashed and grey while
+   availability line rather than a sixth way to contact me. Dashed and grey while
    there is no file behind it; index.js drops aria-disabled once there is. */
 .resume-link {
     font-family: var(--font-mono);
