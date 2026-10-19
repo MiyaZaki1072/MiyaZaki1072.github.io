@@ -17,6 +17,13 @@ const RESUME_READY = false;
 //it out of the way, not private: the ID is still readable in this file.
 const DISCORD_URL = 'https://discord.com/users/464781419907121152';
 
+//The cat that used to be the avatar. Recruiters get the face; anyone who opens
+//the terminal and types `cat` still gets the cat.
+const CAT_PHOTOS = [
+    { src: 'images/cat/cat-sleeping.webp', alt: 'A black cat asleep on a leather seat' },
+    { src: 'images/cat/cat-nightcap.webp', alt: 'The same cat in a cartoon nightcap' },
+];
+
 const CHARS = {
     en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
     th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
@@ -446,6 +453,22 @@ const showToast = (function () {
     function appendBlock(lines, className) {
         //appendLine already scrolls, so the last line has done it.
         (Array.isArray(lines) ? lines : [lines]).forEach(l => appendLine(l, className));
+    }
+
+    //An image is a line too. Scroll again once it has decoded: before that it
+    //has no height, so scrolling on append would stop short of it.
+    function appendImage(src, alt) {
+        const line = document.createElement('div');
+        line.className = 'term-line term-line-img';
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = alt;
+        img.decoding = 'async';
+        img.addEventListener('load', scrollOut, { once: true });
+        line.appendChild(img);
+        output.appendChild(line);
+        scrollOut();
+        return line;
     }
 
     //Data readers — DOM is the source of truth, mirrors the tag-filter system's approach
@@ -1186,6 +1209,12 @@ const showToast = (function () {
         { name: 'matrix',    args: '',      help: 'follow the rabbit',   run: () => cmdMatrix() },
         { name: 'neofetch',  args: '',      help: 'system info',
           run: () => { appendBlock(cmdNeofetch(), 'term-line-art'); return null; } },
+        { name: 'cat',       args: '',      help: 'meet the cat',
+          run: () => {
+              const { src, alt } = CAT_PHOTOS[Math.floor(Math.random() * CAT_PHOTOS.length)];
+              appendImage(src, alt);
+              return null;
+          } },
         { name: 'cowsay',    args: '<text>', help: 'the cat says it',
           run: (a) => { appendBlock(cmdCowsay(a), 'term-line-art'); return null; } },
         { name: 'clear',     args: '',      help: 'clear the screen',    run: () => { output.innerHTML = ''; return null; } },

@@ -1459,6 +1459,15 @@ body::after {
 .term-line-error {
     color: var(--text-muted);
 }
+/* Square like every other box here, and capped so one cat never pushes the
+   prompt out of a short panel. */
+.term-line-img img {
+    display: block;
+    max-width: 100%;
+    max-height: 220px;
+    margin: var(--sp-2) 0;
+    border: 1px solid var(--border);
+}
 .term-input-row {
     display: flex;
     align-items: center;
