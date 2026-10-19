@@ -142,7 +142,6 @@
         cleanups.push(() => bar.removeEventListener('click', drop));
     }
 
-
     //The spine of each timeline draws downward as you scroll past it and each
     //dot pops as the line reaches it, so the track reads as being walked rather
     //than as already having been there.
@@ -157,7 +156,7 @@
             //its own cascade over those items the moment it reveals them. Leave
             //the rail drawn and leave the column alone.
             const rail = track.querySelector(':scope > .timeline-rail');
-            if (!rail) return;
+            if (!rail || track.closest('.timeline-columns[hidden]')) return;
 
             gsap.fromTo(rail, { scaleY: 0 }, {
                 scaleY: 1,
@@ -179,6 +178,20 @@
                 }
             });
         });
+
+        //The switch swaps which column has layout at all and re-runs that
+        //column's own entrance, so from the first press the timeline belongs to
+        //index.js again: triggers gone, inline state cleared, rails simply drawn.
+        const toggle = document.getElementById('bgToggle');
+        if (!toggle) return;
+        const hand = () => {
+            ScrollTrigger.getAll().forEach(trigger => {
+                if (trigger.trigger && trigger.trigger.closest('.timeline')) trigger.kill();
+            });
+            gsap.set('.timeline-dot, .timeline-content, .timeline-rail', { clearProps: 'all' });
+        };
+        toggle.addEventListener('click', hand, { once: true });
+        cleanups.push(() => toggle.removeEventListener('click', hand));
     }
 
     //The year of commits draws itself in as the block enters, one column of days

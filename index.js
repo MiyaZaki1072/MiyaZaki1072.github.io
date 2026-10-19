@@ -12,18 +12,9 @@ const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
 //button stays visibly disabled with no href, so it can never lead to a 404.
 const RESUME_READY = false;
 
-//The cat that used to be the avatar. Recruiters get the face; anyone who opens
-//the terminal and types `cat` still gets the cat.
-const CAT_PHOTOS = [
-    { src: 'images/cat/cat-sleeping.webp', alt: 'A black cat asleep on a leather seat' },
-    { src: 'images/cat/cat-nightcap.webp', alt: 'The same cat in a cartoon nightcap' },
-];
-
 const CHARS = {
     en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
     th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
-    //The 24 runes of the Elder Futhark, for rune mode's scramble.
-    runes: 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
 };
 
 //Language state. The translate button owns it and everything else subscribes,
@@ -31,30 +22,32 @@ const CHARS = {
 const i18n = (function () {
     const content = {
         en: {
+            tagLine: '> whoami',
             //Split three ways so the legal name carries the display size and
             //the nickname sits small on a line under it.
             nameGiven: 'Thitiwut',
             nameNick: '"Freyr"',
             nameFamily: 'Sreewasut',
             status: 'Computer Engineering @\u00a0Chulalongkorn\u00a0University\n2× TOI Bronze · NSC2024 Finalist',
-            availability: 'Open to new opportunities',
+            availability: 'Open to internships · Summer 2027',
             skillGroups: ['languages', 'tools & frameworks'],
-            tooltipHas: '→ see projects',
+            tooltipHas: '→ see what i built',
             tooltipNone: '→ no projects yet',
             //Same order as the .contact-row buttons in index.html.
-            btns: ['Email', 'GitHub', 'LinkedIn', 'Codeforces'],
+            btns: ['Email', 'GitHub', 'LinkedIn', 'Codeforces', 'Discord'],
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },
         th: {
+            tagLine: '> ฉันคือใคร',
             nameGiven: 'ธิติวุฒิ',
             nameNick: '"เฟรย์"',
             nameFamily: 'ศรีวะสุทธิ์',
             status: 'วิศวกรรมคอมพิวเตอร์ @\u00a0จุฬาลงกรณ์มหาวิทยาลัย\nเหรียญทองแดง TOI 2 ปี · ผ่านเข้ารอบสุดท้าย NSC2024',
-            availability: 'เปิดรับโอกาสใหม่ๆ',
+            availability: 'เปิดรับฝึกงาน · ซัมเมอร์ 2027',
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
-            tooltipHas: '→ ดูโปรเจกต์',
-            tooltipNone: '→ ยังไม่มีโปรเจกต์',
-            btns: ['อีเมล', 'GitHub', 'LinkedIn', 'Codeforces'],
+            tooltipHas: '→ ดูโปรเจคที่ผมทำ',
+            tooltipNone: '→ ยังไม่มีโปรเจคนี้',
+            btns: ['อีเมล', 'กิตฮับ', 'ลิงก์อิน', 'โค้ดฟอร์เซส', 'ดิสคอร์ด'],
             resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
         },
     };
@@ -151,262 +144,196 @@ const showToast = (function () {
     sections.forEach(section => sectionObserver.observe(section));
 })();
 
-//Rune mode — hold the photo, or type `freyr` ---------------------------------
-//Freyr is a Norse god as well as my nickname. Holding the photo fills a ring;
-//when it closes, every word on the page turns to runes for ten seconds, the
-//page goes gold, and runes rise off the photo. Esc, or another hold, ends it.
-const runeMode = (function () {
-    const root = document.documentElement;
-    const avatar = document.querySelector('.avatar-wrap');
-    const ring = document.querySelector('.freyr-ring');
+//Pre-baked ASCII cats for the avatar's click-to-flip, one per profile photo:
+//CAT_1 rides the green photo, CAT_2 the amber one. Braille dot art — each cell
+//is 2x4 dots, so these 90x45 and 50x25 grids are really 180x180 and
+//100x100 one-bit bitmaps. The grids differ, so .ascii-face is sized from
+//whichever art is showing rather than from a hardcoded column count.
+//JetBrains Mono has no glyphs in U+2800-28FF — .ascii-face puts Noto Sans
+//Symbols 2 in front of it for exactly that range.
+const ASCII_CAT_1 = `
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡠⠂⠠⣦⢶⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⠤⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⡧⠯⠁⠘⣽⡿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡟⠠⢶⣶⣿⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⡛⣩⣵⡂⠀⢐⡒⡆⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠨⣵⣻⣧⣽⣳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢸⡿⣞⡿⣋⡄⠀⠀⢭⣑⢻⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⡇⠀⠀⠔⠫⣿⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣸⣾⣧⣶⠟⡋⣀⡀⠀⢀⣀⣯⢎⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣷⠀⠀⠠⢶⣶⣞⣻⢿⣾⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣈⣾⣫⣿⣽⣶⣯⣟⡶⠄⠀⠀⠲⠄⢧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡆⠀⣴⣓⠚⠛⣿⣿⣿⣾⣿⣿⣷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣀⣀⣀⣀⣀⡀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⡿⠟⠉⠁⠀⠀⠀⠂⡧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡀⠉⠉⠉⣳⣿⣶⣿⣿⣿⣿⣿⣿⣿⣷⡶⣴⣴⣶⡛⠛⠉⠉⠉⠉⠉⠀⢠⠛⠛⢿⣟⣯⣷⣾⣿⣿⣿⣿⣿⣿⣟⣛⣭⡴⠄⠀⠀⠀⠀⠈⠆⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡧⠀⠀⠈⢉⣉⣿⣿⣿⣿⣿⠿⣛⣿⡿⠀⠀⠀⠻⢿⣦⢀⣀⡀⠀⠀⣤⣇⣀⣼⡞⠈⠉⠉⠉⣀⠉⠛⠻⢿⣿⣿⣟⠓⣦⠔⠀⠀⠀⠀⠀⠨⡕⠅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣇⠀⣤⣬⣿⣿⠟⠛⠉⠁⠀⠘⣿⣿⠇⠀⠀⠑⠀⠘⠿⠟⠛⠙⠦⡞⠉⠛⠾⠃⠀⠀⠀⠀⠀⢿⣿⣧⠀⠀⠀⠈⠙⢷⣶⣼⡒⠓⠂⠀⢀⠀⠍⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣾⠿⠛⠉⠀⠀⠀⠀⠀⠀⠀⠘⠿⠀⠀⣀⠊⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠾⡿⠉⠀⠀⠀⠀⠀⠀⠙⠿⣿⣶⡄⠀⢸⡇⡆⠀⠐⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠏⠉⢀⣰⣷⡿⠷⣾⣶⣶⣤⣀⠀⠀⠀⠀⠹⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡰⠈⠀⠀⠀⠁⣀⣤⣶⣾⣽⣿⣷⣤⣄⠀⠉⠛⣧⣿⠽⡀⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡾⠥⠤⠴⣾⡿⠃⢠⣾⣿⡟⠉⠉⣻⡗⢄⠀⠀⠀⠈⠣⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠁⠀⠀⡴⡏⠎⢿⣿⠋⠐⢿⣿⣏⠈⢹⣦⠀⠀⠀⢹⡙⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⢏⠀⠀⠀⠀⢿⣇⠀⢸⣿⣿⣧⣀⣰⣿⡇⠀⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀⠀⠀⡈⡇⠀⡀⢸⣦⣤⡀⣼⣿⢿⠀⠀⢀⠈⠁⠀⠣⣄⠘⣳⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡼⠃⠀⠁⠄⡀⠀⠀⠛⠦⠌⠿⠿⢿⠿⠿⠋⣠⣾⣿⡀⢀⡤⠖⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⢸⣿⣄⡀⠈⠻⢿⢿⠿⡿⠁⣀⡸⠃⠀⠀⠀⣠⠀⠻⢮⢥⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠁⠀⠀⠀⠀⠀⠀⠃⠰⠠⢄⡀⠀⠀⠀⠀⠀⠀⠀⣨⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠿⣷⣜⠋⠉⠉⠉⠉⠓⠀⠐⠀⠈⠈⠄⠀⡄⠐⠈⠁⠁⠀⡁⠂⠁⠘⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠐⠒⠠⢀⠠⢺⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢷⣦⡀⠀⠄⠀⠤⠀⠀⠐⠀⠉⠀⠀⠀⠀⠀⠀⠀⠄⠀⠀⢀⢀⡑⠝⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡏⠀⣠⣤⣠⣀⡀⠀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠀⠀⠀⠀⣀⣤⣤⣤⣦⣤⣤⣤⣤⣤⣤⣤⣤⣀⠀⠀⠀⠀⠙⠛⠠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡠⠀⢰⣄⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⢈⣭⣿⠷⠚⠛⠙⢹⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢿⣿⣿⣿⣿⣿⣽⣿⣻⣟⣿⣽⣻⣟⣿⡷⠀⠀⠀⠀⠀⠐⢡⢀⠀⠀⠀⠀⠀⢀⣶⣴⣦⣤⣤⣄⡀⠀⢀⣶⡧⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣧⠀⠀⠈⠁⠀⠀⠀⠀⢸⣿⡆⠀⠀⠶⠆⢾⠃⠀⠷⠀⠀⠀⠀⠀⠈⠉⠉⢿⣟⣿⣿⣽⣿⡾⣿⡅⠀⠀⠀⠀⠀⠀⠀⢠⡄⢠⢯⠐⣀⠀⢀⣀⡈⠉⠉⠙⠙⠛⠛⠳⢚⡾⣽⡋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⡇⠀⠀⢀⡀⢠⣶⠀⣴⡄⠀⠀⠀⠀⠀⠀⠀⠙⢯⣿⣾⣿⣏⡿⠃⠀⠀⠀⠀⠀⠀⠀⠠⣄⠠⣠⣀⡀⡈⠉⠉⠀⠀⠀⠀⠀⠀⢀⣤⡖⣿⠁⠴⣾⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢧⠀⠀⠀⠀⠀⠀⠀⠀⠹⠃⠀⠀⠀⡀⠀⢀⠀⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠀⠉⠐⠀⠀⠀⠀⢠⡴⠞⠋⠁⠀⠀⠀⣠⢂⣥⠡⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⣤⣤⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣧⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠀⠈⠈⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠤⢈⡋⠉⠁⠀⠀⠚⠄⠌⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠏⠡⢺⡿⠏⠀⠀⡠⠀⠀⠀⠀⠀⠀⠐⠒⠠⠤⠄⠠⠤⠤⠤⠴⠒⠚⠉⠉⠉⠉⠉⠉⠓⠲⠤⢤⣀⣀⡀⣀⠤⠒⡖⠊⠩⠉⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠀⠀⠁⢴⡃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⠏⠀⠀⠼⣅⠀⠀⢩⢶⣿⣿⣿⣶⠶⠚⠀⠀⠀⠀⠀⠐⠤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⡄⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⡑⠘⡮⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠏⠀⠀⢠⠎⠁⠀⠀⠀⠈⠉⠁⠉⠉⠟⠋⠽⢴⣂⣥⣀⣀⣀⣈⡉⢒⡶⠦⣀⣀⣀⣠⣀⣀⣀⣤⣴⣶⠿⠛⠁⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢬⣿⣡⣗⡅⠤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡏⠀⠀⠀⠀⠀⢡⠔⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠁⠉⠉⠉⠀⠀⠀⠉⠉⠉⡍⠉⠉⢉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣄⣹⣿⣿⣖⣹⠨⣏⡐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢷⠀⠀⠀⠀⢰⠃⠤⠊⢠⠴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⠀⠀⢸⠐⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠤⣄⣤⣄⣹⣿⠛⡓⠂⠀⠙⠀⢻⠬⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⣤⠄⠀⠀⠀⠀⣴⠈⠛⢻⢛⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⠞⠀⠀⠀⠈⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣄⠀⠀⠀⠀⠀⠤⣄⣷⣬⣙⡛⠛⠉⠀⠀⠀⠀⣒⡰⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⠃⢼⣿⡇⠀⠀⠀⠀⠈⠁⠀⠟⠉⢩⣭⢉⣠⢀⡤⠀⠀⠀⠀⠀⠀⠀⢀⣾⠇⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣔⢆⢸⡀⠀⢀⣰⣠⡿⠒⠂⠈⠀⠁⠀⠀⠀⢀⠈⢠⣳⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⡄⠀⠿⢟⡿⣶⡀⠀⠀⠀⠀⠀⠀⠸⠋⠡⣰⢿⣧⣞⣡⣾⣀⣄⣤⡾⠋⠈⠀⠀⠀⠀⠀⠀⠀⠀⢳⡈⢿⣆⣠⣀⢠⢀⡀⢠⣬⣏⣳⣬⠿⠛⠃⠈⠉⠀⠀⠀⠀⠀⠀⠀⠀⡰⣟⣿⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⡀⠀⠈⣼⠥⣿⣧⣶⣾⣀⡀⠀⠀⠀⠀⠁⠘⠁⠐⠛⠁⠘⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠃⠀⠉⠉⠛⠿⠿⠟⢻⣿⠉⠛⠙⠒⠒⠀⠀⠀⠀⠀⠀⠀⠀⢈⣷⣾⣾⣧⣎⡯⠂⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⡇⢰⣀⠀⢠⠿⣿⣿⣿⣼⣧⣾⢀⠀⠀⠀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡀⠀⠀⠐⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣝⠒⢶⣿⡿⢿⡏⠁⠼⠁⡋⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣷⡼⣿⣄⠀⠀⠀⢨⠿⢻⣿⣿⣧⣾⣷⣏⣡⢀⣠⣷⣖⣴⣶⣶⣾⠤⢀⣤⣴⡾⠁⠀⠀⠘⣿⡷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⢰⣶⣀⠰⣿⣷⣾⠏⠉⠀⠸⢦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⢻⠿⠇⡀⠀⠀⠀⠘⠈⠁⠀⡽⠛⠟⠋⣵⣾⡿⠿⠛⡿⠋⠁⡰⢫⢯⢿⠁⠀⠀⠀⠀⠘⠳⣽⣿⣦⢀⣞⣤⡀⠹⣤⣦⠀⡀⢴⢠⠀⢳⣿⣭⣛⠻⠏⠉⠉⠀⠀⠀⡨⢸⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣟⣾⣿⣷⣿⣧⡄⠀⠀⠀⠀⠀⠀⠀⠀⠒⠚⠉⠀⠀⠈⠀⠀⠊⠀⠀⠉⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⣿⢿⡿⣿⡦⣼⣿⡳⣽⣽⣷⠷⢬⠉⠉⠉⠁⠀⠀⠀⠀⠀⠀⢀⡨⣠⠴⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⢩⣯⣼⣿⣿⡿⠻⡜⣦⣠⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠃⠀⠀⠀⠈⠙⠋⠉⠉⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⢀⠐⣤⣼⣿⢩⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⡇⣾⣽⣿⣿⢟⣵⢿⡇⣻⡿⣇⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠲⣤⣀⠀⠀⠀⠀⠀⠀⠀⢠⣠⢤⡀⠀⠤⠀⠀⠐⠀⠐⡐⣤⣿⣂⣿⠿⣷⠿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣻⢿⣿⢯⣾⣿⣿⣷⣿⢗⡙⢃⣷⣾⠀⡆⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠇⠀⠑⠆⠀⠀⠀⠀⠲⠌⠉⠁⠁⠀⠀⢠⡀⢤⣐⣈⣿⣿⣿⣿⣿⣿⣿⠦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣳⢯⣿⣿⢏⣾⣿⣿⣿⣾⣼⡿⠁⡿⠏⢻⡸⣇⣶⣤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⢤⣀⣀⣀⠀⣐⣶⣾⣹⣯⣷⣚⠿⣷⣿⣿⣿⣿⡟⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠇⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⣁⣼⠟⣐⣬⡷⣠⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⢰⣤⣴⣶⣶⠾⣷⣦⣽⡿⢩⣌⠻⣿⣷⣯⣟⡿⣿⣿⣿⣿⣿⣿⠇⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡟⢀⣼⣿⣿⣿⣿⣿⣿⡿⣋⣴⠟⣡⣶⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠿⣿⣷⣹⣿⡷⣿⣦⣻⣿⣿⣿⣿⣿⣿⣾⣿⣿⣿⣿⡿⡏⣯⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⡇⠸⣿⢋⣿⠟⠋⢁⡿⢠⠛⠠⠌⠉⣿⡿⣿⣿⡿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣿⣷⢿⣿⣿⣿⣿⡟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢷⣧⣼⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`;
 
-    const HOLD_MS = 1800;
-    const LAST_MS = 10000;
-    const SWEEP_MS = 900;
-    //Younger Futhark, as Viking Age Swedish runestones spell the Frey- of names
-    //like fraistain (U 227). A letter-for-letter ᚠᚱᛖᛃᚱ would be a modern spelling.
-    const NAME_RUNES = 'ᚠᚱᛅᛁᛦ';
-    //The Th of Thitiwut is a Thai aspirated t, not the English sound ᚦ stands
-    //for, so the given name skips the digraph rule below.
-    const GIVEN_RUNES = 'ᛏᛁᛏᛁᚹᚢᛏ';
-    const EMBERS = 'ᚠᛃᛜᚱᛅᛁᛦᛉ';
-    //Latin letters to Elder Futhark by the usual modern convention (th → ᚦ,
-    //ng → ᛜ). A gimmick, not a historical spelling: only the nickname keeps
-    //the runestone form above.
-    const LATIN_RUNES = {
-        a: 'ᚨ', b: 'ᛒ', c: 'ᚲ', d: 'ᛞ', e: 'ᛖ', f: 'ᚠ', g: 'ᚷ', h: 'ᚺ', i: 'ᛁ',
-        j: 'ᛃ', k: 'ᚲ', l: 'ᛚ', m: 'ᛗ', n: 'ᚾ', o: 'ᛟ', p: 'ᛈ', q: 'ᚲ', r: 'ᚱ',
-        s: 'ᛊ', t: 'ᛏ', u: 'ᚢ', v: 'ᚹ', w: 'ᚹ', x: 'ᚲᛊ', y: 'ᛃ', z: 'ᛉ',
+const ASCII_CAT_2 = `
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⡿⠇⠀⠀⠀⠀⢻⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡇⠀⠀⠀⠀⡸⣞⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⢀⣧⢿⣽⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⢴⣿⠆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠀⠀⠀⠀⣼⣞⡿⣞⡅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠓⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠀⠀⠀⣰⣟⢾⣽⢫⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣠⢤⣶⡻⣞⣿⣺⢯⣽⣳⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢠⣄⡀⠀⠀⠀⠀⠙⢦⡀⠀⠀⠀⠀⣀⣠⣤⣿⣽⣻⢾⣽⣷⣾⣽⣻⣞⣷⣳⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠈⢻⣿⣶⣄⡀⠀⠀⠀⣉⣲⣴⢶⣞⡿⣽⣞⡷⣯⢿⡽⣞⣿⠟⠋⠁⠉⠈⠳⣟⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⣿⣿⣿⢶⣾⣿⡽⣯⣟⡾⣽⡷⣯⣟⡽⡾⣽⡯⠁⠀⠀⠀⠀⠀⠀⢮⣭⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⢞⣿⣿⢯⡿⣿⣯⣟⣷⣯⢿⣳⣟⡷⣽⣼⣻⣽⠀⠀⠀⠀⠀⠀⠀⢀⣼⡯⡗⠋⠤⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢾⣿⣿⣯⣽⣾⣿⣾⣗⡿⣯⡷⣯⣟⡷⣞⣼⣿⣀⠀⠀⠀⠀⢀⣠⡿⣏⡗⠈⠐⠈⠅⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⠛⠏⠉⠉⠽⢟⢿⣿⣿⣿⣿⣷⣻⢾⡽⣞⡷⠄⡹⣶⢿⣻⢿⣻⡽⢯⣼⢦⠶⠁⠈⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣯⠇⠀⠀⠀⠀⠀⠁⣽⣿⣿⣿⣷⣯⣿⣽⣛⡦⠀⠀⢩⣿⣹⢯⣷⢻⣟⠺⢣⡖⣘⠤⠓⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢈⣿⡃⠁⠀⠀⠀⢀⣤⣾⣟⢿⣻⣿⣿⣟⡾⣽⡳⠄⠎⢳⣯⢯⣟⡾⢯⣞⣯⣓⠉⢀⠀⠀⡄⢢⡀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣷⣷⣶⣳⣶⣺⣿⣿⣳⢯⣟⣿⣿⣳⢯⠛⠅⠃⠀⠀⣴⣿⡿⣬⢶⠾⠙⣊⣥⠾⡒⠊⢁⢠⠣⣌⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢺⡽⣾⡽⣯⣟⣿⡿⣯⣿⣿⣾⢿⣿⠳⢏⣈⢠⠀⠀⣰⢿⡿⣽⣉⡶⠌⠋⠉⣀⡀⠁⠀⠀⠀⣘⡐⣂⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣽⣳⣟⣳⣟⣾⣽⣿⣿⣿⣿⣿⣦⣜⡻⡽⠆⠧⣴⡟⣯⢟⡳⣭⠲⠄⠐⠀⠀⠀⠈⠁⠉⠑⢊⡕⢃⠄⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣿⣾⣿⣯⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣾⢧⠀⠹⠾⡵⡞⡽⢢⣃⠐⠀⠀⠄⡐⠀⠀⠀⡘⢦⠘⣌⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠹⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢯⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠒⡈⠀⡀⠄⡑⠢⣉⠴⣈⣆
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢯⣏⡴⣶⣵⣢⢤⢠⡀⡄⢠⠐⡰⢌⡱⠀⡁⡀⠆⡥⠆⡥⣛⡽⣾
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠔⠉⠀⠀⢽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣼⣻⢷⣯⡽⣞⣷⣻⡼⣡⢋⡔⠣⠜⡐⢐⠠⡓⣤⣙⣲⣽⣻⢷
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡿⣽⣞⣷⣻⡴⣣⢜⡱⣊⡕⣊⠠⡙⡰⣭⢷⣯⣿⢿`;
+
+//Profile picture — hold the avatar to swap it, click it to flip to ASCII ------
+(function () {
+    const avatarWrap = document.querySelector('.avatar-wrap');
+    const toggle = document.getElementById('avatarToggle');
+    const asciiFace = document.getElementById('asciiFace');
+    const myFaceImage = document.querySelector('.myFaceImage');
+    const profileChangeRing = document.querySelector('.profileChangeRing');
+    const statusDot = document.querySelector('.status-dot');
+    const avatarRing = document.querySelector('.avatar-ring');
+    if (!myFaceImage || !profileChangeRing || !statusDot || !avatarRing) return;
+
+    const HOLD_MS = 3000;
+
+    //Each art is written as a template literal to stay legible in the source,
+    //which leaves a newline after the opening backtick — and on a CRLF checkout
+    //every line also carries a \r. A <pre> renders both: the newline as an extra
+    //blank row, the returns as stray characters.
+    //
+    //The two cats are different grids (90x45 and 100x50), so the cell size is
+    //derived from whichever art is showing rather than hardcoded. Measuring the
+    //string itself means new art needs no matching edit in the CSS. A braille
+    //glyph advances 0.7em, so the art spans cols*0.7 em across and rows down.
+    //
+    //Holding re-runs this every three seconds, so the strip-and-measure happens
+    //once per cat here rather than once per swap.
+    const prepArt = (raw) => {
+        const art = raw.replace(/\r/g, '').replace(/^\n/, '');
+        const rows = art.split('\n');
+        return { art, cols: ([...rows[0]].length * 0.7).toFixed(2), rows: rows.length };
     };
-    const toRunes = text => text
-        .replace(/th/gi, 'ᚦ')
-        .replace(/ng/gi, 'ᛜ')
-        .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
-    //The terminal stays readable (it is how keyboard visitors get here), and
-    //the toasts are what explain the joke.
-    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop';
 
-    let active = false;
+    const profiles = [
+        { src: 'images/myface1.webp', color: 'var(--green)', art: prepArt(ASCII_CAT_1) },
+        { src: 'images/myface2.webp', color: 'var(--amber)', art: prepArt(ASCII_CAT_2) },
+    ];
+    let index = -1;
     let frame = null;
-    let endTimer = null;
-    let emberTimer = null;
-    //Freyr as the Rällinge figure is often read: pointed cap and braided beard
-    //(no horns, which are nineteenth-century opera), holding the antler he
-    //fought Beli with once he had given his sword away, the sun behind him.
-    const FREYR_ART = String.raw`          \    |    /
-       '.  \   |   /  .'
-         '. \  |  / .'
-    ------    .^.    ------
-             /   \
-            /  .  \
-    Y      /_______\
-   \|/     | () () |
-    |  /   |   <   |
-    | /     \ '-' /
-    |/     _/|||||\_
-    |     / ||||||| \
-    |    /  |||||||  \
-    |   |   |||||||   |
-         '._'''''''_.'`;
-    const POP_MS = 3800;
+    let timer = null;
 
-    //The art greets the change and then gets out of the way: it fades on its
-    //own, or on a click, while the page turns to runes behind it.
-    function showPortrait() {
-        const old = document.querySelector('.freyr-pop');
-        if (old) old.remove();
-        const pop = document.createElement('div');
-        pop.className = 'freyr-pop';
-        pop.setAttribute('aria-hidden', 'true');
-        const pre = document.createElement('pre');
-        pre.className = 'freyr-pop-art';
-        pre.textContent = FREYR_ART;
-        const name = document.createElement('p');
-        name.className = 'freyr-pop-name';
-        name.textContent = `${NAME_RUNES} · FREYR`;
-        const line = document.createElement('p');
-        line.className = 'freyr-pop-line';
-        //Snorri's three: rain, the shining of the sun, the fruit of the earth.
-        line.textContent = 'rain · sunshine · harvest';
-        pop.append(pre, name, line);
-        const close = () => {
-            if (!pop.isConnected || pop.classList.contains('is-leaving')) return;
-            pop.classList.add('is-leaving');
-            setTimeout(() => pop.remove(), reducedMotion.matches ? 0 : 400);
-        };
-        pop.addEventListener('click', close);
-        setTimeout(close, POP_MS);
-        document.body.appendChild(pop);
+    function showArt({ art, cols, rows }) {
+        if (!asciiFace) return;
+        asciiFace.textContent = art;
+        asciiFace.style.setProperty('--ascii-w', cols);
+        asciiFace.style.setProperty('--ascii-rows', rows);
     }
 
-    let swapped = [];
-    let sweepFrame = null;
-    let titleBefore = '';
-
-    const setProgress = p => ring && ring.style.setProperty('--progress', `${p * 360}deg`);
-
-    function spawnEmber() {
-        if (!avatar) return;
-        const ember = document.createElement('span');
-        ember.className = 'freyr-ember';
-        ember.setAttribute('aria-hidden', 'true');
-        ember.textContent = EMBERS[Math.floor(Math.random() * EMBERS.length)];
-        ember.style.left = `${10 + Math.random() * 80}%`;
-        ember.style.setProperty('--drift', `${Math.round((Math.random() - 0.5) * 60)}px`);
-        ember.addEventListener('animationend', () => ember.remove(), { once: true });
-        avatar.appendChild(ember);
+    function setProgress(deg) {
+        profileChangeRing.style.setProperty('--progress', `${deg}deg`);
     }
 
-    //Every visible text node, with what it says now and what it says in runes.
-    function collect() {
-        const items = [];
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-            acceptNode: n => (!n.nodeValue.trim() || n.parentElement.closest(SKIP))
-                ? NodeFilter.FILTER_REJECT
-                : NodeFilter.FILTER_ACCEPT,
-        });
-        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-            const from = n.nodeValue;
-            const parent = n.parentElement;
-            const to = parent.closest('.name-nick') ? `"${NAME_RUNES}"`
-                : parent.closest('.name-given') && from === 'Thitiwut' ? GIVEN_RUNES
-                : toRunes(from);
-            if (to !== from) items.push({ node: n, from, to, last: from });
-        }
-        return items;
+    function changeProfilePicture() {
+        index = (index + 1) % profiles.length;
+        const { src, color, art } = profiles[index];
+        myFaceImage.src = src;
+        //Each photo has its own cat, so holding to swap while the ASCII is
+        //showing morphs to the other one instead of leaving the wrong cat up.
+        showArt(art);
+        setProgress(0);
+        statusDot.style.background = color;
+        statusDot.style.boxShadow = `0 0 14px ${color}`;
+        avatarRing.style.border = `2.5px solid ${color}`;
+        profileChangeRing.style.setProperty('--ring-color', color);
     }
 
-    //One wave down the page in document order: each node turns over letter by
-    //letter, with a single flickering rune at the seam. Only nodes still holding
-    //what this wrote are touched, so text something else rewrote in the
-    //meantime is left alone rather than reverted.
-    function sweep(items, forward, done) {
-        if (sweepFrame !== null) cancelAnimationFrame(sweepFrame);
-        sweepFrame = null;
-        const live = items.filter(it => it.node.isConnected && it.node.nodeValue === it.last);
-        const write = (it, q) => {
-            const want = Array.from(forward ? it.to : it.from);
-            const have = Array.from(forward ? it.from : it.to);
-            const k = Math.round(q * Math.max(want.length, have.length));
-            let text = want.slice(0, k).join('') + have.slice(k).join('');
-            if (q > 0 && q < 1) {
-                const r = CHARS.runes[Math.floor(Math.random() * CHARS.runes.length)];
-                text = want.slice(0, k).join('') + r + have.slice(k + 1).join('');
-            }
-            if (it.node.nodeValue !== text) it.node.nodeValue = text;
-            it.last = text;
-        };
-        if (reducedMotion.matches) {
-            live.forEach(it => write(it, 1));
-            if (done) done();
-            return;
-        }
-        const t0 = performance.now();
-        const n = live.length || 1;
-        const step = now => {
-            const p = Math.min(1, (now - t0) / SWEEP_MS);
-            live.forEach((it, i) => write(it, Math.min(1, Math.max(0, (p - (i / n) * 0.5) / 0.5))));
-            if (p < 1) {
-                sweepFrame = requestAnimationFrame(step);
-                return;
-            }
-            sweepFrame = null;
-            if (done) done();
-        };
-        sweepFrame = requestAnimationFrame(step);
-    }
-
-    function begin() {
-        if (active) return false;
-        active = true;
-        root.classList.add('is-freyr');
-        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
-        showPortrait();
-        swapped = collect();
-        sweep(swapped, true);
-        titleBefore = document.title;
-        document.title = toRunes(titleBefore);
-        if (!reducedMotion.matches) {
-            spawnEmber();
-            emberTimer = setInterval(spawnEmber, 450);
-        }
-        if (typeof window.runGullinbursti === 'function') window.runGullinbursti();
-        //Snorri, Gylfaginning 24 (Brodeur 1916): "he rules over the rain and the
-        //shining of the sun". It follows the portrait rather than landing on it.
-        setTimeout(() => {
-            if (active) showToast('ᚠ Freyr rules the rain and the shining of the sun');
-        }, POP_MS);
-        endTimer = setTimeout(end, LAST_MS);
-        return true;
-    }
-
-    function end() {
-        if (!active) return;
-        active = false;
-        clearTimeout(endTimer);
-        clearInterval(emberTimer);
-        const pop = document.querySelector('.freyr-pop');
-        if (pop) pop.remove();
-        root.classList.remove('is-freyr');
-        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
-        sweep(swapped, false, () => { swapped = []; });
-        if (titleBefore) document.title = titleBefore;
-        showToast('ᛜ The runes fade');
-    }
+    changeProfilePicture();
 
     function stopHold() {
-        if (frame !== null) cancelAnimationFrame(frame);
-        frame = null;
         setProgress(0);
-        if (avatar) avatar.classList.remove('is-holding');
+        if (frame !== null) cancelAnimationFrame(frame);
+        if (timer !== null) clearInterval(timer);
+        frame = null;
+        timer = null;
     }
 
-    //Pointer events cover mouse, pen and touch alike. A touch that turns into a
-    //scroll fires pointercancel, so scrolling past the photo never triggers it.
-    function startHold(e) {
-        if (e.button > 0) return;
-        stopHold();
-        avatar.classList.add('is-holding');
-        const t0 = performance.now();
-        const step = now => {
-            const p = Math.min(1, (now - t0) / HOLD_MS);
-            setProgress(p);
-            if (p < 1) {
-                frame = requestAnimationFrame(step);
-                return;
+    //Holding swaps the photo in every motion mode. With motion reduced the ring
+    //simply is not animated — the swap itself is one discrete state change, not
+    //motion — which leaves click free to mean the same thing for everyone.
+    (toggle || myFaceImage).addEventListener('mouseenter', () => {
+        if (reducedMotion.matches) {
+            timer = setInterval(changeProfilePicture, HOLD_MS);
+            return;
+        }
+        //rAF instead of a 100ms timer: the ring now tracks the display instead of
+        //stepping in tenths, and the loop stops itself while the tab is hidden.
+        let start = performance.now();
+        const step = (now) => {
+            const elapsed = now - start;
+            setProgress(Math.min(1, elapsed / HOLD_MS) * 360);
+            if (elapsed >= HOLD_MS) {
+                changeProfilePicture();
+                start = now;
             }
-            stopHold();
-            if (active) end(); else begin();
+            frame = requestAnimationFrame(step);
         };
         frame = requestAnimationFrame(step);
-    }
-
-    if (avatar && ring) {
-        avatar.addEventListener('pointerdown', startHold);
-        ['pointerup', 'pointerleave', 'pointercancel'].forEach(type => avatar.addEventListener(type, stopHold));
-        avatar.addEventListener('contextmenu', e => e.preventDefault());
-        avatar.addEventListener('dragstart', e => e.preventDefault());
-    }
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && active) end();
     });
 
-    return { begin, end, get active() { return active; } };
+    (toggle || myFaceImage).addEventListener('mouseleave', stopHold);
+
+    //Click flips between the photo and its ASCII rendering. A real <button>
+    //carries Enter and Space for free; aria-pressed carries the state, so the
+    //label stays static rather than describing the next action.
+    if (toggle && asciiFace) {
+        toggle.addEventListener('click', () => {
+            const on = avatarWrap.classList.toggle('is-ascii');
+            toggle.setAttribute('aria-pressed', String(on));
+        });
+    }
 })();
-
-//Gullinbursti — Freyr's golden boar runs past once each rune mode ------------
-//A pass is decoration only, so it is skipped when motion is reduced, and the
-//element removes itself when the run ends.
-window.runGullinbursti = function () {
-    if (reducedMotion.matches || document.querySelector('.gullinbursti')) return;
-    const boar = document.createElement('div');
-    boar.className = 'gullinbursti';
-    boar.setAttribute('aria-hidden', 'true');
-    boar.addEventListener('animationend', e => {
-        if (e.animationName === 'gullinRun') boar.remove();
-    });
-    document.body.appendChild(boar);
-};
 
 //EN / TH translate ----------------------------------------------------------
 (function () {
@@ -425,6 +352,7 @@ window.runGullinbursti = function () {
         translateBtn.classList.toggle('active', i18n.lang === 'th');
 
         const targets = [
+            { el: document.querySelector('.tag-line'),       text: d.tagLine,       delay: 0,   duration: 600 },
             //Same delay for all three: the name is one word visually, so the
             //parts have to resolve together rather than cascade.
             { el: document.querySelector('.name-given'),     text: d.nameGiven,     delay: 80,  duration: 650 },
@@ -477,7 +405,7 @@ window.runGullinbursti = function () {
             document.execCommand('copy');
             document.body.removeChild(scratch);
         }
-        showToast('Email copied to clipboard');
+        showToast(`> copied "${email}" to clipboard`);
     });
 })();
 
@@ -593,7 +521,7 @@ window.runGullinbursti = function () {
                 applyFilters();
             } else {
                 clearFilters();
-                showToast(`No projects tagged ${tech} yet`);
+                showToast(`> no projects tagged "${tech}" yet`);
             }
             document.getElementById('projects').scrollIntoView({ behavior: scrollBehavior() });
         });
@@ -656,6 +584,82 @@ window.runGullinbursti = function () {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     }
+})();
+
+//Background timeline — experience/education switch
+(function () {
+    const timeline = document.getElementById('timeline');
+    const toggle = document.getElementById('bgToggle');
+    const segs = toggle ? Array.from(toggle.querySelectorAll('.bg-toggle-seg')) : [];
+    if (!timeline || !toggle || segs.length !== 2) return;
+
+    const other = mode => mode === 'education' ? 'experience' : 'education';
+
+    const LINE_SEL = '.timeline-year, .timeline-title, .timeline-place, '
+                   + '.timeline-award, .timeline-note, .timeline-hint';
+
+    //Snapshot the copy once. Reading it back live would risk catching an element
+    //mid-scramble and baking the noise in as the new "real" text.
+    const originals = new Map();
+    timeline.querySelectorAll(`.timeline-col-title, ${LINE_SEL}`)
+        .forEach(el => originals.set(el, el.textContent));
+
+    //Timeline copy is English-only — it is not part of the EN/TH toggle — so the
+    //noise pool is pinned to Latin instead of following the active language.
+    const scrambleOpts = { duration: 420, pool: CHARS.en, asText: true };
+    let pending = [];
+
+    function scrambleGroup(group) {
+        pending.forEach(clearTimeout);
+        pending = [];
+        group.querySelectorAll('.timeline-col').forEach(col => {
+            const title = col.querySelector('.timeline-col-title');
+            if (title) scrambleText(title, originals.get(title), scrambleOpts);
+            col.querySelectorAll('.timeline-item').forEach((item, i) => {
+                item.querySelectorAll(LINE_SEL).forEach((el, j) => {
+                    //Stepped so the switch reads as a cascade down the column
+                    //rather than every line twitching at once.
+                    pending.push(setTimeout(
+                        () => scrambleText(el, originals.get(el), scrambleOpts),
+                        120 + i * 70 + j * 35));
+                });
+            });
+        });
+    }
+
+    function setMode(mode, animate) {
+        timeline.dataset.mode = mode;
+        const groups = timeline.querySelectorAll('.timeline-columns[data-category]');
+        groups.forEach(group => {
+            const show = group.dataset.category === mode;
+            group.hidden = !show;
+            const items = group.querySelectorAll('.timeline-item');
+            items.forEach(item => item.classList.remove('is-entering'));
+            if (!show || !animate) return;
+
+            //Reading offsetWidth forces a synchronous layout, which is the point
+            //— it is what makes the re-added class restart the animation. Doing
+            //it once for the column after every class is off costs one layout
+            //instead of one per entry.
+            void group.offsetWidth;
+            items.forEach((item, i) => {
+                item.style.animationDelay = `${i * 0.06}s`;
+                item.classList.add('is-entering');
+            });
+            scrambleGroup(group);
+        });
+
+        //Both segment labels are static markup now — the control shows where it
+        //is by lighting one half and sliding the thumb under it, so there is
+        //nothing here to rewrite. data-mode drives the slide from CSS.
+        toggle.dataset.mode = mode;
+        segs.forEach(seg => seg.classList.toggle('is-active', seg.dataset.seg === mode));
+        toggle.setAttribute('aria-label', `Currently showing ${mode}. Click to switch to ${other(mode)}.`);
+    }
+
+    toggle.addEventListener('click', () => setMode(other(timeline.dataset.mode), true));
+
+    setMode(timeline.dataset.mode || 'education');
 })();
 
 //Education timeline — click lightbox
@@ -801,22 +805,6 @@ window.runGullinbursti = function () {
         (Array.isArray(lines) ? lines : [lines]).forEach(l => appendLine(l, className));
     }
 
-    //An image is a line too. Scroll again once it has decoded: before that it
-    //has no height, so scrolling on append would stop short of it.
-    function appendImage(src, alt) {
-        const line = document.createElement('div');
-        line.className = 'term-line term-line-img';
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = alt;
-        img.decoding = 'async';
-        img.addEventListener('load', scrollOut, { once: true });
-        line.appendChild(img);
-        output.appendChild(line);
-        scrollOut();
-        return line;
-    }
-
     //Data readers — DOM is the source of truth, mirrors the tag-filter system's approach
     function readAbout() {
         const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
@@ -880,24 +868,15 @@ window.runGullinbursti = function () {
 
     function readContact() {
         const email = document.getElementById('emailBtn')?.dataset.email || 'n/a';
-        const discordLink = document.getElementById('discordLink');
-        const discord = discordLink
-            ? `${discordLink.dataset.handle} · ${discordLink.getAttribute('href')}`
-            : 'n/a';
+        const discord = document.getElementById('discordLink')?.getAttribute('href') || 'n/a';
         const github = document.getElementById('githubLink')?.getAttribute('href') || 'n/a';
         const linkedin = document.getElementById('linkedinLink')?.getAttribute('href') || 'n/a';
         const codeforces = document.getElementById('codeforcesLink')?.getAttribute('href') || 'n/a';
-        const instagram = document.getElementById('instagramLink')?.getAttribute('href') || 'n/a';
-        const facebook = document.getElementById('facebookLink')?.getAttribute('href') || 'n/a';
-        const line = document.getElementById('lineLink')?.getAttribute('href') || 'n/a';
         return [
             `email:      ${email}`,
             `github:     ${github}`,
             `linkedin:   ${linkedin}`,
             `codeforces: ${codeforces}`,
-            `instagram:  ${instagram}`,
-            `facebook:   ${facebook}`,
-            `line:       ${line}`,
             `discord:    ${discord}`,
         ];
     }
@@ -1373,13 +1352,9 @@ window.runGullinbursti = function () {
             window.location.href = `mailto:${email}`;
             return `opening a mail draft to ${email}...`;
         }
-        const ids = {
-            github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink',
-            instagram: 'instagramLink', facebook: 'facebookLink', line: 'lineLink',
-            discord: 'discordLink',
-        };
+        const ids = { github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink', discord: 'discordLink' };
         const href = ids[target] ? document.getElementById(ids[target])?.getAttribute('href') : null;
-        if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open instagram', 'open facebook', 'open line', 'open discord' or 'open email'.";
+        if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open discord' or 'open email'.";
         window.open(href, '_blank', 'noopener,noreferrer');
         return `opening ${target}...`;
     }
@@ -1564,45 +1539,12 @@ window.runGullinbursti = function () {
         { name: 'matrix',    args: '',      help: 'follow the rabbit',   run: () => cmdMatrix() },
         { name: 'neofetch',  args: '',      help: 'system info',
           run: () => { appendBlock(cmdNeofetch(), 'term-line-art'); return null; } },
-        { name: 'cat',       args: '',      help: 'meet the cat',
-          run: () => {
-              const { src, alt } = CAT_PHOTOS[Math.floor(Math.random() * CAT_PHOTOS.length)];
-              appendImage(src, alt);
-              return null;
-          } },
         { name: 'cowsay',    args: '<text>', help: 'the cat says it',
           run: (a) => { appendBlock(cmdCowsay(a), 'term-line-art'); return null; } },
         { name: 'clear',     args: '',      help: 'clear the screen',    run: () => { output.innerHTML = ''; return null; } },
         { name: 'exit',      args: '',      help: 'close the panel',     run: () => { closeTerminal(); return null; } },
         //Hidden: kept out of help and out of tab-completion, so finding one is
         //still finding something.
-        { name: 'freyr', hidden: true, alias: ['yngvi'],
-          run: () => {
-              //Short lines from public-domain translations: Snorri's Gylfaginning
-              //(Brodeur 1916) and the Poetic Edda (Bellows 1923).
-              //Wrapped to 34 columns: the panel is about 35 characters wide at its
-              //narrowest, and a quote that runs off the edge loses its citation.
-              //Gaps are a no-break space because an empty line collapses.
-              appendBlock([
-                  'ᚠᚱᛅᛁᛦ · Freyr of the Vanir,',
-                  'son of Njörðr.',
-                  ' ',
-                  '"he rules over the rain and the',
-                  ' shining of the sun, and',
-                  ' therewithal the fruit of the',
-                  ' earth"  — Gylfaginning 24',
-                  ' ',
-                  'his boar Gullinbursti lights',
-                  'the dark; his ship Skíðblaðnir',
-                  'folds away into a pouch.',
-                  'he gave his sword for Gerðr,',
-                  'and meets Surtr without it.',
-                  ' ',
-                  '"Of the heroes brave is Freyr',
-                  ' the best"  — Lokasenna 37',
-              ], 'term-line-art');
-              return runeMode.begin() ? 'ᛜ the runes wake.' : 'ᛜ the runes are already awake.';
-          } },
         { name: 'sudo', hidden: true, run: (a) => a.length
             ? `sudo: ${a[0]}: you are not in the sudoers file. this incident has been reported to freyr.`
             : 'permission denied: nice try.' },

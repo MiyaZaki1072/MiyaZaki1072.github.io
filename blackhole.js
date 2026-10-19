@@ -957,12 +957,5 @@
             return enabled;
         },
         get enabled() { return enabled; },
-        //Rune mode swaps the colour tokens; a fresh layout re-reads the palette
-        //and rebuilds the glow gradient from them, the same path toggle takes.
-        repaint() {
-            if (!enabled) return;
-            layout();
-            applyMotion();
-        },
     };
 })();
