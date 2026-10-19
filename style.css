@@ -302,7 +302,6 @@ body::after {
    straddles the top rule survives neither. */
 .about-inner,
 .section-header,
-.filter-bar,
 .contrib-block,
 .project-card,
 .k2c-panel,
@@ -312,7 +311,6 @@ body::after {
 }
 /* Half in, half out, painting --bg across the line so the rule is genuinely
    broken rather than merely covered. */
-.filter-bar .filter-label,
 .contrib-block .contrib-title {
     position: absolute;
     top: 0;
@@ -916,64 +914,7 @@ body::after {
     margin-top: var(--sp-1);
 }
 
-/* Project filter ----------------------------------------------------------- */
-.filter-bar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-bottom: var(--sp-6);
-    padding: var(--sp-4) var(--sp-5);
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-}
-.filter-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-}
-.filter-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2);
-}
-.filter-clear {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    color: var(--text-sec);
-    background: none;
-    border: none;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    padding: var(--sp-1) var(--sp-2);
-    border-radius: var(--r-sm);
-    transition: color 0.2s;
-}
-.filter-clear:hover {
-    color: var(--green);
-}
-/* Same glass as the bar above it, hugging the one line of text it holds. */
-.filter-empty {
-    width: max-content;
-    max-width: 100%;
-    font-size: var(--fs-small);
-    color: var(--text-muted);
-    margin-bottom: var(--sp-6);
-    padding: var(--sp-3) var(--sp-4);
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-}
-
 /* Project cards ------------------------------------------------------------ */
-.project-card.is-hidden {
-    display: none;
-}
 /* The grid's own entrance moved to motion.js, where it is a staggered batch.
    It is written from JS rather than from here for the same reason it used to
    strip its classes on animationend: the tag filter hides these cards, and a
@@ -1098,8 +1039,8 @@ body::after {
     margin-top: var(--sp-3);
 }
 
-/* Skill tags — a static span in cards, a button in the filter bar and hero.
-   Two levels of specificity only; do not add a third. */
+/* Skill tags — static spans everywhere. Two levels of specificity only; do
+   not add a third. */
 .skill-tag {
     font-family: var(--font-mono);
     font-size: var(--fs-small);
@@ -1111,64 +1052,15 @@ body::after {
     border-radius: var(--r-sm);
     padding: var(--sp-1) var(--sp-3);
 }
-button.skill-tag {
-    position: relative;
-    font-family: var(--font-mono);
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
-}
-button.skill-tag:hover {
-    border-color: var(--green);
-    background: rgba(var(--green-rgb), 0.2);
-    transform: translateY(-1px);
-}
-button.skill-tag.is-active {
-    background: var(--green);
-    color: var(--bg);
-    border-color: var(--green);
-}
-/* In the hero the tags are a list of skills first and a filter second, so they
-   drop the fill and most of the border: they must not read as the same kind of
-   thing as the contact buttons above them. Hover brings the full chip back so
-   the filter is still discoverable. */
-.skills-block button.skill-tag {
+/* In the hero the tags are a list of skills, so they drop the fill and most of
+   the border: they must not read as the same kind of thing as the contact
+   buttons above them. */
+.skills-block .skill-tag {
     font-size: var(--fs-micro);
     color: var(--text-sec);
     background: transparent;
     border-color: var(--border);
     padding: 2px var(--sp-2);
-}
-.skills-block button.skill-tag:hover,
-.skills-block button.skill-tag:focus-visible {
-    color: var(--green-bright);
-    border-color: var(--green);
-    background: var(--green-dim);
-}
-/* Tooltip copy is set from the i18n dictionary via data-tooltip. */
-button.skill-tag[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%) translateY(4px);
-    background: var(--surface-2);
-    color: var(--green-bright);
-    border: 1px solid var(--green);
-    border-radius: var(--r-sm);
-    padding: var(--sp-1) var(--sp-3);
-    font-size: var(--fs-micro);
-    font-family: var(--font-mono);
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    z-index: 10;
-}
-button.skill-tag[data-tooltip]:hover::after,
-button.skill-tag[data-tooltip]:focus-visible::after {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
 }
 
 .ripple {
@@ -1208,70 +1100,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 
 /* Background timeline ------------------------------------------------------ */
-.bg-switch {
-    display: flex;
-    justify-content: center;
-    max-width: 840px;
-    margin: 0 auto var(--sp-7);
-}
-/* A segmented control, not a label. This used to be one word — "Education" —
-   that crossfaded to "cd ~/experience →" on hover, so at rest it looked like a
-   heading and on touch it never revealed itself at all. Both destinations are
-   now on screen permanently and the lit one is the current mode, which is the
-   only arrangement where a visitor can see there is a second track to read
-   without having to guess. The awards and medals live behind this control. */
-.bg-toggle {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: stretch;
-    min-width: 320px;
-    height: 46px;
-    padding: 3px;
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    /* --green-dim is green at 0.10, so on its own the raster reads straight
-       through the button. Stacking it over the glass keeps the green identity
-       and puts a floor under it. */
-    background: linear-gradient(var(--green-dim), var(--green-dim)), var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--green-line);
-    border-radius: var(--r-sm);
-    cursor: pointer;
-    transition: border-color 0.2s ease;
-}
-.bg-toggle:hover {
-    border-color: var(--green);
-}
-/* The lit half. Sliding it rather than restyling both segments means the
-   movement itself carries which way the switch just went. */
-.bg-toggle-thumb {
-    position: absolute;
-    top: 3px;
-    bottom: 3px;
-    left: 3px;
-    width: calc(50% - 3px);
-    background: var(--green);
-    border-radius: calc(var(--r-sm) - 2px);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.bg-toggle[data-mode="experience"] .bg-toggle-thumb {
-    transform: translateX(100%);
-}
-.bg-toggle-seg {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-sec);
-    transition: color 0.28s ease;
-}
-.bg-toggle-seg.is-active {
-    color: var(--on-green);
-}
 /* The same card the hero is built from — glass panel, hairline border, large
    radius, green top edge — so the two long-form panels on the page read as one
    family. No max-width of its own: it fills the section's content box, which is
@@ -1285,32 +1113,13 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     border: 1px solid var(--border);
     padding: var(--sp-8);
 }
-/* Both tracks are dealt the same cell, so the panel always stands as tall as
-   the longer of the two and the Education/Experience switch cannot change the
-   height of the page under you. It used to: Education runs four entries to
-   Experience's three, so every press moved the footer, re-seated the scroll
-   position and re-measured every scroll trigger below it. The cost is a band of
-   empty panel under the shorter track, which is the honest reading anyway —
-   the space belongs to the section, not to whichever track is on show. */
-.timeline {
-    display: grid;
-}
 .timeline-columns {
-    grid-area: 1 / 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--sp-4) var(--sp-6);
 }
-/* Laid out but not shown, which is the whole point — `display: none` would give
-   the height back. visibility takes it out of the picture, out of the
-   accessibility tree and out of the tab order just as completely, and index.js
-   goes on setting the `hidden` attribute exactly as it did. */
-.timeline-columns[hidden] {
-    visibility: hidden;
-    pointer-events: none;
-}
-/* The two tracks run at very different lengths — four education entries beside
-   one volunteer entry — so the short column leaves a tall empty block to the
+/* The two tracks run at different lengths — three education entries beside
+   two experience entries — so the short column leaves a tall empty block to the
    right of the long one. The rule makes that a boundary between two tracks
    instead of an unexplained hole: it says the space belongs to the second
    column and the column simply has less in it. Full-height by grid stretch, so
@@ -1351,13 +1160,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     grid-template-columns: 16px 1fr;
     column-gap: var(--sp-4);
     align-items: start;
-}
-.timeline-item.is-entering {
-    animation: timelineItemIn 0.45s ease both;
-}
-@keyframes timelineItemIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
 }
 .timeline-dot {
     grid-column: 1;
@@ -2266,12 +2068,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     .footer {
         padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + var(--nav-h));
     }
-    /* Hover tooltips never show on touch, but a hidden one centred on the
-       last tag in a row still stuck out past the screen edge and made the
-       whole page scroll sideways. */
-    button.skill-tag[data-tooltip]::after {
-        display: none;
-    }
 }
 
 @media (max-width: 440px) {
@@ -2359,8 +2155,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
    its own. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .section-header,
-    .filter-bar,
-    .filter-empty,
     .footer {
         background: rgba(var(--bg-rgb), 0.92);
     }
@@ -2376,10 +2170,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .view-label {
         background: rgba(var(--bg-rgb), 0.95);
-    }
-    .bg-toggle {
-        background: linear-gradient(var(--green-dim), var(--green-dim)),
-                    rgba(var(--bg-rgb), 0.92);
     }
 }
 
@@ -2453,13 +2243,16 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     font-size: var(--fs-small);
     color: var(--text-muted);
 }
-.k2c-tools a {
+/* The same inline link wherever prose points somewhere else on the page. */
+.k2c-tools a,
+.timeline-place a {
     color: var(--green);
     text-decoration: none;
     border-bottom: 1px dashed var(--green-line);
     transition: border-color 0.2s;
 }
-.k2c-tools a:hover {
+.k2c-tools a:hover,
+.timeline-place a:hover {
     border-bottom-color: var(--green);
 }
 .k2c-links {
@@ -2730,16 +2523,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
    stretch; with the spotlight on, the rest of the border stays dim. */
 .project-card.is-lit {
     border-color: var(--green-line);
-}
-/* Tag preview: the projects built with the tag under the pointer light up, and
-   the rest dim. Dimmed with filter rather than opacity because the filter
-   animation already owns the cards' opacity. */
-.project-card.is-linked {
-    border-color: var(--green);
-    box-shadow: 0 0 0 1px var(--green-line), 0 0 28px rgba(var(--green-rgb), 0.18);
-}
-.project-grid.is-previewing .project-card:not(.is-linked) {
-    filter: brightness(0.5) saturate(0.4);
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so

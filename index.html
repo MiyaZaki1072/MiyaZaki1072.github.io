@@ -61,7 +61,10 @@
     </nav>
     <section class="about-section" id="about">
         <div class="about-inner">
-            <button class="translate-btn" id="translateBtn">
+            <!-- Hidden until the whole page is translated: today the toggle only
+                 reaches the hero, so TH showed a page half in each language.
+                 `lang th` in the terminal still clicks it. -->
+            <button class="translate-btn" id="translateBtn" hidden>
                 <span class="translate-icon">⇄</span>
                 <span id="translateLabel">EN / TH</span>
             </button>
@@ -98,9 +101,9 @@
                     <p class="availability-txt">Open to internships · Summer 2027</p>
                     <a class="resume-link" id="resumeLink" aria-disabled="true" hidden>Résumé · coming soon</a>
                 </div>
-                <!-- The three a recruiter needs as buttons, then the two that are
-                     only for people who already know where to look as a quiet
-                     line of links. -->
+                <!-- The three a recruiter needs as buttons, then Codeforces as a
+                     quiet link for people who already know where to look.
+                     Discord lives in the terminal's `contact` now. -->
                 <div class="contact-row">
                     <a class="contact-btn contact-btn--primary" id="emailBtn" href="mailto:titiwutfay2550@gmail.com" data-email="titiwutfay2550@gmail.com">Email</a>
                     <a class="contact-btn contact-btn--primary" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -108,27 +111,25 @@
                 </div>
                 <div class="contact-row contact-row--secondary">
                     <a class="contact-btn" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer">Codeforces</a>
-                    <span class="contact-sep" aria-hidden="true">·</span>
-                    <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
                 <div class="skills-block">
                     <div class="skill-group">
                         <span class="skill-group-label">languages</span>
                         <div class="skill-grid">
-                            <button type="button" class="skill-tag" data-tech="C">C</button>
-                            <button type="button" class="skill-tag" data-tech="C++">C++</button>
-                            <button type="button" class="skill-tag" data-tech="C#">C#</button>
-                            <button type="button" class="skill-tag" data-tech="JavaScript">JavaScript</button>
-                            <button type="button" class="skill-tag" data-tech="TypeScript">TypeScript</button>
+                            <span class="skill-tag">C</span>
+                            <span class="skill-tag">C++</span>
+                            <span class="skill-tag">C#</span>
+                            <span class="skill-tag">JavaScript</span>
+                            <span class="skill-tag">TypeScript</span>
                         </div>
                     </div>
                     <div class="skill-group">
                         <span class="skill-group-label">tools &amp; frameworks</span>
                         <div class="skill-grid">
-                            <button type="button" class="skill-tag" data-tech="Unity Engine">Unity Engine</button>
-                            <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
-                            <button type="button" class="skill-tag" data-tech="Docker">Docker</button>
-                            <button type="button" class="skill-tag" data-tech="PostgreSQL">PostgreSQL</button>
+                            <span class="skill-tag">Unity Engine</span>
+                            <span class="skill-tag">Node.js</span>
+                            <span class="skill-tag">Docker</span>
+                            <span class="skill-tag">PostgreSQL</span>
                         </div>
                     </div>
                 </div>
@@ -170,12 +171,6 @@
         <div class="section-header">
             <h2 class="section-title">Projects</h2>
         </div>
-        <div class="filter-bar">
-            <span class="filter-label" aria-hidden="true">&gt; filter --tag</span>
-            <div class="filter-tags" id="filterTags"></div>
-            <button type="button" class="filter-clear" id="filterClear" hidden>&gt; unset --tag</button>
-        </div>
-        <p class="filter-empty" id="filterEmpty" hidden>no matches found</p>
         <div class="project-grid">
             <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL">
                 <a href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer" class="project-img-link">
@@ -366,19 +361,12 @@
         <div class="section-header">
             <h2 class="section-title">Background</h2>
         </div>
-        <div class="bg-switch">
-            <!-- Both tracks are named on the control at all times. This used to
-                 be a single word that crossfaded to a hint on hover, so a touch
-                 visitor had no way to learn the second track existed at all —
-                 and the medals live on that second track. -->
-            <button type="button" class="bg-toggle" id="bgToggle" data-mode="education">
-                <span class="bg-toggle-thumb" aria-hidden="true"></span>
-                <span class="bg-toggle-seg" data-seg="education">Education</span>
-                <span class="bg-toggle-seg" data-seg="experience">Experience</span>
-            </button>
-        </div>
-        <div class="timeline" id="timeline" data-mode="education">
-            <div class="timeline-columns" data-category="education">
+        <!-- Both tracks side by side, always. This used to be an
+             Education/Experience switch, which hid one half of the section
+             behind a click. data-track="education" is what the terminal's
+             `education` command reads. -->
+        <div class="timeline" id="timeline">
+            <div class="timeline-columns">
                 <div class="timeline-col" data-track="education">
                     <h3 class="timeline-col-title">Education</h3>
                     <div class="timeline-track">
@@ -422,8 +410,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="timeline-col" data-track="volunteer">
-                    <h3 class="timeline-col-title">Volunteer</h3>
+                <div class="timeline-col" data-track="experience">
+                    <h3 class="timeline-col-title">Experience</h3>
                     <div class="timeline-track">
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
@@ -433,37 +421,12 @@
                                 <p class="timeline-place">Rayongwittayakom School</p>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="timeline-columns" data-category="experience" hidden>
-                <div class="timeline-col" data-track="awards">
-                    <h3 class="timeline-col-title">Competitions &amp; Awards</h3>
-                    <div class="timeline-track">
+                        <!-- TODO(owner): founding year for the Kit2Code entry. -->
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
                             <div class="timeline-content">
-                                <p class="timeline-year">2026</p>
-                                <p class="timeline-title">TOI22</p>
-                                <p class="timeline-place">Thailand Olympiad in Informatics</p>
-                                <p class="timeline-award">Bronze Medal</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <span class="timeline-dot" aria-hidden="true"></span>
-                            <div class="timeline-content">
-                                <p class="timeline-year">2025</p>
-                                <p class="timeline-title">TOI21</p>
-                                <p class="timeline-place">Thailand Olympiad in Informatics</p>
-                                <p class="timeline-award">Bronze Medal</p>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <span class="timeline-dot" aria-hidden="true"></span>
-                            <div class="timeline-content">
-                                <p class="timeline-year">2024</p>
-                                <p class="timeline-title">NSC2024 Finalist</p>
-                                <p class="timeline-place">National Software Contest - Mesosuem</p>
+                                <p class="timeline-title">Founder - Kit2Code</p>
+                                <p class="timeline-place">Contest group for POSN Computer students · see <a href="#organizing">Organizing</a></p>
                             </div>
                         </div>
                     </div>

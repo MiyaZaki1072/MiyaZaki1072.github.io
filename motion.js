@@ -115,7 +115,7 @@
         });
         const settle = targets => gsap.set(targets, { clearProps: 'all' });
 
-        const triggers = ScrollTrigger.batch(cards, {
+        ScrollTrigger.batch(cards, {
             start: 'top 92%',
             once: true,
             onEnter: group => gsap.to(group, {
@@ -124,22 +124,6 @@
                 onComplete: () => settle(group),
             }),
         });
-
-        //The tag filter hides and shows these cards with a class, and the filter
-        //bar sits above the grid: a card can be filtered out while it is still
-        //below the fold, never having crossed its trigger line. It would come
-        //back holding the start state with nothing left to play it. So the first
-        //touch of the filter ends the reveal outright — triggers off, inline
-        //state gone — for the same reason the old CSS version stripped its
-        //classes on animationend.
-        const bar = document.querySelector('.filter-bar');
-        if (!bar) return;
-        const drop = () => {
-            triggers.forEach(trigger => trigger.kill());
-            settle(cards);
-        };
-        bar.addEventListener('click', drop, { once: true });
-        cleanups.push(() => bar.removeEventListener('click', drop));
     }
 
     //The spine of each timeline draws downward as you scroll past it and each
@@ -156,7 +140,7 @@
             //its own cascade over those items the moment it reveals them. Leave
             //the rail drawn and leave the column alone.
             const rail = track.querySelector(':scope > .timeline-rail');
-            if (!rail || track.closest('.timeline-columns[hidden]')) return;
+            if (!rail) return;
 
             gsap.fromTo(rail, { scaleY: 0 }, {
                 scaleY: 1,
@@ -178,20 +162,6 @@
                 }
             });
         });
-
-        //The switch swaps which column has layout at all and re-runs that
-        //column's own entrance, so from the first press the timeline belongs to
-        //index.js again: triggers gone, inline state cleared, rails simply drawn.
-        const toggle = document.getElementById('bgToggle');
-        if (!toggle) return;
-        const hand = () => {
-            ScrollTrigger.getAll().forEach(trigger => {
-                if (trigger.trigger && trigger.trigger.closest('.timeline')) trigger.kill();
-            });
-            gsap.set('.timeline-dot, .timeline-content, .timeline-rail', { clearProps: 'all' });
-        };
-        toggle.addEventListener('click', hand, { once: true });
-        cleanups.push(() => toggle.removeEventListener('click', hand));
     }
 
     //The year of commits draws itself in as the block enters, one column of days
