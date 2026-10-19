@@ -44,7 +44,7 @@ animation and text scramble is skipped.
 │   ├── motion.js         GSAP scroll entrances
 │   ├── springs.js        Motion spring effects that answer the pointer
 │   ├── blackhole.js      the ASCII black hole backdrop
-│   └── vendor/           GSAP 3.13.0 + ScrollTrigger, Motion 13.4.4 (pinned copies, no CDN)
+│   └── vendor/           GSAP 3.13.0 + plugins, Motion 13.4.4 (pinned copies, no CDN)
 ├── images/               photos, project screenshots, share card, sprites
 ├── data/                 contributions.json, written at deploy time (not edited by hand)
 ├── scripts/
@@ -149,8 +149,9 @@ a gimmick rather than a historical spelling.
 
 ## Credits
 
-- [GSAP](https://gsap.com/) 3.13.0 and [Motion](https://motion.dev/) 13.4.4, vendored
-  under `js/vendor/`.
+- [GSAP](https://gsap.com/) 3.13.0 (with ScrollTrigger, CustomEase, CustomWiggle,
+  Physics2D and ScrambleText) and [Motion](https://motion.dev/) 13.4.4, vendored under
+  `js/vendor/`.
 - Fonts from Google Fonts:
   - JetBrains Mono for headings, labels and the terminal.
   - IBM Plex Sans and IBM Plex Sans Thai for body text.

@@ -184,7 +184,7 @@ const runeMode = (function () {
         .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
     //The terminal stays readable (it is how keyboard visitors get here), and
     //the toasts are what explain the joke.
-    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop';
+    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop, .freyr-portal';
 
     let active = false;
     let frame = null;
@@ -208,11 +208,16 @@ const runeMode = (function () {
     |    /  |||||||  \
     |   |   |||||||   |
          '._'''''''_.'`;
-    const POP_MS = 3800;
+    const POP_MS = 4600;
+    //The door opens first; the page goes to runes once it is open, Freyr walks
+    //out a moment later, and the door closes behind him.
+    const EMERGE_AT = 0.75;
+    const RUNES_MS = 800;
+    const DOOR_CLOSE_MS = 2300;
 
     //The art greets the change and then gets out of the way: it fades on its
     //own, or on a click, while the page turns to runes behind it.
-    function showPortrait() {
+    function showPortrait(emerge) {
         const old = document.querySelector('.freyr-pop');
         if (old) old.remove();
         const pop = document.createElement('div');
@@ -220,7 +225,13 @@ const runeMode = (function () {
         pop.setAttribute('aria-hidden', 'true');
         const pre = document.createElement('pre');
         pre.className = 'freyr-pop-art';
-        pre.textContent = FREYR_ART;
+        const lines = FREYR_ART.split('\n');
+        lines.forEach((text, i) => {
+            const row = document.createElement('span');
+            row.textContent = text;
+            row.style.setProperty('--i', String(lines.length - 1 - i));
+            pre.appendChild(row);
+        });
         const name = document.createElement('p');
         name.className = 'freyr-pop-name';
         name.textContent = `${NAME_RUNES} · FREYR`;
@@ -237,6 +248,228 @@ const runeMode = (function () {
         pop.addEventListener('click', close);
         setTimeout(close, POP_MS);
         document.body.appendChild(pop);
+        if (emerge) walkOut(pop, pre);
+    }
+
+    //Freyr steps out of the door toward you: small and bright inside it, then
+    //full size, while each line of the figure scrambles out of noise into its
+    //shape, bottom line first.
+    function walkOut(pop, pre) {
+        const rows = Array.from(pre.children);
+        rows.forEach(row => {
+            row.dataset.line = row.textContent;
+            row.textContent = '';
+        });
+        gsap.set(pop, { xPercent: -50, yPercent: -50, scale: 0.3, opacity: 0, filter: 'brightness(2.5) blur(3px)' });
+        const tl = gsap.timeline({ delay: EMERGE_AT });
+        tl.to(pop, { opacity: 1, scale: 0.55, filter: 'brightness(1.6) blur(0px)', duration: 0.35, ease: 'power2.out' })
+          .to(pop, { scale: 1, filter: 'brightness(1) blur(0px)', duration: 0.9, ease: 'power3.out', clearProps: 'filter' });
+        //ScrambleText trims and collapses runs of spaces, and the figure is
+        //made of them, so it scrambles toward a no-break-space copy and each
+        //line is set to the exact original once it lands.
+        rows.forEach((row, i) => {
+            tl.to(row, {
+                duration: 0.6,
+                scrambleText: {
+                    text: row.dataset.line.replace(/ /g, ' '),
+                    chars: '#%@*+=-:.',
+                    speed: 0.8,
+                    revealDelay: 0.15,
+                    trim: false,
+                },
+                onComplete: () => { row.textContent = row.dataset.line; },
+            }, 0.1 + (rows.length - 1 - i) * 0.03);
+        });
+    }
+
+    //A time door, drawn in characters. A rift opens down the middle of the
+    //screen and snaps wide into a doorway with crackling edges and a vortex of
+    //characters inside; it tears loose characters off the page around it, and
+    //Freyr walks out of it toward you. Then it closes behind him. GSAP drives
+    //it: CustomEase for the snap, CustomWiggle for the shake, Physics2D for the
+    //flying debris, ScrambleText for his figure resolving out of noise.
+    const DOOR_RAMP = ' .:-=+*#%@';
+    const DEBRIS = '#@%&*+=-:./\\|[]<>{}';
+    let portal = null;
+
+    //Any of the five missing (a deleted js/vendor/, a blocked script) and the
+    //portrait simply appears, as it does with motion reduced.
+    const canPortal = () => Boolean(window.gsap && window.Physics2DPlugin
+        && window.ScrambleTextPlugin && window.CustomEase && window.CustomWiggle);
+
+    if (canPortal()) {
+        gsap.registerPlugin(Physics2DPlugin, ScrambleTextPlugin, CustomEase, CustomWiggle);
+        //Overshoots past full width and settles back: a door snapping open.
+        CustomEase.create('doorSnap', 'M0,0 C0.18,0 0.24,1.18 0.52,1.08 0.72,1.01 0.84,1 1,1');
+        CustomWiggle.create('doorQuake', { wiggles: 9, type: 'easeOut' });
+    }
+
+    function quake() {
+        gsap.fromTo('body > section, .navbar, .footer', { x: 0 },
+            { x: 7, duration: 0.6, ease: 'doorQuake', clearProps: 'x' });
+    }
+
+    function openPortal() {
+        closePortal(true);
+        const canvas = document.createElement('canvas');
+        canvas.className = 'freyr-portal';
+        canvas.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(canvas);
+
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const fs = w < 640 ? 13 : 16;
+        ctx.font = `700 ${fs}px "JetBrains Mono", ui-monospace, monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const cw = ctx.measureText('M').width || fs * 0.6;
+        const chh = fs * 1.2;
+
+        //The doorway in cells: tall and narrow like a door, capped well inside
+        //the screen on both axes.
+        const doorCols = Math.max(9, Math.min(Math.floor((w * 0.34) / cw), 30));
+        const doorRows = Math.max(12, Math.min(Math.floor((h * 0.72) / chh), 40));
+        const cx = w / 2;
+        const cy = h / 2;
+        const at = (col, row) => [cx + col * cw, cy + row * chh];
+        const state = { h: 0, w: 0, glow: 0 };
+        const debris = [];
+        let frame = 0;
+
+        const flicker = base => (Math.random() < 0.12 ? '#%|=+*'[Math.floor(Math.random() * 6)] : base);
+
+        function draw(now) {
+            const t = now / 1000;
+            ctx.clearRect(0, 0, w, h);
+            const R = Math.round((doorRows * state.h) / 2);
+            const C = Math.round((doorCols * state.w) / 2);
+
+            if (R >= 1) {
+                //The room goes dark around the door, and the doorway is a real
+                //opening: nothing of the page shows through it.
+                if (C >= 1) {
+                    ctx.fillStyle = `rgba(8, 11, 8, ${(0.55 * state.glow).toFixed(3)})`;
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = 'rgba(10, 7, 0, 0.94)';
+                    ctx.fillRect(cx - C * cw, cy - R * chh, 2 * C * cw, 2 * R * chh);
+                }
+                //The vortex: rings of ramp characters turning inward, hottest
+                //(whitest) at the centre of the door.
+                for (let r = -R + 1; C >= 2 && r < R; r++) {
+                    for (let c = -C + 1; c < C; c++) {
+                        const nx = c / C;
+                        const ny = r / R;
+                        const rad = Math.hypot(nx, ny);
+                        const v = 0.5 + 0.5 * Math.sin(rad * 10 - t * 7 + Math.atan2(ny, nx) * 3);
+                        const ch = DOOR_RAMP[Math.min(DOOR_RAMP.length - 1, Math.floor(v * DOOR_RAMP.length))];
+                        if (ch === ' ') continue;
+                        const core = Math.max(0, 1 - rad);
+                        ctx.fillStyle = `rgba(255, ${170 + Math.round(core * 70)}, ${40 + Math.round(core * 170)}, ${((0.25 + 0.65 * v) * (0.5 + 0.5 * core)).toFixed(3)})`;
+                        const [x, y] = at(c, r);
+                        ctx.fillText(ch, x, y);
+                    }
+                }
+
+                //The frame: box-drawing edges that crackle, glowing. Until the
+                //door widens it is a single rift line.
+                ctx.shadowColor = 'rgba(255, 190, 40, 0.95)';
+                ctx.shadowBlur = 10 + 8 * state.glow;
+                ctx.fillStyle = '#ffd34d';
+                for (let r = -R; r <= R; r++) {
+                    const [xl, y] = at(-C, r);
+                    if (C < 1) {
+                        ctx.fillText(flicker('│'), cx, y);
+                        continue;
+                    }
+                    const [xr] = at(C, r);
+                    const top = r === -R;
+                    const bottom = r === R;
+                    ctx.fillText(top ? '╔' : bottom ? '╚' : flicker('║'), xl, y);
+                    ctx.fillText(top ? '╗' : bottom ? '╝' : flicker('║'), xr, y);
+                }
+                for (let c = -C + 1; C >= 1 && c < C; c++) {
+                    const [x, yt] = at(c, -R);
+                    const [, yb] = at(c, R);
+                    ctx.fillText(flicker('═'), x, yt);
+                    ctx.fillText(flicker('═'), x, yb);
+                }
+                ctx.shadowBlur = 0;
+
+                //Sparks spitting off the sides.
+                const sparks = Math.round(30 * state.glow);
+                for (let s = 0; s < sparks; s++) {
+                    const side = Math.random() < 0.5 ? -1 : 1;
+                    const [x, y] = at(side * (C + 1 + Math.floor(Math.random() * 3)), Math.round((Math.random() * 2 - 1) * R));
+                    ctx.fillStyle = `rgba(255, 210, 90, ${(Math.random() * 0.8).toFixed(2)})`;
+                    ctx.fillText('.*+'[s % 3], x, y);
+                }
+            }
+
+            for (const p of debris) {
+                if (p.a <= 0) continue;
+                ctx.fillStyle = `rgba(255, 200, 80, ${p.a.toFixed(2)})`;
+                ctx.fillText(p.ch, p.x, p.y);
+            }
+            frame = requestAnimationFrame(draw);
+        }
+        frame = requestAnimationFrame(draw);
+
+        //The page tears: characters ripped off around the doorway fly outward
+        //and fall under gravity.
+        function burst() {
+            const n = w < 640 ? 70 : 140;
+            const halfW = (doorCols * cw) / 2;
+            const halfH = (doorRows * chh) / 2;
+            for (let i = 0; i < n; i++) {
+                const fromSide = Math.random() < 0.7;
+                const x = fromSide
+                    ? cx + (Math.random() < 0.5 ? -1 : 1) * (halfW + Math.random() * cw * 4)
+                    : cx + (Math.random() * 2 - 1) * halfW;
+                const y = fromSide
+                    ? cy + (Math.random() * 2 - 1) * halfH
+                    : cy + (Math.random() < 0.5 ? -1 : 1) * (halfH + Math.random() * chh * 3);
+                const p = { x, y, a: 1, ch: DEBRIS[Math.floor(Math.random() * DEBRIS.length)] };
+                debris.push(p);
+                const angle = (Math.atan2(y - cy, x - cx) * 180) / Math.PI + (Math.random() - 0.5) * 30;
+                gsap.to(p, {
+                    duration: 1.2 + Math.random() * 0.8,
+                    ease: 'none',
+                    physics2D: { velocity: 250 + Math.random() * 450, angle, gravity: 900 },
+                });
+                gsap.to(p, { a: 0, duration: 0.6, delay: 0.8 + Math.random() * 0.8 });
+            }
+        }
+
+        const tl = gsap.timeline();
+        tl.to(state, { h: 1, duration: 0.35, ease: 'power2.out' })
+          .to(state, { w: 1, glow: 1, duration: 0.45, ease: 'doorSnap' })
+          .call(burst, null, '<0.05')
+          .call(quake, null, '<');
+        portal = { canvas, tl, state, debris, stop: () => cancelAnimationFrame(frame) };
+    }
+
+    function closePortal(instant) {
+        if (!portal) return;
+        const p = portal;
+        portal = null;
+        p.tl.kill();
+        const done = () => {
+            p.stop();
+            gsap.killTweensOf(p.debris);
+            p.canvas.remove();
+        };
+        if (instant) {
+            done();
+            return;
+        }
+        gsap.timeline({ onComplete: done })
+            .to(p.state, { w: 0, glow: 0, duration: 0.3, ease: 'power3.in' })
+            .to(p.state, { h: 0, duration: 0.22, ease: 'power2.in' });
     }
 
     let swapped = [];
@@ -321,11 +554,20 @@ const runeMode = (function () {
         active = true;
         root.classList.add('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
-        showPortrait();
-        swapped = collect();
-        sweep(swapped, true);
-        titleBefore = document.title;
-        document.title = toRunes(titleBefore);
+        const fancy = !reducedMotion.matches && canPortal();
+        if (fancy) {
+            openPortal();
+            setTimeout(() => { if (active) closePortal(); }, DOOR_CLOSE_MS);
+        }
+        showPortrait(fancy);
+        //The page turns to runes once the door is open, not before.
+        setTimeout(() => {
+            if (!active) return;
+            swapped = collect();
+            sweep(swapped, true);
+            titleBefore = document.title;
+            document.title = toRunes(titleBefore);
+        }, fancy ? RUNES_MS : 0);
         if (!reducedMotion.matches) {
             spawnEmber();
             emberTimer = setInterval(spawnEmber, 450);
@@ -346,7 +588,11 @@ const runeMode = (function () {
         clearTimeout(endTimer);
         clearInterval(emberTimer);
         const pop = document.querySelector('.freyr-pop');
-        if (pop) pop.remove();
+        if (pop) {
+            if (window.gsap) gsap.killTweensOf(pop);
+            pop.remove();
+        }
+        closePortal();
         root.classList.remove('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
         sweep(swapped, false, () => { swapped = []; });

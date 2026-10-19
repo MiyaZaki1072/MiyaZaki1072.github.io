@@ -365,12 +365,18 @@ body::after {
 }
 
 /* Hero --------------------------------------------------------------------- */
+/* The hero and the three highlights share the first screen: the hero takes
+   the window minus a strip held for the highlights, so on a laptop all three
+   cards are in view before any scroll. Phones stack too tall for that and
+   override this below. */
 .about-section {
-    min-height: 100dvh;
+    --highlights-h: 190px;
+    min-height: calc(100dvh - var(--highlights-h));
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--sp-9) var(--gutter) var(--sp-8);
+    /* Clears the fixed nav with a gap rather than butting up against it. */
+    padding: calc(var(--sp-9) + var(--sp-3)) var(--gutter) var(--sp-4);
 }
 .about-inner {
     display: flex;
@@ -383,7 +389,9 @@ body::after {
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
-    padding: var(--sp-8) var(--sp-8);
+    /* Shorter screens give back vertical padding first, so the highlights
+       still clear the fold on a 768px-tall laptop. */
+    padding: clamp(var(--sp-5), 4vh, var(--sp-8)) var(--sp-8);
 }
 /* One variable drives the photo, the ring and the breakpoints. */
 .avatar-wrap {
@@ -511,10 +519,13 @@ body::after {
     border-color: var(--green-line);
     background: transparent;
 }
+/* The two groups sit side by side where there is room and stack where there
+   is not: one row of skills instead of two is what lets the highlights fit
+   under the hero on a laptop screen. */
 .skills-block {
     display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
+    flex-wrap: wrap;
+    gap: var(--sp-3) var(--sp-6);
 }
 .skill-group {
     display: flex;
@@ -629,7 +640,20 @@ body::after {
     border: 1px solid var(--green);
     box-shadow: 0 0 0 1px var(--green-line), 0 0 60px rgba(var(--green-rgb), 0.25);
     cursor: pointer;
-    animation: freyrPopIn 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+/* One line of the figure per row; index.js scrambles each into place. */
+.freyr-pop-art span {
+    display: block;
+}
+/* The time door Freyr walks out of: one canvas over the page, drawn by
+   index.js, under the portrait and never clickable. */
+.freyr-portal {
+    position: fixed;
+    inset: 0;
+    z-index: 185;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
 }
 .freyr-pop.is-leaving {
     animation: freyrPopOut 0.4s ease forwards;
@@ -660,10 +684,6 @@ body::after {
     font-size: var(--fs-micro);
     letter-spacing: 0.08em;
     color: var(--text-sec);
-}
-@keyframes freyrPopIn {
-    from { opacity: 0; transform: translate(-50%, -46%) scale(0.92); }
-    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 @keyframes freyrPopOut {
     to { opacity: 0; transform: translate(-50%, -54%) scale(0.97); }
@@ -786,7 +806,7 @@ body::after {
 .highlights-section {
     max-width: var(--section-max);
     margin: 0 auto;
-    padding: var(--sp-7) var(--gutter);
+    padding: 0 var(--gutter) var(--sp-7);
 }
 .highlight-grid {
     display: grid;
@@ -796,8 +816,13 @@ body::after {
 .highlight-card:hover {
     transform: none;
 }
+/* A strip, not a row of posters: tight padding and a smaller title keep all
+   three cards short enough to sit under the hero on the first screen. */
 .highlight-card .project-info {
-    padding-top: var(--sp-6);
+    padding: var(--sp-3) var(--sp-5);
+}
+.highlight-card .project-title {
+    font-size: var(--fs-h3);
 }
 /* Glass rather than a full-width band: max-content keeps the panel the width of
    the heading itself, so the raster still owns the space either side of it. */
@@ -1945,6 +1970,19 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 
 /* Responsive --------------------------------------------------------------- */
+/* Laptop widths: a slightly smaller photo and narrower card padding give the
+   text column the ~770px the two skill groups need side by side. Without it
+   they wrap to two rows and push the highlights below the fold. */
+@media (min-width: 1025px) and (max-width: 1599px) {
+    .about-inner {
+        gap: var(--sp-7);
+        padding-left: var(--sp-7);
+        padding-right: var(--sp-7);
+    }
+    .avatar-wrap {
+        --avatar-size: 240px;
+    }
+}
 @media (max-width: 1024px) {
     /* The spine narrows here once, and all three sections follow it — they no
        longer each restate their own horizontal padding. */
