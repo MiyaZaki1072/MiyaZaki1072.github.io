@@ -358,6 +358,7 @@ const runeMode = (function () {
         if (frame !== null) cancelAnimationFrame(frame);
         frame = null;
         setProgress(0);
+        if (avatar) avatar.classList.remove('is-holding');
     }
 
     //Pointer events cover mouse, pen and touch alike. A touch that turns into a
@@ -365,6 +366,7 @@ const runeMode = (function () {
     function startHold(e) {
         if (e.button > 0) return;
         stopHold();
+        avatar.classList.add('is-holding');
         const t0 = performance.now();
         const step = now => {
             const p = Math.min(1, (now - t0) / HOLD_MS);
