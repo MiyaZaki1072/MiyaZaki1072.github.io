@@ -1,248 +1,163 @@
-# Personal Portfolio
+# miyazaki1072.github.io
 
-The source for **[miyazaki1072.github.io](https://miyazaki1072.github.io/)** — Thitiwut
-"Freyr" Sreewasut's personal portfolio, built with vanilla HTML, CSS, and JavaScript
-(no frameworks, no build step). One library, GSAP, is vendored in for the motion
-layer — see [Motion](#motion).
+The personal site of **Thitiwut "Freyr" Sreewasut**, a Computer Engineering student at
+Chulalongkorn University: 2× Thailand Olympiad in Informatics (TOI) bronze, NSC2024
+finalist, and founder of the Kit2Code contest group.
 
-**Recruiter or reviewer poking around this repo?** The code is here for reference, but
-the site is meant to be seen running — → **[visit the live page](https://miyazaki1072.github.io/)**
-for the hero, the scroll-driven black hole backdrop, the project showcase, and the
-education and experience timeline.
+**→ [See it live](https://miyazaki1072.github.io/)**. The site is meant to be seen
+running; this repo is the source.
 
----
-
-## Features
-
-- Scroll-driven ASCII black hole backdrop (`blackhole.js`) that drifts and grows as you
-  scroll the page, drawn as a character raster onto one `<canvas>`, one `fillText` per row, over a field of
-  fixed stars that the hole lenses as it passes them — each one brightens, splits, and
-  throws a counter-image around the far side of the shadow. A second, whole black hole —
-  shadow, photon ring, tilted disk and lensed halo — rises under the pointer wherever it
-  hovers true blank ground, never over a card or panel. Take it near the big one and the
-  two merge: it is pulled off the cursor, spirals in trailing a stream of matter, and the
-  light left over leaves as one expanding ring. Carry the pointer back out and a new one
-  forms
-- GSAP motion layer (`motion.js`) — the hero prints itself line by line, section headings
-  rise in as you reach them, project cards arrive as a staggered batch, each timeline's spine
-  draws itself as you scroll past it, the contribution heatmap fills in column by column,
-  and one lit block travels between the nav links — see [Motion](#motion)
-- Motion spring layer (`springs.js`) — project cards lift and trail a green spotlight along
-  their border after the pointer, the tag filter shrinks cards out and springs the rest
-  into place, pointing at a tag lights the projects built with it, and the contribution
-  stats count up — see [Springs](#springs)
-- Thai translation of the hero with a scramble animation, reached through `lang th` in
-  the terminal. The on-page EN/TH button is hidden until the rest of the page is
-  translated too
-- Smooth scroll navigation with a fixed navbar
-- Project showcase with tag filtering (click a hero skill or a filter tag), hover overlays,
-  and a GitHub contribution heatmap
-- Organizing section — Kit2Code, the contest group I founded (formerly RYWCC, Rayongwit Coding
-  Challenge) for POSN Computer students: what it is, the tools built for it, and a log
-  of the contests run on Codeforces and those planned on its own CMS
-- Background section with Education and Experience side by side, and a photo lightbox
-  linking out to each school's Facebook page
-- Interactive terminal widget with tab-completion, command history, did-you-mean
-  suggestions, commands that drive the page, and three games it always wins —
-  see [The terminal](#the-terminal)
-- Fully responsive — mobile, tablet, and desktop
-- Honours `prefers-reduced-motion` — animations and text scrambling are skipped
+Plain HTML, CSS and JavaScript, with no framework and no build step. It opens straight
+from a local copy, even offline.
 
 ---
 
-## Project Structure
+## What's on the page
+
+- **Hero:** name, photo, highlights, and contact links (Email, GitHub, LinkedIn, then
+  Codeforces, Instagram, Facebook, LINE and Discord). Click a skill to jump to the projects
+  built with it.
+- **Highlights:** the two TOI bronze medals, the NSC2024 final, and Kit2Code.
+- **Projects:** TaskMaker, CMS Admin Helper, Mesosuem and Series Tracker, with a tag filter
+  that combines tags.
+- **GitHub activity:** a contribution heatmap, generated at deploy time.
+- **Organizing:** Kit2Code, the contest group I founded for POSN Computer students, its
+  tools, and a log of the contests it has run.
+- **Background:** education and experience side by side, with photo pop-ups for each school.
+- **Terminal:** the `>_` button in the corner opens a working terminal (see below).
+- **Backdrop:** a scroll-driven ASCII black hole drawn on one `<canvas>`. A second, small
+  one follows the pointer over empty space and merges into the big one if you bring it close.
+
+The site works on phones, tablets and desktops. With **reduced motion** turned on, every
+animation and text scramble is skipped.
+
+---
+
+## Project structure
 
 ```
-portfolio/
-├── index.html          — page structure and content
-├── style.css           — all styling and responsive breakpoints
-├── index.js            — translation, timeline, and terminal logic
-├── blackhole.js        — scroll-driven ASCII black hole backdrop
-├── motion.js           — GSAP entrances and scroll-driven moves
-├── springs.js          — Motion spring moves: card spotlight, filter FLIP, tag preview, stat count
-├── vendor/             — GSAP 3.13.0 (core + ScrollTrigger) and Motion 13.4.4, vendored not CDN
-└── images/
-    ├── icon.png             — browser tab favicon
-    ├── og-2026.jpg          — social share card (og:image / twitter:image)
-    ├── me.webp              — profile photo
-    ├── cat/                 — the cat photos shown by the terminal's `cat` command
-    ├── MesosuemPic.webp     — project screenshot
-    ├── SeriesTracker.webp   — project screenshot
-    ├── TaskMaker.webp       — project screenshot
-    ├── CmsAdminHelper.webp  — project screenshot
-    ├── cat-terminal.webp    — cat perched on the terminal widget
-    └── education/           — photos shown in the background timeline lightbox
+.
+├── index.html            page structure and content
+├── style.css             all styling; design tokens live in :root at the top
+├── js/
+│   ├── index.js          page logic: translation, filter, timeline, terminal, rune mode
+│   ├── motion.js         GSAP scroll entrances
+│   ├── springs.js        Motion spring effects that answer the pointer
+│   ├── blackhole.js      the ASCII black hole backdrop
+│   └── vendor/           GSAP 3.13.0 + ScrollTrigger, Motion 13.4.4 (pinned copies, no CDN)
+├── images/               photos, project screenshots, share card, sprites
+├── data/                 contributions.json, written at deploy time (not edited by hand)
+├── scripts/
+│   └── fetch-contributions.mjs   builds data/contributions.json from the GitHub API
+├── .github/workflows/
+│   └── static.yml        deploys to GitHub Pages on push, and daily for the heatmap
+├── sitemap.xml
+└── robots.txt
 ```
 
 ---
 
-## Running Locally
+## Running locally
 
-No install or build step needed. Just open `index.html` in your browser directly, or use a local server for a cleaner experience:
+Open `index.html` in a browser. That's all; nothing needs installing.
+
+A local server is closer to the real site. Opened as a file, the browser blocks the
+contributions fetch, so the heatmap stays hidden:
 
 ```bash
-# Using the VS Code Live Server extension
-# Right-click index.html → Open with Live Server
-
-# Or using Node.js
-npx serve .
-
-# Or using Python
 python -m http.server 8000
+# or
+npx serve .
 ```
+
+## Deployment
+
+Every push to `main` runs `.github/workflows/static.yml`. It fetches the contribution
+calendar with `scripts/fetch-contributions.mjs` (the GitHub GraphQL API needs a token, which
+can never ship in a public page) and publishes the repo to GitHub Pages. The same workflow
+also runs once a day, so the heatmap stays current without a push.
 
 ---
 
-## Motion
+## How the motion works
 
-`motion.js` holds every GSAP-driven move on the page. Two rules shape the whole file.
+Animation is split across three files, and none of it is load-bearing. Each file checks
+for its library on the first line and returns if it's missing, so the page still works,
+just without movement.
 
-**The library is vendored, not linked.** `vendor/gsap.min.js` and
-`vendor/ScrollTrigger.min.js` are pinned copies of GSAP 3.13.0. A CDN would have kept
-the no-build-step property while quietly giving up the other one this project has always
-had: the page opens from a local copy with the network off.
+- **`js/motion.js`: GSAP, for scroll entrances.** The hero types itself in line by line,
+  section titles rise in, project cards arrive in a staggered batch, timeline spines draw
+  downward, and the heatmap fills column by column. Everything is built inside one
+  `gsap.matchMedia()` keyed on `prefers-reduced-motion`, so under reduced motion none of it
+  runs. There is no scroll pinning, because pinning changes the page height, which both the
+  scrollspy and the black hole measure.
+- **`js/springs.js`: Motion, for pointer effects.** Cards lift and trail a spotlight under
+  the mouse. The tag filter animates cards out and springs the rest into place (a FLIP
+  animation). Hovering a tag highlights its projects, and the contribution stats count up.
+  The filter itself is decided in `index.js`; `springs.js` only animates the result.
+- **`js/blackhole.js`: the backdrop.** A character raster drawn with one `fillText` per row
+  at 30 fps, over a field of stars that the hole bends as it passes them. The terminal's
+  `blackhole` command turns it off.
 
-**Nothing in it is load-bearing.** The file returns on its first line if either global is
-missing, so a deleted `vendor/` costs the motion and never the content. That is also why
-no start state for any of this lives in `style.css` — every hidden state is written from
-JS, after GSAP is known to be present, and cleared again once its move has finished. The
-CSS entrances stay in charge until `motion.js` adds `.is-gsap` to `<html>`, which it does
-only once both globals have answered.
-
-| move | what it does |
-|---|---|
-| hero boot | the card, the portrait, then each line under it, in the order you would read them |
-| section headings | each heading rises in as its section enters |
-| project cards | a staggered batch, tilted a few degrees so the grid arrives as one group settling |
-| timeline spine | draws downward on scroll, each dot popping as the line reaches it |
-| contribution wave | the year of commits draws itself in column by column, left to right |
-| nav highlight | one lit block travelling between the links, stretching across the gap as it goes |
-
-**Reduced motion is not a branch inside each move.** The whole set is built inside one
-`gsap.matchMedia()` keyed on `prefers-reduced-motion`, so under it the callback simply
-never runs — and if the preference changes mid-visit GSAP reverts every tween and start
-state it had written.
-
-**There is no pinning, and there will not be.** Pinning changes `scrollHeight`, and two
-things on this page measure that themselves: the scrollspy, and the black hole's camera,
-which maps scroll progress to how far the hole has drifted.
-
-### Springs
-
-`springs.js` holds the moves that answer the pointer, built on
-[Motion](https://motion.dev/) 13.4.4, vendored as `vendor/motion.min.js` under the same
-rules as GSAP: no CDN, and the file returns on its first line if `window.Motion` is
-missing. GSAP keeps the scroll entrances; every move here stands aside while GSAP still
-holds a card.
-
-| move | what it does |
-|---|---|
-| card spotlight | the card lifts under a mouse pointer and a green light trails after it on a spring, lighting a stretch of the border and a faint wash inside |
-| filter FLIP | cards that stop matching shrink out, the rest spring to their new grid slots, arrivals fade in |
-| tag preview | pointing at a filter chip or hero tag lights the matching projects and dims the rest |
-| stat count | total, streak and longest count up from zero the first time the block is on screen |
-
-Every transform on a card goes through one rig of motion values, so the lift and the
-filter slide compose into a single inline transform instead of overwriting each
-other, and at rest the rig removes it again. The filter is still decided in `index.js`:
-it hands `window.animateProjectFilter` the result and a `commit()` that applies it, and
-without `springs.js` it simply calls `commit()` itself. Reduced motion is checked at
-the moment of each move, so all of it snaps when the preference is set.
-
-Three handoffs between this file and `index.js` are worth knowing about, because each one
-exists to stop two systems claiming the same element:
-
-- **The tag filter.** The first touch of the filter bar ends the card reveal outright —
-  triggers killed, inline state cleared. A card can be filtered out while still below the
-  fold, and would otherwise come back holding a start state with nothing left to play it.
-
-- **The EN/TH toggle.** Nothing the dictionary rewrites is ever split into characters.
-  `scrambleText` writes straight to those nodes and would drop the spans on first press.
-- **The scrollspy.** It already says which section you are in by moving an `active` class
-  along the nav. The highlight block watches for that rather than measuring scroll a
-  second time, so the two can never disagree about which link is lit.
+---
 
 ## The terminal
 
-Click the `>_` button in the bottom-right corner. Tab completes, `↑`/`↓` walk the history,
-`^C` cancels, `^L` clears, `esc` closes, and a typo gets a suggestion rather than a shrug.
+Click `>_` in the bottom-right corner.
+- **Keys:** `Tab` completes, `↑`/`↓` walk the history, `^C` cancels, `^L` clears, `Esc` closes.
+- **Typos:** you get a "did you mean" suggestion.
 
 | command | what it does |
 |---|---|
-| `help` | the list below, generated from the command table |
-| `whoami` / `about` | name, status, and areas of interest |
+| `help` | lists the commands |
+| `whoami` / `about` | name, school and status |
 | `skills` | the tech stack, read off the page |
-| `projects [tag]` | projects, optionally filtered — the tag completes on `Tab` |
+| `projects [tag]` | the projects, optionally filtered by a tag (`Tab` completes it) |
 | `education` | academic background |
-| `contact` | email / discord / github |
+| `contact` | every contact link |
 | `contrib` | the GitHub heatmap, redrawn in ASCII |
-| `game` | pick one of three games |
-| `goto <section>` | scrolls the page to `about`, `projects`, `background`, or `top` |
-| `lang [en\|th]` | flips the page language, scramble animation and all |
-| `open <link>` | opens `github`, `linkedin`, `codeforces`, `instagram`, `facebook`, `line`, `discord`, or an `email` draft |
-| `blackhole` | toggles the backdrop |
+| `goto <section>` | scrolls to `about`, `projects`, `organizing`, `background` or `top` |
+| `lang [en\|th]` | switches the hero between English and Thai |
+| `open <link>` | opens `github`, `linkedin`, `codeforces`, `instagram`, `facebook`, `line`, `discord` or an `email` draft |
+| `game` | three games, all rigged so the house wins |
+| `blackhole` | turns the backdrop off or on |
 | `matrix` | four seconds of rain |
 | `neofetch` | system info, such as it is |
-| `cat` | meet the cat that used to be the avatar |
+| `cat` | meet the cat that used to be my avatar |
 | `cowsay <text>` | the cat says it for you |
 | `clear` / `exit` | clear the screen / close the panel |
 
-There are a few more that `help` will not tell you about.
+A few more commands exist that `help` won't list.
 
-**Adding a command is one row.** `COMMANDS` in `index.js` is a table of
-`{ name, args, help, run }`, and `help`, tab-completion, and the did-you-mean suggestion all
-read it. They used to keep separate copies of the list, which drifted — `about` and `sudo`
-were live commands that `help` never mentioned. A row marked `hidden: true` is skipped by
-help and by completion but still runs.
-
-### The games are rigged
-
-All three. That is the feature, not a bug, and two of them own up to it when they win:
-
-| game | how the house wins | where |
-|---|---|---|
-| `21` | misère subtraction game — the multiples of four are the losing seats, so it just steps to the next one (`4 - total % 4`) | `computerTurn` |
-| `rps` | it claims to have locked its move in first. It has not; it answers **after** you pick | `rpsAnswer` |
-| `guess` | there is no number. It holds a range and every answer keeps the larger half alive, so seven guesses can never close it | `guessAnswer` |
-
-Losing at `21` costs you an internship, per the house rules.
+**Adding a command takes one row.** `COMMANDS` in `js/index.js` is a table of
+`{ name, args, help, run }` entries. `help`, tab completion and "did you mean" all read
+from it. Rows marked `hidden: true` still run, but stay out of `help` and completion.
 
 ---
 
-## Rune mode
+## Something hidden
 
-Freyr is a Norse god as well as my nickname. Hold the photo in the hero for a couple of
-seconds and find out. It lasts ten seconds. The page's letters go to runes by the usual
-modern Latin-to-Futhark convention, which is a gimmick, not a historical spelling; the
-nickname alone keeps the Viking Age runestone form. Every lore line is quoted from
-public-domain translations (Brodeur 1916, Bellows 1923). The terminal has a way in
-too, for anyone who cannot hold. The praying-hands cursor over the photo is the 🙏 of
-[Noto Color Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), saved as two
-32px PNGs.
+Freyr is also the name of a Norse god. Hold the photo in the hero for a couple of seconds.
+The praying-hands cursor is the hint.
 
-## The cat
-
-The avatar used to be a photo of my cat, with a hold-to-swap second photo and a
-click-to-flip Braille ASCII rendering. It is a real photo now, and the cat moved into the
-terminal: `cat` shows one of the two photos in `images/cat/`, listed in `CAT_PHOTOS` in
-`index.js`. The pixel cat on the terminal button stays where it was.
+Every lore line it shows is quoted from public-domain translations: the Prose Edda
+(Brodeur, 1916) and the Poetic Edda (Bellows, 1923). The nickname uses the Viking Age
+runestone spelling; everything else uses the usual modern letter-to-rune mapping, so it's
+a gimmick rather than a historical spelling.
 
 ---
 
-## Tech Stack
+## Credits
 
-- **HTML5** — semantic structure
-- **CSS3** — custom properties, grid, flexbox, keyframe animations
-- **Vanilla JavaScript** — no framework, no build step
-- **GSAP 3.13.0** — core and ScrollTrigger, the project's only dependency, vendored
-  under `vendor/` rather than loaded from a CDN
-- **Google Fonts** — IBM Plex Sans + IBM Plex Sans Thai (body, one superfamily so the
-  EN/TH toggle keeps a consistent voice), JetBrains Mono (headings, terminal, code,
-  and labels)
-- **WebP images** — sized to their display box; the social card stays JPEG
-  because link crawlers are unreliable with WebP
-
----
+- [GSAP](https://gsap.com/) 3.13.0 and [Motion](https://motion.dev/) 13.4.4, vendored
+  under `js/vendor/`.
+- Fonts from Google Fonts:
+  - JetBrains Mono for headings, labels and the terminal.
+  - IBM Plex Sans and IBM Plex Sans Thai for body text.
+  - Noto Sans Runic for runes, loaded with only the glyphs used.
+- The praying-hands cursor is the 🙏 from
+  [Noto Color Emoji](https://github.com/googlefonts/noto-emoji) (Apache-2.0), saved as two
+  32px PNGs.
 
 ## License
 

@@ -2560,7 +2560,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 /* Motion layer --------------------------------------------------------------
    motion.js adds .is-gsap to <html>, and only once the vendored GSAP files are
    known to have loaded. Every rule under that class hands an entrance over to
-   that file; without it — a missing vendor/, a blocked script — none of them
+   that file; without it — a missing js/vendor/, a blocked script — none of them
    match and the CSS entrances stay in charge.
 
    Nothing here sets a start state. Content is never hidden by this stylesheet

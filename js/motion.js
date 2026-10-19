@@ -6,7 +6,7 @@
 //scroll rail still measures a page whose height nothing here changes — no
 //pinning, so scrollHeight is exactly what it was.
 //
-//The library is vendored under vendor/ rather than pulled from a CDN, which
+//The library is vendored under js/vendor/ rather than pulled from a CDN, which
 //keeps the two properties this project was built with: no build step, and it
 //still runs from a file:// copy with the network off.
 //

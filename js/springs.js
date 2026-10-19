@@ -5,8 +5,8 @@
 //keeps the scroll entrances. The two never write the same card at once: every
 //move here stands aside while GSAP still holds a card.
 //
-//Vendored under vendor/ for the same reason GSAP is: no build step, and the page
-//still runs from a file:// copy with the network off. If vendor/motion.min.js is
+//Vendored under js/vendor/ for the same reason GSAP is: no build step, and the page
+//still runs from a file:// copy with the network off. If js/vendor/motion.min.js is
 //missing this returns on its first line, window.animateProjectFilter is never
 //defined, and index.js toggles the cards the way it always did.
 
