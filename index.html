@@ -29,6 +29,10 @@
 
     <link rel="icon" href="images/icon.png">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Runes for the hidden rune mode. No face on the page has the Runic block,
+         so Noto Sans Runic is subset to exactly the glyphs index.js uses (the
+         Elder Futhark plus the two Younger runes in the name): about 2KB. -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&text=%E1%9A%A0%E1%9A%A2%E1%9A%A6%E1%9A%A8%E1%9A%B1%E1%9A%B2%E1%9A%B7%E1%9A%B9%E1%9A%BA%E1%9A%BE%E1%9B%81%E1%9B%83%E1%9B%87%E1%9B%88%E1%9B%89%E1%9B%8A%E1%9B%8F%E1%9B%92%E1%9B%96%E1%9B%97%E1%9B%9A%E1%9B%9C%E1%9B%9E%E1%9B%9F%E1%9B%85%E1%9B%A6&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json">
     {
@@ -80,6 +84,10 @@
                 <img src="images/me.webp" class="myFaceImage" alt="Thitiwut Sreewasut"
                      width="280" height="280" fetchpriority="high" decoding="async">
                 <div class="avatar-ring"></div>
+                <!-- Fills while the photo is held. Rune mode is a hidden extra, so
+                     nothing on the page points at it; the terminal's `freyr` is
+                     the way in for keyboard and screen-reader visitors. -->
+                <div class="freyr-ring" aria-hidden="true"></div>
             </div>
             <div class="text-section">
                 <!-- Kept on one line on purpose: the terminal's whoami reads this

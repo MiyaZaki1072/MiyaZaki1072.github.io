@@ -22,6 +22,8 @@ const CAT_PHOTOS = [
 const CHARS = {
     en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
     th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
+    //The 24 runes of the Elder Futhark, for rune mode's scramble.
+    runes: 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
 };
 
 //Language state. The translate button owns it and everything else subscribes,
@@ -147,6 +149,125 @@ const showToast = (function () {
     }, { rootMargin: '-40% 0px -55% 0px' });
 
     sections.forEach(section => sectionObserver.observe(section));
+})();
+
+//Rune mode — hold the photo, or type `freyr` ---------------------------------
+//Freyr is a Norse god as well as my nickname. Holding the photo fills a ring;
+//when it closes, the page turns gold for a while, the headings pass through
+//runes, and runes rise off the photo. Esc, or another hold, ends it early.
+const runeMode = (function () {
+    const root = document.documentElement;
+    const avatar = document.querySelector('.avatar-wrap');
+    const ring = document.querySelector('.freyr-ring');
+    const nick = document.querySelector('.name-nick');
+
+    const HOLD_MS = 1800;
+    const LAST_MS = 20000;
+    //Younger Futhark, as Viking Age Swedish runestones spell the Frey- of names
+    //like fraistain (U 227). A letter-for-letter ᚠᚱᛖᛃᚱ would be a modern spelling.
+    const NAME_RUNES = 'ᚠᚱᛅᛁᛦ';
+    const EMBERS = 'ᚠᛃᛜᚱᛅᛁᛦᛉ';
+    const HEADINGS = '.name-given, .name-family, .section-title, .project-title, .k2c-group, .timeline-col-title';
+
+    let active = false;
+    let frame = null;
+    let endTimer = null;
+    let emberTimer = null;
+    let nickBefore = '';
+
+    const setProgress = p => ring && ring.style.setProperty('--progress', `${p * 360}deg`);
+
+    function spawnEmber() {
+        if (!avatar) return;
+        const ember = document.createElement('span');
+        ember.className = 'freyr-ember';
+        ember.setAttribute('aria-hidden', 'true');
+        ember.textContent = EMBERS[Math.floor(Math.random() * EMBERS.length)];
+        ember.style.left = `${10 + Math.random() * 80}%`;
+        ember.style.setProperty('--drift', `${Math.round((Math.random() - 0.5) * 60)}px`);
+        ember.addEventListener('animationend', () => ember.remove(), { once: true });
+        avatar.appendChild(ember);
+    }
+
+    //Every heading passes through runes and lands back on its own words, so the
+    //page stays readable the whole time; only the nickname stays in runes.
+    function runeSweep(duration) {
+        document.querySelectorAll(HEADINGS).forEach((el, i) => {
+            const text = el.textContent;
+            setTimeout(() => scrambleText(el, text, { duration, pool: CHARS.runes, asText: true }), i * 40);
+        });
+    }
+
+    function begin() {
+        if (active) return false;
+        active = true;
+        root.classList.add('is-freyr');
+        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
+        if (nick) {
+            nickBefore = nick.textContent;
+            scrambleText(nick, `"${NAME_RUNES}"`, { duration: 900, pool: CHARS.runes, asText: true });
+        }
+        runeSweep(1100);
+        if (!reducedMotion.matches) {
+            spawnEmber();
+            emberTimer = setInterval(spawnEmber, 450);
+        }
+        if (typeof window.runGullinbursti === 'function') window.runGullinbursti();
+        //Snorri, Gylfaginning 24 (Brodeur 1916): "he rules over the rain and the
+        //shining of the sun".
+        showToast('ᚠ Freyr rules the rain and the shining of the sun');
+        endTimer = setTimeout(end, LAST_MS);
+        return true;
+    }
+
+    function end() {
+        if (!active) return;
+        active = false;
+        clearTimeout(endTimer);
+        clearInterval(emberTimer);
+        root.classList.remove('is-freyr');
+        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
+        if (nick && nickBefore) scrambleText(nick, nickBefore, { duration: 700, pool: CHARS.runes, asText: true });
+        runeSweep(700);
+        showToast('ᛜ The runes fade');
+    }
+
+    function stopHold() {
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+        setProgress(0);
+    }
+
+    //Pointer events cover mouse, pen and touch alike. A touch that turns into a
+    //scroll fires pointercancel, so scrolling past the photo never triggers it.
+    function startHold(e) {
+        if (e.button > 0) return;
+        stopHold();
+        const t0 = performance.now();
+        const step = now => {
+            const p = Math.min(1, (now - t0) / HOLD_MS);
+            setProgress(p);
+            if (p < 1) {
+                frame = requestAnimationFrame(step);
+                return;
+            }
+            stopHold();
+            if (active) end(); else begin();
+        };
+        frame = requestAnimationFrame(step);
+    }
+
+    if (avatar && ring) {
+        avatar.addEventListener('pointerdown', startHold);
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(type => avatar.addEventListener(type, stopHold));
+        avatar.addEventListener('contextmenu', e => e.preventDefault());
+        avatar.addEventListener('dragstart', e => e.preventDefault());
+    }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && active) end();
+    });
+
+    return { begin, end, get active() { return active; } };
 })();
 
 //EN / TH translate ----------------------------------------------------------
@@ -1317,6 +1438,33 @@ const showToast = (function () {
         { name: 'exit',      args: '',      help: 'close the panel',     run: () => { closeTerminal(); return null; } },
         //Hidden: kept out of help and out of tab-completion, so finding one is
         //still finding something.
+        { name: 'freyr', hidden: true, alias: ['yngvi'],
+          run: () => {
+              //Short lines from public-domain translations: Snorri's Gylfaginning
+              //(Brodeur 1916) and the Poetic Edda (Bellows 1923).
+              //Wrapped to 34 columns: the panel is about 35 characters wide at its
+              //narrowest, and a quote that runs off the edge loses its citation.
+              //Gaps are a no-break space because an empty line collapses.
+              appendBlock([
+                  'ᚠᚱᛅᛁᛦ · Freyr of the Vanir,',
+                  'son of Njörðr.',
+                  ' ',
+                  '"he rules over the rain and the',
+                  ' shining of the sun, and',
+                  ' therewithal the fruit of the',
+                  ' earth"  — Gylfaginning 24',
+                  ' ',
+                  'his boar Gullinbursti lights',
+                  'the dark; his ship Skíðblaðnir',
+                  'folds away into a pouch.',
+                  'he gave his sword for Gerðr,',
+                  'and meets Surtr without it.',
+                  ' ',
+                  '"Of the heroes brave is Freyr',
+                  ' the best"  — Lokasenna 37',
+              ], 'term-line-art');
+              return runeMode.begin() ? 'ᛜ the runes wake.' : 'ᛜ the runes are already awake.';
+          } },
         { name: 'sudo', hidden: true, run: (a) => a.length
             ? `sudo: ${a[0]}: you are not in the sudoers file. this incident has been reported to freyr.`
             : 'permission denied: nice try.' },

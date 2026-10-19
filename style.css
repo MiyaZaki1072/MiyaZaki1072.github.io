@@ -76,9 +76,9 @@
     --text-muted:    #7f8c7f;
 
     /* Type */
-    --font-display: 'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
-    --font-body:    'IBM Plex Sans', 'IBM Plex Sans Thai', system-ui, sans-serif;
-    --font-mono:    'JetBrains Mono', 'IBM Plex Sans Thai', ui-monospace, monospace;
+    --font-display: 'JetBrains Mono', 'IBM Plex Sans Thai', 'Noto Sans Runic', ui-monospace, monospace;
+    --font-body:    'IBM Plex Sans', 'IBM Plex Sans Thai', 'Noto Sans Runic', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', 'IBM Plex Sans Thai', 'Noto Sans Runic', ui-monospace, monospace;
 
     --fs-h2:      clamp(1.85rem, 3.6vw, 3.15rem);
     /* Card headings sit between h2 and lead. */
@@ -400,6 +400,14 @@ body::after {
     position: relative;
     z-index: 1;
 }
+/* The photo is something to hold, not to drag or long-press-save: without these
+   a phone opens its image menu before the ring can fill. */
+.avatar-wrap .myFaceImage {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
 .avatar-ring {
     position: absolute;
     inset: -9px;
@@ -547,6 +555,52 @@ body::after {
     color: var(--green-bright);
     text-decoration-color: var(--green-bright);
 }
+/* Rune mode ----------------------------------------------------------------
+   Hold the photo (or type `freyr`) and the page turns to Freyr's colours for a
+   while. Green becomes gold by overriding the channel tokens on the same
+   element that defines them, so every rule built on --green follows without
+   being listed here. Gold on --bg is 9.7:1, and --on-green ink on a gold fill
+   stays dark, so contrast holds as it does in green. */
+:root.is-freyr {
+    --green-rgb:        234, 179, 8;
+    --green-bright-rgb: 250, 204, 21;
+    --on-green:         #1a1300;
+}
+/* The ring that fills while the photo is held: a conic sweep cut down to a
+   thin band by a radial mask, sitting just outside the static ring. */
+.freyr-ring {
+    position: absolute;
+    inset: -9px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    --progress: 0deg;
+    background: conic-gradient(var(--amber) var(--progress), transparent 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+}
+.is-freyr .myFaceImage {
+    box-shadow: 0 0 0 2px rgba(var(--green-rgb), 0.5), 0 0 48px rgba(var(--green-rgb), 0.35);
+    transition: box-shadow 0.6s ease;
+}
+/* Runes rising off the photo like embers. Spawned and removed by index.js. */
+.freyr-ember {
+    position: absolute;
+    bottom: 10%;
+    z-index: 3;
+    pointer-events: none;
+    font-family: 'Noto Sans Runic', var(--font-mono);
+    font-size: 1.25rem;
+    color: var(--green-bright);
+    text-shadow: 0 0 10px rgba(var(--green-bright-rgb), 0.7);
+    animation: freyrEmber 3.2s ease-out forwards;
+}
+@keyframes freyrEmber {
+    0%   { opacity: 0; transform: translate(0, 0) scale(0.8); }
+    15%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--drift, 0px), -170px) scale(1.15); }
+}
+
 /* Plain words, in the case they are written in. These used to read as ./email,
    lowercased behind a CSS prefix, which made a recruiter decode a joke to find
    the way to reach me. */
