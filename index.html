@@ -89,17 +89,19 @@
                      indentation rather than collapsing them the way rendering does.
                      Breaking these spans across lines puts raw whitespace in the name. -->
                 <h1 class="name-txt"><span class="name-given">Thitiwut</span> <span class="name-family">Sreewasut</span> <span class="name-nick">"Freyr"</span></h1>
-                <p class="status-txt">Computer Engineering @ Chulalongkorn<br>2× TOI Bronze · NSC2024 Finalist</p>
+                <p class="status-txt">Computer Engineering @&nbsp;Chulalongkorn&nbsp;University<br>2× TOI Bronze · NSC2024 Finalist</p>
                 <!-- The résumé rides with the availability line, not the contact
                      row: it is a document about the internship ask, not a way to
-                     reach me. No href until resume.pdf exists: RESUME_READY in
-                     index.js adds it, so it can never lead to a 404. -->
+                     reach me. Hidden, with no href, until resume.pdf exists:
+                     RESUME_READY in index.js shows it and adds the link, so a
+                     visitor never sees a disabled control or a 404. -->
                 <div class="availability-row">
                     <p class="availability-txt">Open to internships · Summer 2027</p>
-                    <a class="resume-link" id="resumeLink" aria-disabled="true">Résumé · coming soon</a>
+                    <a class="resume-link" id="resumeLink" aria-disabled="true" hidden>Résumé · coming soon</a>
                 </div>
-                <!-- Two rows: the three a recruiter needs, then the two that are
-                     only for people who already know where to look. -->
+                <!-- The three a recruiter needs as buttons, then the two that are
+                     only for people who already know where to look as a quiet
+                     line of links. -->
                 <div class="contact-row">
                     <a class="contact-btn contact-btn--primary" id="emailBtn" href="mailto:titiwutfay2550@gmail.com" data-email="titiwutfay2550@gmail.com">Email</a>
                     <a class="contact-btn contact-btn--primary" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -107,6 +109,7 @@
                 </div>
                 <div class="contact-row contact-row--secondary">
                     <a class="contact-btn" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer">Codeforces</a>
+                    <span class="contact-sep" aria-hidden="true">·</span>
                     <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
                 <div class="skills-block">
@@ -117,7 +120,6 @@
                             <button type="button" class="skill-tag" data-tech="C++">C++</button>
                             <button type="button" class="skill-tag" data-tech="C#">C#</button>
                             <button type="button" class="skill-tag" data-tech="JavaScript">JavaScript</button>
-                            <button type="button" class="skill-tag" data-tech="Python">Python</button>
                             <button type="button" class="skill-tag" data-tech="TypeScript">TypeScript</button>
                         </div>
                     </div>
@@ -144,15 +146,15 @@
                     <p class="timeline-year">2025 · 2026</p>
                     <p class="project-title">2× TOI Bronze</p>
                     <p class="project-sub">Thailand Olympiad in Informatics</p>
-                    <p class="timeline-award">Bronze medal at TOI21 and TOI22</p>
+                    <p class="timeline-award">National final · ~90 students · bronze at TOI21 and TOI22</p>
                 </div>
             </div>
             <div class="project-card highlight-card" data-label="~/highlights/nsc">
                 <div class="project-info">
                     <p class="timeline-year">2024</p>
                     <p class="project-title">NSC2024 Finalist</p>
-                    <p class="project-sub">National Software Contest · Mesosuem</p>
-                    <p class="timeline-award">One of 203 finalists from 1,032 projects</p>
+                    <p class="project-sub">National Software Contest</p>
+                    <p class="timeline-award">Mesosuem · 3D museum-building game in Unity</p>
                 </div>
             </div>
             <div class="project-card highlight-card" data-label="~/highlights/kit2code">
@@ -189,8 +191,8 @@
                 </a>
                 <div class="project-info">
                     <p class="project-title">TaskMaker</p>
-                    <p class="project-sub">Problem Studio for RYWCC</p>
-                    <p class="project-sub">Write olympiad problems in YAML, preview live, export print-ready PDFs</p>
+                    <p class="project-sub">Problem studio for Kit2Code contests</p>
+                    <p class="project-sub">Authors write olympiad problems in YAML, validated against a schema. The live preview and the PDF export share one template, so what you see is exactly what prints, with Thai typography and KaTeX math built in.</p>
                     <!-- TODO(owner): result line, e.g.
                          <p class="timeline-award">N problems written with it</p> -->
                     <div class="skill-container">
@@ -213,9 +215,8 @@
                 <div class="project-info">
                     <p class="project-title">CMS Admin Helper</p>
                     <p class="project-sub">Chrome &amp; Firefox Extension</p>
-                    <p class="project-sub">Contest-day tools for the CMS admin site: contestant tracker, bulk import, Bangkok time</p>
-                    <!-- TODO(owner): result line, e.g.
-                         <p class="timeline-award">Used to run N contests</p> -->
+                    <p class="project-sub">Adds the contest-day tools the CMS v1.5 admin is missing: a contestant tracker, bulk import from Excel or Google Sheets, and Bangkok-time scheduling. It drives the admin's own forms, so the server needs no changes.</p>
+                    <p class="timeline-award">Load-tested on AWS: 2,000 submissions + a 300-user import, median 171&nbsp;ms, p95 under 650&nbsp;ms</p>
                     <div class="skill-container">
                         <span class="skill-tag">TypeScript</span>
                         <span class="skill-tag">Browser Extension</span>
@@ -521,33 +522,6 @@
         <span>&gt; echo "thanks for stopping by" <span class="cursor">_</span></span>
         <span class="footer-copy"># freyr &copy; 2026</span>
     </footer>
-    <!-- Scroll position, in the one unit a terminal states it in. Decorative:
-         assistive tech already reports scroll position, so this is hidden from
-         it rather than repeating the same fact in a second voice. -->
-    <div class="scroll-readout" id="scrollReadout" aria-hidden="true">0</div>
-    <!-- The lit half of the scrollbar, and the one block of CSS in this project
-         that cannot live in style.css. Chromium refuses to match a class on the
-         originating element for the viewport scrollbar, and resolves var() in a
-         scrollbar pseudo-element one restyle late, so neither of the usual ways
-         to say "now it is green" reaches this thumb. Flipping a stylesheet's
-         media attribute does, which needs a sheet of its own to flip. index.js
-         switches it to `all` while you are scrolling; style.css owns the
-         resting grey and everything else about the rail. -->
-    <style id="railLive" media="not all">
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--green);
-            /* The two lit caps on the block's ends, painted into the background
-               because a scrollbar pseudo-element carries no children. */
-            background-image: linear-gradient(
-                to bottom,
-                var(--green-bright) 0 2px,
-                transparent 2px calc(100% - 2px),
-                var(--green-bright) calc(100% - 2px) 100%);
-        }
-        @media (prefers-contrast: more) {
-            ::-webkit-scrollbar-thumb { background-image: none; }
-        }
-    </style>
     <!-- GSAP, vendored rather than pulled from a CDN. The two properties this
          project is built on are "no build step" and "opens from a file:// copy",
          and a CDN keeps the first while quietly giving up the second. Pinned at
