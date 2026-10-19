@@ -153,27 +153,46 @@ const showToast = (function () {
 
 //Rune mode — hold the photo, or type `freyr` ---------------------------------
 //Freyr is a Norse god as well as my nickname. Holding the photo fills a ring;
-//when it closes, the page turns gold for a while, the headings pass through
-//runes, and runes rise off the photo. Esc, or another hold, ends it early.
+//when it closes, every word on the page turns to runes for ten seconds, the
+//page goes gold, and runes rise off the photo. Esc, or another hold, ends it.
 const runeMode = (function () {
     const root = document.documentElement;
     const avatar = document.querySelector('.avatar-wrap');
     const ring = document.querySelector('.freyr-ring');
-    const nick = document.querySelector('.name-nick');
 
     const HOLD_MS = 1800;
-    const LAST_MS = 20000;
+    const LAST_MS = 10000;
+    const SWEEP_MS = 900;
     //Younger Futhark, as Viking Age Swedish runestones spell the Frey- of names
     //like fraistain (U 227). A letter-for-letter ᚠᚱᛖᛃᚱ would be a modern spelling.
     const NAME_RUNES = 'ᚠᚱᛅᛁᛦ';
+    //The Th of Thitiwut is a Thai aspirated t, not the English sound ᚦ stands
+    //for, so the given name skips the digraph rule below.
+    const GIVEN_RUNES = 'ᛏᛁᛏᛁᚹᚢᛏ';
     const EMBERS = 'ᚠᛃᛜᚱᛅᛁᛦᛉ';
-    const HEADINGS = '.name-given, .name-family, .section-title, .project-title, .k2c-group, .timeline-col-title';
+    //Latin letters to Elder Futhark by the usual modern convention (th → ᚦ,
+    //ng → ᛜ). A gimmick, not a historical spelling: only the nickname keeps
+    //the runestone form above.
+    const LATIN_RUNES = {
+        a: 'ᚨ', b: 'ᛒ', c: 'ᚲ', d: 'ᛞ', e: 'ᛖ', f: 'ᚠ', g: 'ᚷ', h: 'ᚺ', i: 'ᛁ',
+        j: 'ᛃ', k: 'ᚲ', l: 'ᛚ', m: 'ᛗ', n: 'ᚾ', o: 'ᛟ', p: 'ᛈ', q: 'ᚲ', r: 'ᚱ',
+        s: 'ᛊ', t: 'ᛏ', u: 'ᚢ', v: 'ᚹ', w: 'ᚹ', x: 'ᚲᛊ', y: 'ᛃ', z: 'ᛉ',
+    };
+    const toRunes = text => text
+        .replace(/th/gi, 'ᚦ')
+        .replace(/ng/gi, 'ᛜ')
+        .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
+    //The terminal stays readable (it is how keyboard visitors get here), and
+    //the toasts are what explain the joke.
+    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti';
 
     let active = false;
     let frame = null;
     let endTimer = null;
     let emberTimer = null;
-    let nickBefore = '';
+    let swapped = [];
+    let sweepFrame = null;
+    let titleBefore = '';
 
     const setProgress = p => ring && ring.style.setProperty('--progress', `${p * 360}deg`);
 
@@ -189,13 +208,63 @@ const runeMode = (function () {
         avatar.appendChild(ember);
     }
 
-    //Every heading passes through runes and lands back on its own words, so the
-    //page stays readable the whole time; only the nickname stays in runes.
-    function runeSweep(duration) {
-        document.querySelectorAll(HEADINGS).forEach((el, i) => {
-            const text = el.textContent;
-            setTimeout(() => scrambleText(el, text, { duration, pool: CHARS.runes, asText: true }), i * 40);
+    //Every visible text node, with what it says now and what it says in runes.
+    function collect() {
+        const items = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+            acceptNode: n => (!n.nodeValue.trim() || n.parentElement.closest(SKIP))
+                ? NodeFilter.FILTER_REJECT
+                : NodeFilter.FILTER_ACCEPT,
         });
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            const from = n.nodeValue;
+            const parent = n.parentElement;
+            const to = parent.closest('.name-nick') ? `"${NAME_RUNES}"`
+                : parent.closest('.name-given') && from === 'Thitiwut' ? GIVEN_RUNES
+                : toRunes(from);
+            if (to !== from) items.push({ node: n, from, to, last: from });
+        }
+        return items;
+    }
+
+    //One wave down the page in document order: each node turns over letter by
+    //letter, with a single flickering rune at the seam. Only nodes still holding
+    //what this wrote are touched, so text something else rewrote in the
+    //meantime is left alone rather than reverted.
+    function sweep(items, forward, done) {
+        if (sweepFrame !== null) cancelAnimationFrame(sweepFrame);
+        sweepFrame = null;
+        const live = items.filter(it => it.node.isConnected && it.node.nodeValue === it.last);
+        const write = (it, q) => {
+            const want = Array.from(forward ? it.to : it.from);
+            const have = Array.from(forward ? it.from : it.to);
+            const k = Math.round(q * Math.max(want.length, have.length));
+            let text = want.slice(0, k).join('') + have.slice(k).join('');
+            if (q > 0 && q < 1) {
+                const r = CHARS.runes[Math.floor(Math.random() * CHARS.runes.length)];
+                text = want.slice(0, k).join('') + r + have.slice(k + 1).join('');
+            }
+            if (it.node.nodeValue !== text) it.node.nodeValue = text;
+            it.last = text;
+        };
+        if (reducedMotion.matches) {
+            live.forEach(it => write(it, 1));
+            if (done) done();
+            return;
+        }
+        const t0 = performance.now();
+        const n = live.length || 1;
+        const step = now => {
+            const p = Math.min(1, (now - t0) / SWEEP_MS);
+            live.forEach((it, i) => write(it, Math.min(1, Math.max(0, (p - (i / n) * 0.5) / 0.5))));
+            if (p < 1) {
+                sweepFrame = requestAnimationFrame(step);
+                return;
+            }
+            sweepFrame = null;
+            if (done) done();
+        };
+        sweepFrame = requestAnimationFrame(step);
     }
 
     function begin() {
@@ -203,11 +272,10 @@ const runeMode = (function () {
         active = true;
         root.classList.add('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
-        if (nick) {
-            nickBefore = nick.textContent;
-            scrambleText(nick, `"${NAME_RUNES}"`, { duration: 900, pool: CHARS.runes, asText: true });
-        }
-        runeSweep(1100);
+        swapped = collect();
+        sweep(swapped, true);
+        titleBefore = document.title;
+        document.title = toRunes(titleBefore);
         if (!reducedMotion.matches) {
             spawnEmber();
             emberTimer = setInterval(spawnEmber, 450);
@@ -227,8 +295,8 @@ const runeMode = (function () {
         clearInterval(emberTimer);
         root.classList.remove('is-freyr');
         if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
-        if (nick && nickBefore) scrambleText(nick, nickBefore, { duration: 700, pool: CHARS.runes, asText: true });
-        runeSweep(700);
+        sweep(swapped, false, () => { swapped = []; });
+        if (titleBefore) document.title = titleBefore;
         showToast('ᛜ The runes fade');
     }
 

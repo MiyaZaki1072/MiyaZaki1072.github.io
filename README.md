@@ -212,9 +212,11 @@ Losing at `21` costs you an internship, per the house rules.
 ## Rune mode
 
 Freyr is a Norse god as well as my nickname. Hold the photo in the hero for a couple of
-seconds and find out. Every line it shows is quoted from public-domain translations
-(Brodeur 1916, Bellows 1923), and the runes follow the Viking Age spellings rather than
-a letter-for-letter swap. The terminal has a way in too, for anyone who cannot hold.
+seconds and find out. It lasts ten seconds. The page's letters go to runes by the usual
+modern Latin-to-Futhark convention, which is a gimmick, not a historical spelling; the
+nickname alone keeps the Viking Age runestone form. Every lore line is quoted from
+public-domain translations (Brodeur 1916, Bellows 1923). The terminal has a way in
+too, for anyone who cannot hold.
 
 ## The cat
 
