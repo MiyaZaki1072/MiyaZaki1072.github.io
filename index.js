@@ -270,6 +270,20 @@ const runeMode = (function () {
     return { begin, end, get active() { return active; } };
 })();
 
+//Gullinbursti — Freyr's golden boar runs past once each rune mode ------------
+//A pass is decoration only, so it is skipped when motion is reduced, and the
+//element removes itself when the run ends.
+window.runGullinbursti = function () {
+    if (reducedMotion.matches || document.querySelector('.gullinbursti')) return;
+    const boar = document.createElement('div');
+    boar.className = 'gullinbursti';
+    boar.setAttribute('aria-hidden', 'true');
+    boar.addEventListener('animationend', e => {
+        if (e.animationName === 'gullinRun') boar.remove();
+    });
+    document.body.appendChild(boar);
+};
+
 //EN / TH translate ----------------------------------------------------------
 (function () {
     const translateBtn = document.getElementById('translateBtn');

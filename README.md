@@ -187,7 +187,7 @@ Click the `>_` button in the bottom-right corner. Tab completes, `↑`/`↓` wal
 | `cowsay <text>` | the cat says it for you |
 | `clear` / `exit` | clear the screen / close the panel |
 
-There is one more that `help` will not tell you about.
+There are a few more that `help` will not tell you about.
 
 **Adding a command is one row.** `COMMANDS` in `index.js` is a table of
 `{ name, args, help, run }`, and `help`, tab-completion, and the did-you-mean suggestion all
@@ -208,6 +208,13 @@ All three. That is the feature, not a bug, and two of them own up to it when the
 Losing at `21` costs you an internship, per the house rules.
 
 ---
+
+## Rune mode
+
+Freyr is a Norse god as well as my nickname. Hold the photo in the hero for a couple of
+seconds and find out. Every line it shows is quoted from public-domain translations
+(Brodeur 1916, Bellows 1923), and the runes follow the Viking Age spellings rather than
+a letter-for-letter swap. The terminal has a way in too, for anyone who cannot hold.
 
 ## The cat
 

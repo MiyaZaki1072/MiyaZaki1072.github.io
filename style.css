@@ -601,6 +601,33 @@ body::after {
     100% { opacity: 0; transform: translate(var(--drift, 0px), -170px) scale(1.15); }
 }
 
+/* Gullinbursti, Freyr's boar, "whose bristles light the dark": one pass along
+   the bottom of the screen per rune mode. The sprite is two 130x65 frames side
+   by side; steps(2) flips between them for the trot while the element itself
+   only ever moves on transform. Above the phone nav when there is one. */
+.gullinbursti {
+    position: fixed;
+    left: 0;
+    bottom: calc(18px + var(--nav-h, 0px));
+    z-index: 150;
+    width: 130px;
+    height: 65px;
+    pointer-events: none;
+    background: url('images/gullinbursti.png') 0 0 / 260px 65px no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 10px rgba(255, 214, 90, 0.75)) drop-shadow(0 0 28px rgba(255, 176, 0, 0.35));
+    animation:
+        gullinTrot 0.32s steps(2) infinite,
+        gullinRun 6.5s linear forwards;
+}
+@keyframes gullinTrot {
+    to { background-position: -260px 0; }
+}
+@keyframes gullinRun {
+    from { transform: translateX(-140px); }
+    to   { transform: translateX(calc(100vw + 20px)); }
+}
+
 /* Plain words, in the case they are written in. These used to read as ./email,
    lowercased behind a CSS prefix, which made a recruiter decode a joke to find
    the way to reach me. */
