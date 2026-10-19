@@ -168,7 +168,7 @@ Click the `>_` button in the bottom-right corner. Tab completes, `↑`/`↓` wal
 | `game` | pick one of three games |
 | `goto <section>` | scrolls the page to `about`, `projects`, `background`, or `top` |
 | `lang [en\|th]` | flips the page language, scramble animation and all |
-| `open <link>` | opens `github`, `linkedin`, `codeforces`, `discord`, or an `email` draft |
+| `open <link>` | opens `github`, `linkedin`, `codeforces`, `instagram`, `facebook`, `line`, `discord`, or an `email` draft |
 | `blackhole` | toggles the backdrop |
 | `matrix` | four seconds of rain |
 | `neofetch` | system info, such as it is |

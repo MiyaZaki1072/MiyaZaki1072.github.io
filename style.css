@@ -520,10 +520,12 @@ body::after {
     margin-top: var(--sp-2);
     flex-wrap: wrap;
 }
+/* Spaced by gap, not by "·" separators: the underlines already part the links,
+   and a separator left hanging at the end of a wrapped line read as a typo. */
 .contact-row--secondary {
     margin-top: 0;
     align-items: center;
-    gap: var(--sp-2);
+    gap: var(--sp-2) var(--sp-5);
 }
 /* Links, not buttons: only the filled row above should read as something to
    press. Specific enough to beat the phone-size .contact-btn padding too. */
@@ -542,9 +544,6 @@ body::after {
     background: none;
     color: var(--green-bright);
     text-decoration-color: var(--green-bright);
-}
-.contact-sep {
-    color: var(--text-muted);
 }
 /* Plain words, in the case they are written in. These used to read as ./email,
    lowercased behind a CSS prefix, which made a recruiter decode a joke to find
@@ -2249,6 +2248,14 @@ body::after {
 /* Up to 420 rather than 400: at --fs-small the four links need ~350px, and the
    docked terminal button starts at 100vw - 56px, so 401-406px would overlap. */
 @media (max-width: 420px) {
+    /* Four links fit one line at a phone's width only a step smaller. */
+    .contact-row--secondary {
+        column-gap: var(--sp-4);
+    }
+    .contact-row--secondary .contact-btn {
+        font-size: var(--fs-micro);
+        letter-spacing: 0;
+    }
     .nav-link {
         font-size: var(--fs-micro);
         padding: var(--sp-2) 6px;

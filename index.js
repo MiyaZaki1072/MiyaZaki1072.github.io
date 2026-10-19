@@ -538,11 +538,17 @@ const showToast = (function () {
         const github = document.getElementById('githubLink')?.getAttribute('href') || 'n/a';
         const linkedin = document.getElementById('linkedinLink')?.getAttribute('href') || 'n/a';
         const codeforces = document.getElementById('codeforcesLink')?.getAttribute('href') || 'n/a';
+        const instagram = document.getElementById('instagramLink')?.getAttribute('href') || 'n/a';
+        const facebook = document.getElementById('facebookLink')?.getAttribute('href') || 'n/a';
+        const line = document.getElementById('lineLink')?.getAttribute('href') || 'n/a';
         return [
             `email:      ${email}`,
             `github:     ${github}`,
             `linkedin:   ${linkedin}`,
             `codeforces: ${codeforces}`,
+            `instagram:  ${instagram}`,
+            `facebook:   ${facebook}`,
+            `line:       ${line}`,
             `discord:    ${discord}`,
         ];
     }
@@ -1022,9 +1028,12 @@ const showToast = (function () {
             window.open(DISCORD_URL, '_blank', 'noopener,noreferrer');
             return 'opening discord...';
         }
-        const ids = { github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink' };
+        const ids = {
+            github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink',
+            instagram: 'instagramLink', facebook: 'facebookLink', line: 'lineLink',
+        };
         const href = ids[target] ? document.getElementById(ids[target])?.getAttribute('href') : null;
-        if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open discord' or 'open email'.";
+        if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open instagram', 'open facebook', 'open line', 'open discord' or 'open email'.";
         window.open(href, '_blank', 'noopener,noreferrer');
         return `opening ${target}...`;
     }
