@@ -302,6 +302,7 @@ body::after {
    straddles the top rule survives neither. */
 .about-inner,
 .section-header,
+.filter-bar,
 .contrib-block,
 .project-card,
 .k2c-panel,
@@ -311,6 +312,7 @@ body::after {
 }
 /* Half in, half out, painting --bg across the line so the rule is genuinely
    broken rather than merely covered. */
+.filter-bar .filter-label,
 .contrib-block .contrib-title {
     position: absolute;
     top: 0;
@@ -779,7 +781,66 @@ body::after {
     margin-top: var(--sp-1);
 }
 
+/* Project filter ----------------------------------------------------------- */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-6);
+    padding: var(--sp-4) var(--sp-5);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+}
+.filter-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+.filter-clear {
+    font-family: var(--font-mono);
+    font-size: var(--fs-micro);
+    color: var(--text-sec);
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    padding: var(--sp-1) var(--sp-2);
+    border-radius: var(--r-sm);
+    transition: color 0.2s;
+}
+.filter-clear:hover {
+    color: var(--green);
+}
+/* Same glass as the bar above it, hugging the one line of text it holds. */
+.filter-empty {
+    width: max-content;
+    max-width: 100%;
+    font-size: var(--fs-small);
+    /* --text-sec, not --text-muted: on --glass muted falls to 4.22:1 over the
+       brightest glyphs, under AA. */
+    color: var(--text-sec);
+    margin-bottom: var(--sp-6);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+}
+
 /* Project cards ------------------------------------------------------------ */
+.project-card.is-hidden {
+    display: none;
+}
 /* The grid's own entrance moved to motion.js, where it is a staggered batch.
    It is written from JS rather than from here for the same reason it used to
    strip its classes on animationend: the tag filter hides these cards, and a
@@ -904,8 +965,8 @@ body::after {
     margin-top: var(--sp-3);
 }
 
-/* Skill tags — static spans everywhere. Two levels of specificity only; do
-   not add a third. */
+/* Skill tags — a static span in cards, a button in the filter bar and hero.
+   Two levels of specificity only; do not add a third. */
 .skill-tag {
     font-family: var(--font-mono);
     font-size: var(--fs-small);
@@ -917,15 +978,64 @@ body::after {
     border-radius: var(--r-sm);
     padding: var(--sp-1) var(--sp-3);
 }
-/* In the hero the tags are a list of skills, so they drop the fill and most of
-   the border: they must not read as the same kind of thing as the contact
-   buttons above them. */
-.skills-block .skill-tag {
+button.skill-tag {
+    position: relative;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+}
+button.skill-tag:hover {
+    border-color: var(--green);
+    background: rgba(var(--green-rgb), 0.2);
+    transform: translateY(-1px);
+}
+button.skill-tag.is-active {
+    background: var(--green);
+    color: var(--bg);
+    border-color: var(--green);
+}
+/* In the hero the tags are a list of skills first and a filter second, so they
+   drop the fill and most of the border: they must not read as the same kind of
+   thing as the contact buttons above them. Hover brings the full chip back so
+   the filter is still discoverable. */
+.skills-block button.skill-tag {
     font-size: var(--fs-micro);
     color: var(--text-sec);
     background: transparent;
     border-color: var(--border);
     padding: 2px var(--sp-2);
+}
+.skills-block button.skill-tag:hover,
+.skills-block button.skill-tag:focus-visible {
+    color: var(--green-bright);
+    border-color: var(--green);
+    background: var(--green-dim);
+}
+/* Tooltip copy is set from the i18n dictionary via data-tooltip. */
+button.skill-tag[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: var(--surface-2);
+    color: var(--green-bright);
+    border: 1px solid var(--green);
+    border-radius: var(--r-sm);
+    padding: var(--sp-1) var(--sp-3);
+    font-size: var(--fs-micro);
+    font-family: var(--font-mono);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+}
+button.skill-tag[data-tooltip]:hover::after,
+button.skill-tag[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 .ripple {
@@ -1935,6 +2045,12 @@ body::after {
     .footer {
         padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + var(--nav-h));
     }
+    /* Hover tooltips never show on touch, but a hidden one centred on the
+       last tag in a row still stuck out past the screen edge and made the
+       whole page scroll sideways. */
+    button.skill-tag[data-tooltip]::after {
+        display: none;
+    }
 }
 
 @media (max-width: 440px) {
@@ -2022,6 +2138,8 @@ body::after {
    its own. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .section-header,
+    .filter-bar,
+    .filter-empty,
     .footer {
         background: rgba(var(--bg-rgb), 0.92);
     }
@@ -2248,9 +2366,12 @@ body::after {
 /* Up to 420 rather than 400: at --fs-small the four links need ~350px, and the
    docked terminal button starts at 100vw - 56px, so 401-406px would overlap. */
 @media (max-width: 420px) {
-    /* Four links fit one line at a phone's width only a step smaller. */
+    /* Five links never fit one line at a phone's width. Capping the row makes
+       the wrap fall three and two, instead of four and one left alone. */
     .contact-row--secondary {
         column-gap: var(--sp-4);
+        max-width: 17rem;
+        margin-inline: auto;
     }
     .contact-row--secondary .contact-btn {
         font-size: var(--fs-micro);
@@ -2398,6 +2519,16 @@ body::after {
    stretch; with the spotlight on, the rest of the border stays dim. */
 .project-card.is-lit {
     border-color: var(--green-line);
+}
+/* Tag preview: the projects built with the tag under the pointer light up, and
+   the rest dim. Dimmed with filter rather than opacity because the filter
+   animation already owns the cards' opacity. */
+.project-card.is-linked {
+    border-color: var(--green);
+    box-shadow: 0 0 0 1px var(--green-line), 0 0 28px rgba(var(--green-rgb), 0.18);
+}
+.project-grid.is-previewing .project-card:not(.is-linked) {
+    filter: brightness(0.5) saturate(0.4);
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so

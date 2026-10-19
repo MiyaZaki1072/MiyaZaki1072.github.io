@@ -115,7 +115,7 @@
         });
         const settle = targets => gsap.set(targets, { clearProps: 'all' });
 
-        ScrollTrigger.batch(cards, {
+        const triggers = ScrollTrigger.batch(cards, {
             start: 'top 92%',
             once: true,
             onEnter: group => gsap.to(group, {
@@ -124,7 +124,24 @@
                 onComplete: () => settle(group),
             }),
         });
+
+        //The tag filter hides and shows these cards with a class, and the filter
+        //bar sits above the grid: a card can be filtered out while it is still
+        //below the fold, never having crossed its trigger line. It would come
+        //back holding the start state with nothing left to play it. So the first
+        //touch of the filter ends the reveal outright — triggers off, inline
+        //state gone — for the same reason the old CSS version stripped its
+        //classes on animationend.
+        const bar = document.querySelector('.filter-bar');
+        if (!bar) return;
+        const drop = () => {
+            triggers.forEach(trigger => trigger.kill());
+            settle(cards);
+        };
+        bar.addEventListener('click', drop, { once: true });
+        cleanups.push(() => bar.removeEventListener('click', drop));
     }
+
 
     //The spine of each timeline draws downward as you scroll past it and each
     //dot pops as the line reaches it, so the track reads as being walked rather

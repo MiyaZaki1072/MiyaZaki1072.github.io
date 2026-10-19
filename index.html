@@ -99,7 +99,7 @@
                 </div>
                 <!-- The three a recruiter needs as buttons, then a quiet line of
                      links for people who already know me: Codeforces, then the
-                     social accounts. Discord lives in the terminal's `contact`. -->
+                     social accounts. -->
                 <div class="contact-row">
                     <a class="contact-btn contact-btn--primary" id="emailBtn" href="mailto:titiwutfay2550@gmail.com" data-email="titiwutfay2550@gmail.com">Email</a>
                     <a class="contact-btn contact-btn--primary" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -110,25 +110,26 @@
                     <a class="contact-btn" id="instagramLink" href="https://www.instagram.com/frey_thitiwutsree/" target="_blank" rel="noopener noreferrer">Instagram</a>
                     <a class="contact-btn" id="facebookLink" href="https://www.facebook.com/miya.zaki.3785/" target="_blank" rel="noopener noreferrer">Facebook</a>
                     <a class="contact-btn" id="lineLink" href="https://line.me/ti/p/~freyrythefake" target="_blank" rel="noopener noreferrer">LINE</a>
+                    <a class="contact-btn" id="discordLink" href="https://discord.com/users/464781419907121152" data-handle="miyazaki1072" title="miyazaki1072 on Discord" target="_blank" rel="noopener noreferrer">Discord</a>
                 </div>
                 <div class="skills-block">
                     <div class="skill-group">
                         <span class="skill-group-label">languages</span>
                         <div class="skill-grid">
-                            <span class="skill-tag">C</span>
-                            <span class="skill-tag">C++</span>
-                            <span class="skill-tag">C#</span>
-                            <span class="skill-tag">JavaScript</span>
-                            <span class="skill-tag">TypeScript</span>
+                            <button type="button" class="skill-tag" data-tech="C">C</button>
+                            <button type="button" class="skill-tag" data-tech="C++">C++</button>
+                            <button type="button" class="skill-tag" data-tech="C#">C#</button>
+                            <button type="button" class="skill-tag" data-tech="JavaScript">JavaScript</button>
+                            <button type="button" class="skill-tag" data-tech="TypeScript">TypeScript</button>
                         </div>
                     </div>
                     <div class="skill-group">
                         <span class="skill-group-label">tools &amp; frameworks</span>
                         <div class="skill-grid">
-                            <span class="skill-tag">Unity Engine</span>
-                            <span class="skill-tag">Node.js</span>
-                            <span class="skill-tag">Docker</span>
-                            <span class="skill-tag">PostgreSQL</span>
+                            <button type="button" class="skill-tag" data-tech="Unity Engine">Unity Engine</button>
+                            <button type="button" class="skill-tag" data-tech="Node.js">Node.js</button>
+                            <button type="button" class="skill-tag" data-tech="Docker">Docker</button>
+                            <button type="button" class="skill-tag" data-tech="PostgreSQL">PostgreSQL</button>
                         </div>
                     </div>
                 </div>
@@ -170,6 +171,12 @@
         <div class="section-header">
             <h2 class="section-title">Projects</h2>
         </div>
+        <div class="filter-bar">
+            <span class="filter-label">Filter by tag</span>
+            <div class="filter-tags" id="filterTags"></div>
+            <button type="button" class="filter-clear" id="filterClear" hidden>Clear filter</button>
+        </div>
+        <p class="filter-empty" id="filterEmpty" hidden>No projects match every selected tag.</p>
         <div class="project-grid">
             <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL">
                 <a href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer" class="project-img-link">

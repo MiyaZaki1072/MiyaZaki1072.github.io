@@ -1,13 +1,14 @@
 //Spring layer -----------------------------------------------------------------
 //
 //Motion (motion.dev) owns the moves that answer the pointer: the card
-//spotlight and the stats counting up. GSAP in motion.js
+//spotlight, the filter reshuffle, the tag preview, and the stats counting up. GSAP in motion.js
 //keeps the scroll entrances. The two never write the same card at once: every
 //move here stands aside while GSAP still holds a card.
 //
 //Vendored under vendor/ for the same reason GSAP is: no build step, and the page
 //still runs from a file:// copy with the network off. If vendor/motion.min.js is
-//missing this returns on its first line and the cards simply sit still.
+//missing this returns on its first line, window.animateProjectFilter is never
+//defined, and index.js toggles the cards the way it always did.
 
 (function () {
     const { Motion } = window;
@@ -77,6 +78,8 @@
     //The light follows on a spring rather than sitting under the cursor, which
     //is what makes it read as light and not as a second cursor. The card itself
     //stays flat. Mouse only: on touch a "hover" is the start of a tap.
+    let flipping = false;
+
     function cardSpotlight() {
         rigs.forEach((v, card) => {
             const layers = ['card-glare', 'card-edge'].map(name => {
@@ -98,7 +101,7 @@
 
             card.addEventListener('pointermove', e => {
                 if (e.pointerType !== 'mouse' || calm() || !finePointer.matches) return;
-                if (gsapOwns(card)) return;
+                if (flipping || gsapOwns(card)) return;
                 const rect = card.getBoundingClientRect();
                 const px = ((e.clientX - rect.left) / rect.width) * 100;
                 const py = ((e.clientY - rect.top) / rect.height) * 100;
@@ -119,6 +122,145 @@
                 card.classList.remove('is-lit');
                 animate(v.lift, 0, settleSpring);
             });
+        });
+    }
+
+    //--- filter ----------------------------------------------------------------
+
+    //index.js decides which cards match and hands over commit(), the class
+    //change that makes it so. This wraps that change in a FLIP: the leaving
+    //cards shrink out first, then the grid reflows and every card that stayed
+    //springs from where it was to where it now sits, then the arrivals fade in.
+    //
+    //A new filter mid-move does not queue behind the old one. settle() jumps
+    //the move in flight to its end state, and the new one starts from there, so
+    //no card can be stranded half-faded however fast the tags are clicked.
+    let settleFlip = null;
+
+    window.animateProjectFilter = async (next, commit) => {
+        if (settleFlip) settleFlip();
+
+        const shown = card => !card.classList.contains('is-hidden');
+        const leaving = cards.filter(card => shown(card) && !next.get(card));
+        const entering = cards.filter(card => !shown(card) && next.get(card));
+        //A hero tag can filter the grid before its entrance ever ran. Those
+        //cards are below the fold anyway, so they just snap.
+        if (calm() || (!leaving.length && !entering.length) || cards.some(gsapOwns)) {
+            commit();
+            return;
+        }
+
+        const live = [];
+        const run = (value, target, options) => {
+            const controls = animate(value, target, options);
+            live.push(controls);
+            return controls.finished;
+        };
+        const settle = () => {
+            live.forEach(controls => controls.stop());
+            commit();
+            rigs.forEach(v => {
+                v.x.jump(0); v.y.jump(0); v.s.jump(1); v.o.jump(1);
+            });
+            flipping = false;
+            settleFlip = null;
+        };
+        settleFlip = settle;
+        flipping = true;
+
+        //The spotlight stands down for the move: a card lifted under the
+        //pointer while it slides reads as the slide going wrong.
+        rigs.forEach((v, card) => {
+            card.classList.remove('is-lit');
+            v.lift.jump(0);
+        });
+
+        await Promise.all(leaving.flatMap(card => {
+            const v = rigs.get(card);
+            return [run(v.o, 0, exitTween), run(v.s, 0.92, exitTween)];
+        }));
+        if (settleFlip !== settle) return;
+
+        const first = new Map(cards
+            .filter(card => shown(card) && next.get(card))
+            .map(card => [card, card.getBoundingClientRect()]));
+        commit();
+        leaving.forEach(card => {
+            const v = rigs.get(card);
+            v.o.jump(1); v.s.jump(1);
+        });
+
+        const moves = [];
+        first.forEach((before, card) => {
+            const after = card.getBoundingClientRect();
+            const dx = before.left - after.left;
+            const dy = before.top - after.top;
+            if (!dx && !dy) return;
+            const v = rigs.get(card);
+            v.x.jump(dx); v.y.jump(dy);
+            moves.push(run(v.x, 0, slideSpring), run(v.y, 0, slideSpring));
+        });
+        entering.forEach((card, i) => {
+            const v = rigs.get(card);
+            v.o.jump(0); v.s.jump(0.92);
+            const delay = 0.06 * i + (moves.length ? 0.08 : 0);
+            moves.push(
+                run(v.o, 1, { duration: 0.32, ease: 'easeOut', delay }),
+                run(v.s, 1, { ...slideSpring, delay }),
+            );
+        });
+
+        await Promise.all(moves);
+        if (settleFlip !== settle) return;
+        flipping = false;
+        settleFlip = null;
+    };
+
+    //--- tag preview -----------------------------------------------------------
+
+    //Pointing at a tag lights the projects built with it and dims the rest: a
+    //preview of what clicking it would filter to. The filter chips sit right
+    //above the grid, so that is where it shows; the hero tags do the same for
+    //whatever part of the grid is on screen.
+    function tagPreview() {
+        const triggers = document.querySelectorAll(
+            '#filterTags .skill-tag, .skills-block button.skill-tag[data-tech]'
+        );
+
+        const lift = (card, target, options) => {
+            if (calm() || flipping || gsapOwns(card) || card.classList.contains('is-lit')) return;
+            animate(rigs.get(card).lift, target, options);
+        };
+
+        const show = tech => {
+            let any = false;
+            cards.forEach(card => {
+                const hit = tagsOf(card).includes(tech);
+                card.classList.toggle('is-linked', hit);
+                if (hit) any = true;
+                lift(card, hit ? 6 : 0, liftSpring);
+            });
+            grid.classList.toggle('is-previewing', any);
+        };
+
+        const hide = () => {
+            grid.classList.remove('is-previewing');
+            cards.forEach(card => {
+                if (!card.classList.contains('is-linked')) return;
+                card.classList.remove('is-linked');
+                lift(card, 0, settleSpring);
+            });
+        };
+
+        triggers.forEach(btn => {
+            const tech = btn.dataset.tech;
+            if (!tech) return;
+            btn.addEventListener('pointerenter', e => {
+                if (e.pointerType === 'mouse') show(tech);
+            });
+            btn.addEventListener('pointerleave', hide);
+            btn.addEventListener('focus', () => show(tech));
+            btn.addEventListener('blur', hide);
         });
     }
 
@@ -190,5 +332,6 @@
     }
 
     cardSpotlight();
+    tagPreview();
     countStats();
 })();

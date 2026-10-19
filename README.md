@@ -28,13 +28,15 @@ education and experience timeline.
   draws itself as you scroll past it, the contribution heatmap fills in column by column,
   and one lit block travels between the nav links — see [Motion](#motion)
 - Motion spring layer (`springs.js`) — project cards lift and trail a green spotlight along
-  their border after the pointer, and the contribution stats count up — see
-  [Springs](#springs)
+  their border after the pointer, the tag filter shrinks cards out and springs the rest
+  into place, pointing at a tag lights the projects built with it, and the contribution
+  stats count up — see [Springs](#springs)
 - Thai translation of the hero with a scramble animation, reached through `lang th` in
   the terminal. The on-page EN/TH button is hidden until the rest of the page is
   translated too
 - Smooth scroll navigation with a fixed navbar
-- Project showcase with hover overlays and a GitHub contribution heatmap
+- Project showcase with tag filtering (click a hero skill or a filter tag), hover overlays,
+  and a GitHub contribution heatmap
 - Organizing section — Kit2Code, the contest group I founded (formerly RYWCC, Rayongwit Coding
   Challenge) for POSN Computer students: what it is, the tools built for it, and a log
   of the contests run on Codeforces and those planned on its own CMS
@@ -57,7 +59,7 @@ portfolio/
 ├── index.js            — translation, timeline, and terminal logic
 ├── blackhole.js        — scroll-driven ASCII black hole backdrop
 ├── motion.js           — GSAP entrances and scroll-driven moves
-├── springs.js          — Motion spring moves: card spotlight, stat count
+├── springs.js          — Motion spring moves: card spotlight, filter FLIP, tag preview, stat count
 ├── vendor/             — GSAP 3.13.0 (core + ScrollTrigger) and Motion 13.4.4, vendored not CDN
 └── images/
     ├── icon.png             — browser tab favicon
@@ -136,14 +138,23 @@ holds a card.
 | move | what it does |
 |---|---|
 | card spotlight | the card lifts under a mouse pointer and a green light trails after it on a spring, lighting a stretch of the border and a faint wash inside |
+| filter FLIP | cards that stop matching shrink out, the rest spring to their new grid slots, arrivals fade in |
+| tag preview | pointing at a filter chip or hero tag lights the matching projects and dims the rest |
 | stat count | total, streak and longest count up from zero the first time the block is on screen |
 
-Every transform on a card goes through one rig of motion values, and at rest the rig
-removes it again. Reduced motion is checked at the moment of each move, so all of it
-snaps when the preference is set.
+Every transform on a card goes through one rig of motion values, so the lift and the
+filter slide compose into a single inline transform instead of overwriting each
+other, and at rest the rig removes it again. The filter is still decided in `index.js`:
+it hands `window.animateProjectFilter` the result and a `commit()` that applies it, and
+without `springs.js` it simply calls `commit()` itself. Reduced motion is checked at
+the moment of each move, so all of it snaps when the preference is set.
 
-Two handoffs between this file and `index.js` are worth knowing about, because each one
+Three handoffs between this file and `index.js` are worth knowing about, because each one
 exists to stop two systems claiming the same element:
+
+- **The tag filter.** The first touch of the filter bar ends the card reveal outright —
+  triggers killed, inline state cleared. A card can be filtered out while still below the
+  fold, and would otherwise come back holding a start state with nothing left to play it.
 
 - **The EN/TH toggle.** Nothing the dictionary rewrites is ever split into characters.
   `scrambleText` writes straight to those nodes and would drop the spans on first press.

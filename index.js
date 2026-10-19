@@ -3,19 +3,14 @@
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
-//Project cards carry their stack as a comma-separated attribute. The terminal's
-//`projects` command and its tab-completion both read it, so the parse lives here
+//Project cards carry their stack as a comma-separated attribute. The tag filter
+//and the terminal's `projects` command both read it, so the parse lives here
 //rather than once in each.
 const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
 
 //Flip to true once resume.pdf is committed at the site root. Until then the
 //button stays visibly disabled with no href, so it can never lead to a 404.
 const RESUME_READY = false;
-
-//Discord is for people who already know me, so it has no button on the page.
-//The terminal's `contact` and `open discord` both read it from here. This keeps
-//it out of the way, not private: the ID is still readable in this file.
-const DISCORD_URL = 'https://discord.com/users/464781419907121152';
 
 //The cat that used to be the avatar. Recruiters get the face; anyone who opens
 //the terminal and types `cat` still gets the cat.
@@ -42,6 +37,8 @@ const i18n = (function () {
             status: 'Computer Engineering @\u00a0Chulalongkorn\u00a0University\n2× TOI Bronze · NSC2024 Finalist',
             availability: 'Open to internships · Summer 2027',
             skillGroups: ['languages', 'tools & frameworks'],
+            tooltipHas: '→ see projects',
+            tooltipNone: '→ no projects yet',
             //Same order as the .contact-row buttons in index.html.
             btns: ['Email', 'GitHub', 'LinkedIn', 'Codeforces'],
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
@@ -53,6 +50,8 @@ const i18n = (function () {
             status: 'วิศวกรรมคอมพิวเตอร์ @\u00a0จุฬาลงกรณ์มหาวิทยาลัย\nเหรียญทองแดง TOI 2 ปี · ผ่านเข้ารอบสุดท้าย NSC2024',
             availability: 'เปิดรับฝึกงาน · ซัมเมอร์ 2027',
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
+            tooltipHas: '→ ดูโปรเจกต์',
+            tooltipNone: '→ ยังไม่มีโปรเจกต์',
             btns: ['อีเมล', 'GitHub', 'LinkedIn', 'Codeforces'],
             resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
         },
@@ -250,6 +249,94 @@ const showToast = (function () {
             ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
             wrap.appendChild(ripple);
             ripple.addEventListener('animationend', () => ripple.remove());
+        });
+    });
+})();
+
+//Project tech-stack filter --------------------------------------------------
+(function () {
+    const projectCards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
+    const filterTagsContainer = document.getElementById('filterTags');
+    const filterClearBtn = document.getElementById('filterClear');
+    const filterEmptyMsg = document.getElementById('filterEmpty');
+    if (!projectCards.length || !filterTagsContainer || !filterClearBtn || !filterEmptyMsg) return;
+
+    const activeFilters = new Set();
+    //Tags never change, so each card is parsed once here rather than on every
+    //filter pass, and into a Set so the match below is a lookup, not a scan.
+    const cardTags = new Map(projectCards.map(card => [card, new Set(tagsOf(card))]));
+    //Set keeps insertion order, so the buttons still come out in card order.
+    const uniqueTags = new Set(projectCards.flatMap(tagsOf));
+
+    function applyFilters() {
+        //every() on an empty list is already true, so no filters means no match
+        //test — the same shortcut the explicit size check used to spell out.
+        const wanted = [...activeFilters];
+        const next = new Map(projectCards.map(card => {
+            const tags = cardTags.get(card);
+            return [card, wanted.every(f => tags.has(f))];
+        }));
+        const visibleCount = [...next.values()].filter(Boolean).length;
+        //springs.js, when it loaded, animates the cards across; it still hands
+        //the class change back to commit(), so which cards show stays decided here.
+        const commit = () => next.forEach((matches, card) => card.classList.toggle('is-hidden', !matches));
+        if (typeof window.animateProjectFilter === 'function') window.animateProjectFilter(next, commit);
+        else commit();
+        filterEmptyMsg.hidden = visibleCount !== 0;
+        filterClearBtn.hidden = activeFilters.size === 0;
+        filterTagsContainer.querySelectorAll('.skill-tag').forEach(btn => {
+            btn.classList.toggle('is-active', activeFilters.has(btn.dataset.tech));
+        });
+    }
+
+    function toggleFilter(tag) {
+        if (activeFilters.has(tag)) activeFilters.delete(tag);
+        else activeFilters.add(tag);
+        applyFilters();
+    }
+
+    function clearFilters() {
+        activeFilters.clear();
+        applyFilters();
+    }
+
+    uniqueTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'skill-tag';
+        btn.dataset.tech = tag;
+        btn.textContent = tag;
+        btn.addEventListener('click', () => toggleFilter(tag));
+        filterTagsContainer.appendChild(btn);
+    });
+
+    filterClearBtn.addEventListener('click', clearFilters);
+
+    //Hero skill tags jump to the matching (filtered) projects
+    const heroTechBtns = document.querySelectorAll('.skills-block button.skill-tag[data-tech]');
+
+    function updateTechTooltips() {
+        const d = i18n.strings;
+        heroTechBtns.forEach(btn => {
+            btn.dataset.tooltip = uniqueTags.has(btn.dataset.tech) ? d.tooltipHas : d.tooltipNone;
+        });
+    }
+
+    updateTechTooltips();
+    i18n.onChange(updateTechTooltips);
+
+    heroTechBtns.forEach(btn => {
+        const tech = btn.dataset.tech;
+        btn.addEventListener('click', () => {
+            if (uniqueTags.has(tech)) {
+                activeFilters.clear();
+                activeFilters.add(tech);
+                applyFilters();
+            } else {
+                clearFilters();
+                showToast(`No projects tagged ${tech} yet`);
+            }
+            document.getElementById('projects').scrollIntoView({ behavior: scrollBehavior() });
         });
     });
 })();
@@ -534,7 +621,10 @@ const showToast = (function () {
 
     function readContact() {
         const email = document.getElementById('emailBtn')?.dataset.email || 'n/a';
-        const discord = DISCORD_URL;
+        const discordLink = document.getElementById('discordLink');
+        const discord = discordLink
+            ? `${discordLink.dataset.handle} · ${discordLink.getAttribute('href')}`
+            : 'n/a';
         const github = document.getElementById('githubLink')?.getAttribute('href') || 'n/a';
         const linkedin = document.getElementById('linkedinLink')?.getAttribute('href') || 'n/a';
         const codeforces = document.getElementById('codeforcesLink')?.getAttribute('href') || 'n/a';
@@ -1024,13 +1114,10 @@ const showToast = (function () {
             window.location.href = `mailto:${email}`;
             return `opening a mail draft to ${email}...`;
         }
-        if (target === 'discord') {
-            window.open(DISCORD_URL, '_blank', 'noopener,noreferrer');
-            return 'opening discord...';
-        }
         const ids = {
             github: 'githubLink', linkedin: 'linkedinLink', codeforces: 'codeforcesLink',
             instagram: 'instagramLink', facebook: 'facebookLink', line: 'lineLink',
+            discord: 'discordLink',
         };
         const href = ids[target] ? document.getElementById(ids[target])?.getAttribute('href') : null;
         if (!href) return "open: try 'open github', 'open linkedin', 'open codeforces', 'open instagram', 'open facebook', 'open line', 'open discord' or 'open email'.";
