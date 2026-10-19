@@ -23,7 +23,7 @@
     <meta name="twitter:image" content="https://miyazaki1072.github.io/images/og-card.jpg">
 
     <link rel="icon" href="images/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json">
     {
@@ -68,22 +68,13 @@
                 <span class="translate-icon">⇄</span>
                 <span id="translateLabel">EN / TH</span>
             </button>
+            <!-- A still photo and one ring. The hold-to-swap, the ASCII flip, the
+                 sleep glyphs and the "online" dot were all built for the cat;
+                 the cat now lives in the terminal. -->
             <div class="avatar-wrap">
-                <button type="button" class="avatar-toggle" id="avatarToggle"
-                        aria-pressed="false" aria-label="ASCII portrait">
-                    <img src="images/myface1.webp" class="myFaceImage" alt="Freyr"
-                         width="280" height="280" fetchpriority="high" decoding="async">
-                    <!-- lang pinned so the EN/TH toggle (which rewrites <html lang>)
-                         can't change which system font a browser substitutes for
-                         these Braille glyphs — the art isn't language content. -->
-                    <pre class="ascii-face" id="asciiFace" aria-hidden="true" lang="en"></pre>
-                </button>
+                <img src="images/myface1.webp" class="myFaceImage" alt="Thitiwut Sreewasut"
+                     width="280" height="280" fetchpriority="high" decoding="async">
                 <div class="avatar-ring"></div>
-                <div class="profileChangeRing"></div>
-                <div class="status-dot"></div>
-                <span class="zzz z1">z</span>
-                <span class="zzz z2">Z</span>
-                <span class="zzz z3">z</span>
             </div>
             <div class="text-section">
                 <!-- Kept on one line on purpose: the terminal's whoami reads this

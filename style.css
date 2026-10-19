@@ -137,8 +137,8 @@
     box-sizing: border-box;
 }
 /* Form controls don't inherit type by default, so any button that never named a
-   family fell through to the UA font — .avatar-toggle, .term-close and
-   .timeline-lightbox-close were all rendering in Arial, which is not a face
+   family fell through to the UA font — .term-close and
+   .timeline-lightbox-close were both rendering in Arial, which is not a face
    this page uses anywhere. Every control that *does* name a family sets it on a
    class, so those still win on specificity. */
 button, input, select, textarea {
@@ -383,24 +383,11 @@ body::after {
     border: 1px solid var(--border);
     padding: var(--sp-8) var(--sp-8);
 }
-/* One variable drives the photo, the ASCII grid and the breakpoints, so the two
-   renderings can never drift out of step. The cats are Braille grids of two
-   different sizes (ASCII_CAT_1/2 in index.js) — see .ascii-face for how each is
-   fitted to this same box. */
+/* One variable drives the photo, the ring and the breakpoints. */
 .avatar-wrap {
     --avatar-size: 280px;
     position: relative;
     flex-shrink: 0;
-}
-.avatar-toggle {
-    display: block;
-    position: relative;
-    padding: 0;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
 }
 .myFaceImage {
     width: var(--avatar-size);
@@ -408,55 +395,8 @@ body::after {
     border-radius: 50%;
     object-fit: cover;
     display: block;
-    filter: grayscale(15%) brightness(0.9);
     position: relative;
     z-index: 1;
-    cursor: inherit;
-    transition: transform 0.4s ease, filter 0.4s ease, opacity 0.35s ease;
-}
-.avatar-toggle:hover .myFaceImage {
-    transform: scale(1.04);
-    filter: grayscale(0%) brightness(1);
-}
-.ascii-face {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* JetBrains Mono ships no Braille glyphs (Google Fonts serves no subset
-       covering U+2800-28FF), so the cat would fall through to whatever the OS
-       happens to have — different per platform, and misaligned. Noto Sans
-       Symbols 2 goes first: its Braille subset is 5.6KB and every glyph in it
-       advances a uniform 0.7em, which is what holds the columns square. */
-    font-family: 'Noto Sans Symbols 2', var(--font-mono);
-    /* --ascii-w (cols x 0.7) and --ascii-rows are set from the art itself in
-       index.js, so the two cats' different grids both resolve to --avatar-size.
-       The fallbacks match CAT_1 and only matter before the first paint. */
-    --ascii-w: 63;
-    --ascii-rows: 45;
-    font-size: calc(var(--avatar-size) / var(--ascii-w));
-    line-height: calc(var(--avatar-size) / var(--ascii-rows));
-    letter-spacing: 0;
-    white-space: pre;
-    color: var(--green);
-    border-radius: 50%;
-    overflow: hidden;
-    user-select: none;
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.4s ease, opacity 0.35s ease;
-}
-.avatar-toggle:hover .ascii-face {
-    transform: scale(1.04);
-}
-.avatar-wrap.is-ascii .myFaceImage {
-    opacity: 0;
-}
-.avatar-wrap.is-ascii .ascii-face {
-    opacity: 1;
 }
 .avatar-ring {
     position: absolute;
@@ -465,85 +405,6 @@ body::after {
     border: 2.5px solid var(--green);
     opacity: 0.4;
     z-index: 0;
-}
-.profileChangeRing {
-    position: absolute;
-    inset: -8px;
-    border-radius: 50%;
-    opacity: 0.7;
-    --ring-color: var(--green);
-    background:
-        conic-gradient(
-            var(--ring-color) var(--progress),
-            #222 0deg
-        );
-    z-index: 0;
-}
-.profileChangeRing::before {
-    content: "";
-    position: absolute;
-    inset: 10px;
-    border-radius: 100%;
-    background-color: black;
-}
-.status-dot {
-    position: absolute;
-    bottom: 14px;
-    right: 14px;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: var(--green);
-    border: 4px solid var(--bg);
-    z-index: 2;
-    /* Tight halo, not a neon bloom: the dot reads as live state, and --green-glow
-       is the token that exists for exactly this edge treatment. */
-    box-shadow: 0 0 0 3px var(--green-glow);
-}
-.zzz {
-    position: absolute;
-    top: 4%;
-    right: 10%;
-    color: var(--green-bright);
-    font-weight: 700;
-    font-family: var(--font-mono);
-    opacity: 0;
-    pointer-events: none;
-    z-index: 3;
-    text-shadow: 0 0 8px rgba(var(--green-bright-rgb), 0.6);
-    animation: floatZzz 3.6s ease-in infinite;
-}
-.z1 {
-    font-size: 0.8rem;
-    animation-delay: 0s;
-}
-.z2 {
-    font-size: 1.1rem;
-    top: -2%;
-    right: 0%;
-    animation-delay: 0.9s;
-}
-.z3 {
-    font-size: 1.4rem;
-    top: -8%;
-    right: -10%;
-    animation-delay: 1.8s;
-}
-@keyframes floatZzz {
-    0% {
-        opacity: 0;
-        transform: translate(0, 0) rotate(0deg) scale(0.8);
-    }
-    15% {
-        opacity: 0.9;
-    }
-    80% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 0;
-        transform: translate(14px, -34px) rotate(12deg) scale(1.1);
-    }
 }
 .text-section {
     display: flex;
@@ -1969,13 +1830,6 @@ body::after {
     .avatar-wrap {
         --avatar-size: 104px;
     }
-    .status-dot {
-        width: 18px;
-        height: 18px;
-        bottom: 10px;
-        right: 10px;
-        border-width: 3px;
-    }
     .projects-section,
     .organizing-section,
     .background-section {
@@ -2526,8 +2380,8 @@ body::after {
 }
 
 /* Every keyframe in this file resolves to a visible, neutral end state, so
-   snapping to the last frame is safe: the zzz and the ring pulse land on
-   opacity 0, and entrances land fully faded in. */
+   snapping to the last frame is safe: the ring pulse lands on opacity 0, and
+   entrances land fully faded in. */
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
