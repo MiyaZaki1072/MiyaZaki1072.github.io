@@ -1,53 +1,35 @@
 /* ---------------------------------------------------------------------------
    Design tokens
 
-   One typeface, three jobs. JetBrains Mono sets display, prose and the terminal
-   voice alike: once the page became a TUI, a proportional heading was the only
-   thing on it still pretending to be a document. The three tokens stay separate
-   because size, weight and tracking still differ per job — the family is what
-   they now agree on. IBM Plex Sans Thai backs all three, because the EN/TH
-   toggle needs Thai glyphs and JetBrains Mono has none.
+   Apple-style: a grouped-background page, white cards on it, one accent
+   (systemBlue) and automatic dark mode. The system font stack does the typing;
+   nothing here is self-hosted. Token *names* from the terminal-era sheet are
+   kept (--green, --surface, --text-pri ...) because the terminal, the lightbox
+   and rune mode are built on them. "--green" is now simply "the accent", and
+   rune mode swaps it for gold the same way it always did.
 
-   Colour is split the same way. Green means live or interactive and nothing
-   else; amber means an achievement was earned; structure is neutral. Every text
-   token clears 4.5:1 on --bg on its own, so nothing needs an opacity multiplier
-   to look right — that was what pushed the old footer copy below AA.
+   Light values are the default; dark follows the OS. Every text token clears
+   4.5:1 on its own ground.
 --------------------------------------------------------------------------- */
 :root {
-    /* Ground.
-       Channels get their own token because rules further down need these
-       colours at their own alpha. Without it, rgba() copies of the same three
-       numbers spread through the file and "change the palette" stops being a
-       one-line edit. */
+    color-scheme: dark;
+
+    /* The original palette: near-black ground, green for "live", amber for
+       "earned". Dark only. */
     --bg-rgb:        8, 11, 8;
     --bg:            rgb(var(--bg-rgb));
     --surface:       #0e130e;
     --surface-2:     #131a13;
 
-    /* Structure — neutral, so green stays meaningful */
     --border:        #232823;
     --border-strong: #333c33;
 
-    /* Glass — for text that sits directly on the black hole raster rather than
-       on a --surface card. The alpha does the contrast work and the blur does
-       the calming; neither is enough alone, which is why they travel as a pair.
-       Every text token below is measured against flat --bg, and the raster
-       breaks that measurement wherever a dense glyph cluster drifts under small
-       type — this is what puts the flat ground back. .navbar has carried the
-       same idiom inline since it was written. */
-    --glass:         rgba(var(--bg-rgb), 0.62);
-    --glass-blur:    blur(14px) saturate(0.85);
+    /* Glass is for chrome only (the nav bar); body text never sits on it. */
+    --glass:         rgba(var(--bg-rgb), 0.85);
+    --glass-blur:    blur(20px) saturate(180%);
+    --glass-rim:     rgba(255, 255, 255, 0.08);
+    --glass-panel:   var(--surface);
 
-    /* The same idiom at panel strength. The three big cards — hero, timeline,
-       project — used to be opaque --surface, which meant the raster was only
-       ever visible in the gutters: the one element the page is built around
-       spent most of the scroll hidden behind the content sitting on top of it.
-       These panels carry long-form text, so they sit denser than --glass, but
-       they let the hole read through as a diffused wash instead of blocking it
-       outright. */
-    --glass-panel:   rgba(var(--bg-rgb), 0.80);
-
-    /* Green — live / interactive only */
     --green-rgb:        34, 197, 94;
     --green-bright-rgb: 74, 222, 128;
     --green:         rgb(var(--green-rgb));
@@ -55,43 +37,38 @@
     --green-dim:     rgba(var(--green-rgb), 0.10);
     --green-line:    rgba(var(--green-rgb), 0.25);
     --green-glow:    rgba(var(--green-rgb), 0.18);
-    /* Ink for text sitting on a green fill — the one place green is a
-       background rather than a foreground. */
     --on-green:      #06170c;
 
-    /* Amber — achievement earned */
     --amber:         #ffb000;
+    --amber-dim:     rgba(255, 176, 0, 0.10);
 
-    /* Contribution heatmap — a 5-step ramp of --green rather than a new hue, so
-       the grid still reads as "green means activity" like everything else. */
     --contrib-0:     var(--surface-2);
     --contrib-1:     rgba(var(--green-rgb), 0.22);
     --contrib-2:     rgba(var(--green-rgb), 0.45);
     --contrib-3:     rgba(var(--green-rgb), 0.70);
     --contrib-4:     var(--green);
 
-    /* Text — 15.5:1 / 7.4:1 / 5.6:1 on --bg */
     --text-pri:      #dde6dd;
     --text-sec:      #93a393;
     --text-muted:    #7f8c7f;
 
-    /* Type */
-    --font-display: 'JetBrains Mono', 'IBM Plex Sans Thai', 'Noto Sans Runic', ui-monospace, monospace;
-    --font-body:    'IBM Plex Sans', 'IBM Plex Sans Thai', 'Noto Sans Runic', system-ui, sans-serif;
-    --font-mono:    'JetBrains Mono', 'IBM Plex Sans Thai', 'Noto Sans Runic', ui-monospace, monospace;
+    /* Type. System UI first, then Thai-capable faces: the EN/TH toggle needs
+       glyphs SF and Segoe do not carry. Noto Sans Runic is the one webfont,
+       subset to the runes rune mode prints. */
+    --font-body:    system-ui, -apple-system, "Segoe UI", "Inter", "Noto Sans Thai", "Leelawadee UI", Tahoma, "Noto Sans Runic", sans-serif;
+    --font-display: var(--font-body);
+    --font-mono:    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", "Noto Sans Runic", monospace;
 
-    --fs-h2:      clamp(1.85rem, 3.6vw, 3.15rem);
-    /* Card headings sit between h2 and lead. */
-    --fs-card:    clamp(1.25rem, 2vw, 1.75rem);
-    /* Lead carries the hero's own body copy — the hero reads at a larger size
-       than the sections below it, which is why it needs a step of its own. */
-    --fs-lead:    clamp(1.1rem, 1.8vw, 1.5rem);
-    --fs-h3:      clamp(1.1rem, 1.6vw, 1.35rem);
-    --fs-body:    clamp(1rem, 1.25vw, 1.15rem);
-    --fs-small:   clamp(0.9rem, 1.1vw, 1.02rem);
-    --fs-micro:   clamp(0.8rem, 0.95vw, 0.9rem);
+    /* iOS type scale: name 34+, section 28, card 22, body 17, meta 15, chip 13 */
+    --fs-name:    clamp(2.125rem, 5.4vw, 3.5rem);
+    --fs-h2:      1.75rem;
+    --fs-card:    1.375rem;
+    --fs-lead:    1.0625rem;
+    --fs-h3:      1.0625rem;
+    --fs-body:    1.0625rem;
+    --fs-small:   0.9375rem;
+    --fs-micro:   0.8125rem;
 
-    /* Space — 4px base */
     --sp-1: 4px;
     --sp-2: 8px;
     --sp-3: 12px;
@@ -102,33 +79,27 @@
     --sp-8: 64px;
     --sp-9: 96px;
 
-    /* Radius. A character grid cannot draw a curve, so every box on the page is
-       square and these two are 0 — they stay as tokens rather than being deleted
-       because "how round is a box" is still one decision, made in one place.
-       The two exceptions are shapes, not boxes: --r-pill for the terminal
-       trigger and the avatar's own 50%. */
-    --r-sm:   0;
-    --r-lg:   0;
-    --r-pill: 999px;
+    /* Radius: chips 8, cards 20, sheets 28, buttons fully round. */
+    --r-sm:    8px;
+    --r-lg:    20px;
+    --r-sheet: 28px;
+    --r-pill:  999px;
 
-    /* Scrollbar. The page rail is wide enough to carry a lit core between two
-       --bg gutters; panels get a narrower one so an inner scroller never
-       out-shouts the page's own bar. */
-    --scrollbar-w:      12px;
-    --scrollbar-w-thin: 8px;
-    --scrollbar-inset:  3px;
+    --tap: 44px;
 
-    /* Layout spine. Every section on the page resolves its left edge from these
-       two numbers and nothing else, so the hero card, the project grid and the
-       timeline start on the same pixel. They used to each carry their own
-       max-width and padding and landed on three different edges (75 / 48 / 91
-       at 1440), which is what made the page read as assembled rather than
-       designed. Change the spine here, the whole page moves together. */
-    --gutter:      var(--sp-7);
-    --content-max: 1280px;
-    /* What a full-bleed section needs to be so its *content box* is
-       --content-max wide. Sections use this; inner panels use --content-max. */
+    --gutter:      var(--sp-5);
+    --content-max: 1080px;
     --section-max: calc(var(--content-max) + 2 * var(--gutter));
+    --nav-h: 0px;
+
+    --shadow-card: none;
+}
+
+/* Rune mode swaps the accent for Freyr's gold. */
+:root.is-freyr {
+    --green-rgb:        234, 179, 8;
+    --green-bright-rgb: 250, 204, 21;
+    --on-green:         #1a1300;
 }
 
 *, *::before, *::after {
@@ -136,11 +107,7 @@
     padding: 0;
     box-sizing: border-box;
 }
-/* Form controls don't inherit type by default, so any button that never named a
-   family fell through to the UA font — .term-close and
-   .timeline-lightbox-close were both rendering in Arial, which is not a face
-   this page uses anywhere. Every control that *does* name a family sets it on a
-   class, so those still win on specificity. */
+/* Form controls don't inherit type by default. */
 button, input, select, textarea {
     font-family: inherit;
     font-size: inherit;
@@ -153,109 +120,10 @@ button, input, select, textarea {
 }
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: 88px;
 }
-/* Selecting text on a terminal inverts it into the foreground colour. Green is
-   already the page's "live" channel, so a selection reads as the same idea. */
 ::selection {
-    background: var(--green);
-    color: var(--on-green);
-}
-/* Scanlines. The one artifact that says CRT rather than "dark website", and the
-   layer the z-index note further down has always referred to. Held to a 3px
-   period at low alpha: enough to read as phosphor texture at a glance, not
-   enough to band the body copy. It stops below the fixed chrome — the navbar
-   and the terminal panel are the interface, not the screen it's drawn on.
-
-   Removed outright when the reader has asked for more contrast, since this is
-   decoration that costs a little of it. */
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 5;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-        to bottom,
-        transparent 0px,
-        transparent 2px,
-        rgba(0, 0, 0, 0.10) 2px,
-        rgba(0, 0, 0, 0.10) 3px);
-}
-@media (prefers-contrast: more) {
-    body::after { display: none; }
-}
-
-/* Scrollbar ------------------------------------------------------------------
-   The last piece of chrome on this page that still read as a dark website. A
-   terminal's scroll rail is a column of the character grid - a hatched track
-   with a solid block riding in it - so that is what this draws. The hatch is a
-   1-on-4 gradient rather than glyphs: the same trick, and near enough the same
-   rhythm, as the scanlines in body::after.
-
-   Green means live everywhere else here, so the thumb sits at --border-strong
-   with the rest of the structure and only lights up under the pointer. */
-::-webkit-scrollbar {
-    width: var(--scrollbar-w);
-    height: var(--scrollbar-w);
-}
-/* Arrowless. The buttons are the one part of a native bar with no counterpart
-   in a TUI, and they cost the track a chunk at each end. */
-::-webkit-scrollbar-button {
-    display: none;
-}
-::-webkit-scrollbar-track {
-    background-color: var(--bg);
-    background-image: repeating-linear-gradient(
-        to bottom,
-        var(--border) 0 1px,
-        transparent 1px 4px);
-}
-::-webkit-scrollbar-thumb {
-    background-color: var(--border-strong);
-    /* The --bg border is what makes the thumb read as a block sitting *in* a
-       gutter rather than a bar filling it. A solid colour rather than
-       `transparent` plus background-clip, which webkit paints through. */
-    border: var(--scrollbar-inset) solid var(--bg);
-    border-radius: var(--r-sm);
-    transition: background-color 0.25s ease;
-}
-::-webkit-scrollbar-thumb:hover {
-    background-color: var(--green-bright);
-}
-::-webkit-scrollbar-corner {
-    background: var(--bg);
-}
-
-/* Firefox has no ::-webkit-scrollbar, so it gets the idea rather than the
-   drawing: no hatch, no caps, just the same resting grey.
-
-   The @supports gate is not politeness, it is required. Chromium hands any
-   scroller that declares scrollbar-width or scrollbar-color to its *standard*
-   scrollbar painter and drops every ::-webkit-scrollbar rule for that element —
-   so the two ways of styling a bar are mutually exclusive, and declaring both
-   silently costs you the custom one. This file used to declare both on html,
-   .term-output and .contrib-scroll, which is why the old rail rendered as a
-   default 15px bar in Chrome no matter what the pseudo-elements said. */
-@supports not selector(::-webkit-scrollbar) {
-    html {
-        scrollbar-width: auto;
-        scrollbar-color: var(--border-strong) var(--bg);
-    }
-    .term-output,
-    .contrib-scroll {
-        scrollbar-width: thin;
-        scrollbar-color: var(--border-strong) transparent;
-    }
-}
-/* The hatch is texture, and texture is the first thing to go when a reader has
-   asked for contrast - the same bargain body::after makes just above. */
-@media (prefers-contrast: more) {
-    ::-webkit-scrollbar-track {
-        background-image: none;
-    }
-    ::-webkit-scrollbar-thumb {
-        background-color: var(--green-bright);
-    }
+    background: rgba(var(--green-rgb), 0.28);
 }
 
 body {
@@ -263,101 +131,56 @@ body {
     color: var(--text-pri);
     font-family: var(--font-body);
     font-size: var(--fs-body);
-    line-height: 1.6;
-    background-image:
-        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(var(--green-rgb),0.04) 0%, transparent 60%);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
 }
-/* Scanlines sit above page content but beneath the navbar, toast, lightbox and
-   terminal — at the old z-index of 9999 the texture was laid over every dialog. */
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 5;
-    background: repeating-linear-gradient(
-        to bottom,
-        transparent 0px,
-        transparent 2px,
-        rgba(0, 0, 0, 0.4) 3px
-    );
-    opacity: 0.05;
-}
+img { max-width: 100%; }
+/* Entrance tweens briefly tilt cards past the edge; clip so a phone never
+   widens its layout viewport for them. */
+main { overflow-x: clip; }
 
-/* TUI frame -----------------------------------------------------------------
-   A terminal has no curves: it draws a box out of the rule itself, and titles
-   that box by breaking the rule and dropping a label into the gap —
-
-       ┌─ ~/projects ─────────────────┐
-
-   Every panel here already carried the label it needs (~/projects, the filter
-   path, ~/contributions), so those are lifted onto the border rather than
-   invented, and the panels with no heading of their own get one from content.
-   The green hairline these panels used to wear is retired with it: the notch
-   marks the top edge now, and two markers on one edge read as noise.
-
-   Squaring the corners is what lets the old `overflow: hidden` go — it was
-   clipping that hairline and the corners of the images inside, and a label that
-   straddles the top rule survives neither. */
-.about-inner,
-.section-header,
-.filter-bar,
-.contrib-block,
-.project-card,
-.k2c-panel,
-.timeline {
-    position: relative;
-    border-radius: 0;
-}
-/* Half in, half out, painting --bg across the line so the rule is genuinely
-   broken rather than merely covered. */
-.filter-bar .filter-label,
-.contrib-block .contrib-title {
-    position: absolute;
-    top: 0;
-    left: var(--sp-5);
-    z-index: 1;
-    transform: translateY(-50%);
-    margin: 0;
-    padding: 0 var(--sp-2);
-    background: var(--bg);
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    font-weight: 400;
-    line-height: 1.4;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    white-space: nowrap;
-}
-
-/* Nav ---------------------------------------------------------------------- */
+/* Nav ----------------------------------------------------------------------
+   A floating glass pill, centred. Chrome only: nothing readable ever scrolls
+   under it for long, and the fill is opaque enough to carry text without the
+   blur. On phones it becomes the bottom tab bar (see Responsive). */
 .navbar {
     position: fixed;
-    top: var(--sp-6);
-    right: var(--sp-7);
+    top: var(--sp-4);
+    left: 0;
+    right: 0;
+    margin-inline: auto;
+    width: max-content;
+    max-width: calc(100vw - 2 * var(--sp-4));
     z-index: 100;
     display: flex;
     gap: var(--sp-1);
-    background: rgba(var(--bg-rgb), 0.85);
+    padding: var(--sp-1);
+    background: var(--glass);
     border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: var(--sp-2) var(--sp-3);
-    backdrop-filter: blur(10px);
+    border-radius: var(--r-pill);
+    box-shadow: inset 0 1px 0 var(--glass-rim), 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .navbar {
+        -webkit-backdrop-filter: var(--glass-blur);
+        backdrop-filter: var(--glass-blur);
+    }
 }
 .nav-link {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    font-family: var(--font-mono);
-    font-size: var(--fs-body);
+    min-height: 36px;
+    font-size: var(--fs-small);
     font-weight: 500;
-    letter-spacing: 0.06em;
     color: var(--text-sec);
     text-decoration: none;
-    padding: var(--sp-2) var(--sp-4);
-    border-radius: var(--r-sm);
+    padding: 0 var(--sp-4);
+    border-radius: var(--r-pill);
     transition: color 0.2s, background 0.2s;
 }
+.nav-link:active { transform: scale(0.97); }
 .nav-link:hover,
 .nav-link.active {
     color: var(--green);
@@ -365,37 +188,23 @@ body::after {
 }
 
 /* Hero --------------------------------------------------------------------- */
-/* The hero and the three highlights share the first screen: the hero takes
-   the window minus a strip held for the highlights, so on a laptop all three
-   cards are in view before any scroll. Phones stack too tall for that and
-   override this below. */
 .about-section {
-    --highlights-h: 190px;
-    min-height: calc(100dvh - var(--highlights-h));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Clears the fixed nav with a gap rather than butting up against it. */
-    padding: calc(var(--sp-9) + var(--sp-3)) var(--gutter) var(--sp-4);
+    position: relative;
+    padding: calc(var(--sp-9) + var(--sp-4)) var(--gutter) var(--sp-6);
+    /* The soft gradient the glass nav has something to pick up from. */
+    background:
+        radial-gradient(ellipse 70% 60% at 20% 0%, rgba(var(--green-rgb), 0.10), transparent 70%);
 }
 .about-inner {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--sp-8);
     max-width: var(--content-max);
-    width: 100%;
-    animation: fadeUp 0.7s ease both;
-    background: var(--glass-panel);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    /* Shorter screens give back vertical padding first, so the highlights
-       still clear the fold on a 768px-tall laptop. */
-    padding: clamp(var(--sp-5), 4vh, var(--sp-8)) var(--sp-8);
+    margin: 0 auto;
 }
-/* One variable drives the photo, the ring and the breakpoints. */
 .avatar-wrap {
-    --avatar-size: 280px;
+    --avatar-size: 240px;
     position: relative;
     flex-shrink: 0;
 }
@@ -407,13 +216,11 @@ body::after {
     display: block;
     position: relative;
     z-index: 1;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 /* The photo is something to hold, not to drag or long-press-save: without these
    a phone opens its image menu before the ring can fill. The cursor is the only
-   hint it does anything: praying hands, which light up while the photo is held
-   and the ring fills. They are the 🙏 of Noto Color Emoji (Apache-2.0), baked
-   into PNGs so every system shows the same hands, since an emoji drawn live in
-   a cursor varies by platform and some browsers will not draw one at all. */
+   hint it does anything: praying hands, lit while the photo is held. */
 .avatar-wrap .myFaceImage {
     cursor: url('images/cursor-pray.png') 16 16, pointer;
     -webkit-touch-callout: none;
@@ -426,38 +233,31 @@ body::after {
 }
 .avatar-ring {
     position: absolute;
-    inset: -9px;
+    inset: -8px;
     border-radius: 50%;
-    border: 2.5px solid var(--green);
-    opacity: 0.4;
+    border: 2px solid var(--green);
+    opacity: 0.35;
     z-index: 0;
 }
 .text-section {
     display: flex;
     flex-direction: column;
     gap: var(--sp-3);
+    min-width: 0;
 }
 .name-txt {
     font-family: var(--font-display);
-    /* Deliberately below display size: that step was sized for the single word
-       "Freyr". This line now carries a full name, and at display size the last
-       name broke onto a second line on its own. */
-    font-size: clamp(1.9rem, 4vw, 4rem);
+    font-size: var(--fs-name);
     font-weight: 700;
     color: var(--text-pri);
-    letter-spacing: -0.03em;
-    /* Not 1: the Thai name carries a tone mark (เฟรย์'s ์) that stacks above the
-       consonant. line-height:1 forces the line box tighter than the font's own
-       vertical metrics, and .about-inner clips overflow — so at this size the
-       mark got cut off whenever the EN/TH toggle switched to Thai. */
+    letter-spacing: -0.025em;
+    /* Not 1: the Thai name carries a tone mark that stacks above the consonant
+       and a tight line box clips it. */
     line-height: 1.15;
 }
-/* The legal name carries the display size; the nickname drops to a small line
-   under it. Three elements rather than one string because CSS cannot size part
-   of a text node, and the EN/TH scramble rewrites each part on its own. */
 .name-nick {
     display: block;
-    font-size: 0.4em;
+    font-size: 0.45em;
     font-weight: 500;
     letter-spacing: 0;
     color: var(--text-sec);
@@ -466,8 +266,7 @@ body::after {
 .status-txt {
     font-size: var(--fs-lead);
     color: var(--text-sec);
-    font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.45;
 }
 .availability-row {
     display: flex;
@@ -476,52 +275,49 @@ body::after {
     gap: var(--sp-2) var(--sp-4);
 }
 .availability-txt {
-    font-family: var(--font-mono);
     font-size: var(--fs-small);
-    color: var(--green);
-    letter-spacing: 0.06em;
+    font-weight: 500;
+    color: var(--green-bright);
 }
 .availability-txt::before {
-    content: '● ';
-    text-shadow: 0 0 8px var(--green-glow);
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: var(--sp-2);
+    border-radius: 50%;
+    background: var(--green);
+    vertical-align: 1px;
 }
-/* A quiet chip beside the availability line, so it reads as part of the
-   availability line rather than a sixth way to contact me. Dashed and grey while
-   there is no file behind it; index.js drops aria-disabled once there is. */
 .resume-link {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.06em;
-    text-transform: lowercase;
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    font-size: var(--fs-small);
+    font-weight: 600;
     text-decoration: none;
-    color: var(--green-bright);
-    border: 1px solid var(--green-line);
-    border-radius: var(--r-sm);
-    padding: 2px var(--sp-2);
-    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    color: var(--on-green);
+    background: var(--green);
+    border-radius: var(--r-pill);
+    padding: 0 var(--sp-4);
+    transition: filter 0.2s, transform 0.15s;
 }
 .resume-link::before {
     content: '↓ ';
+    margin-right: var(--sp-1);
 }
-.resume-link:hover {
-    border-color: var(--green);
-    background: var(--green-dim);
-}
+.resume-link:hover { filter: brightness(1.08); }
+.resume-link:active { transform: scale(0.97); }
 .resume-link[aria-disabled="true"] {
     color: var(--text-muted);
-    border-style: dashed;
+    background: var(--surface-2);
     cursor: default;
 }
-.resume-link[aria-disabled="true"]::before {
-    content: '';
-}
-.resume-link[aria-disabled="true"]:hover {
-    border-color: var(--green-line);
-    background: transparent;
-}
-/* The two groups sit side by side where there is room and stack where there
-   is not: one row of skills instead of two is what lets the highlights fit
-   under the hero on a laptop screen. */
+.resume-link[aria-disabled="true"]::before { content: ''; margin: 0; }
+.resume-link[aria-disabled="true"]:hover { filter: none; }
+
+/* Skills: chips, not buttons. Hovering one previews the projects built with
+   it (springs.js), so they stay focusable. */
 .skills-block {
     display: flex;
     flex-wrap: wrap;
@@ -533,58 +329,599 @@ body::after {
     gap: var(--sp-2);
 }
 .skill-group-label {
-    font-family: var(--font-mono);
     font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     color: var(--text-muted);
-    letter-spacing: 0.05em;
 }
-.skill-grid {
+.skill-grid,
+.skill-container {
     display: flex;
     flex-wrap: wrap;
     gap: var(--sp-2);
 }
+.skill-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--text-sec);
+    background: var(--surface-2);
+    border: none;
+    border-radius: var(--r-sm);
+    padding: var(--sp-1) var(--sp-3);
+}
+button.skill-tag {
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+button.skill-tag:hover,
+button.skill-tag:focus-visible {
+    color: var(--green-bright);
+    background: var(--green-dim);
+}
+button.skill-tag:active { transform: scale(0.97); }
+button.skill-tag[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: var(--text-pri);
+    color: var(--bg);
+    border-radius: var(--r-sm);
+    padding: var(--sp-1) var(--sp-3);
+    font-size: var(--fs-micro);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+}
+button.skill-tag[data-tooltip]:hover::after,
+button.skill-tag[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Contact: four round 44px action buttons with a label underneath. The icon
+   is the link; the label is a span so the EN/TH scramble never touches the SVG. */
 .contact-row {
     display: flex;
-    gap: var(--sp-3);
-    margin-top: var(--sp-2);
     flex-wrap: wrap;
+    gap: var(--sp-4);
+    margin-top: var(--sp-2);
 }
-/* Spaced by gap, not by "·" separators: the underlines already part the links,
-   and a separator left hanging at the end of a wrapped line read as a typo. */
-.contact-row--secondary {
-    margin-top: 0;
+.contact-btn {
+    display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--sp-2) var(--sp-5);
+    gap: var(--sp-1);
+    min-width: 64px;
+    text-decoration: none;
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--text-sec);
+    cursor: pointer;
+    transition: color 0.2s, transform 0.15s;
 }
-/* Links, not buttons: only the filled row above should read as something to
-   press. Specific enough to beat the phone-size .contact-btn padding too. */
-.contact-row--secondary .contact-btn {
-    font-size: var(--fs-small);
-    letter-spacing: 0.04em;
-    background: none;
-    border: none;
-    padding: var(--sp-1) 0;
-    color: var(--green);
-    text-decoration: underline;
-    text-decoration-color: var(--green-line);
-    text-underline-offset: 4px;
-}
-.contact-row--secondary .contact-btn:hover {
-    background: none;
+.contact-icon {
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    border-radius: 50%;
+    background: var(--green-dim);
     color: var(--green-bright);
-    text-decoration-color: var(--green-bright);
+    transition: background 0.2s, color 0.2s;
 }
-/* Rune mode ----------------------------------------------------------------
-   Hold the photo (or type `freyr`) and the page turns to Freyr's colours for a
-   while. Green becomes gold by overriding the channel tokens on the same
-   element that defines them, so every rule built on --green follows without
-   being listed here. Gold on --bg is 9.7:1, and --on-green ink on a gold fill
-   stays dark, so contrast holds as it does in green. */
-:root.is-freyr {
-    --green-rgb:        234, 179, 8;
-    --green-bright-rgb: 250, 204, 21;
-    --on-green:         #1a1300;
+.contact-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
+.contact-btn:hover { color: var(--text-pri); }
+.contact-btn:hover .contact-icon {
+    background: var(--green);
+    color: var(--on-green);
+}
+.contact-btn:active { transform: scale(0.97); }
+/* Text-only contact links (the organizing panel's). */
+.k2c-links .contact-btn {
+    flex-direction: row;
+    min-width: 0;
+    min-height: var(--tap);
+    padding: 0 var(--sp-4);
+    border-radius: var(--r-pill);
+    background: var(--green-dim);
+    color: var(--green-bright);
+    font-size: var(--fs-small);
+}
+.k2c-links .contact-btn:hover { background: var(--green); color: var(--on-green); }
+
+.translate-btn {
+    position: absolute;
+    top: 0;
+    right: var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--tap);
+    padding: 0 var(--sp-4);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--text-sec);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    z-index: 2;
+}
+/* The display above outranks the UA's [hidden] rule. */
+.translate-btn[hidden] { display: none; }
+.translate-btn:hover,
+.translate-btn.active {
+    color: var(--green);
+    border-color: var(--green);
+}
+.translate-icon { color: var(--green); }
+
+/* Highlights: three widgets, the bronze tint only on the TOI one. */
+.highlights-section {
+    padding: 0 var(--gutter) var(--sp-6);
+}
+.highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-4);
+    max-width: var(--content-max);
+    margin: 0 auto;
+}
+.project-card {
+    position: relative;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    min-width: 0;
+}
+.project-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding: var(--sp-5);
+}
+.project-title {
+    font-size: var(--fs-card);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+.project-sub {
+    font-size: var(--fs-small);
+    color: var(--text-sec);
+}
+.project-info .project-sub + .project-sub { margin-top: var(--sp-1); }
+.project-info .skill-container { margin-top: var(--sp-3); }
+.timeline-award {
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--text-pri);
+    margin-top: var(--sp-2);
+}
+
+/* Sections ----------------------------------------------------------------- */
+.projects-section,
+.organizing-section,
+.background-section,
+.contact-section {
+    max-width: var(--section-max);
+    margin: 0 auto;
+    padding: var(--sp-7) var(--gutter) var(--sp-5);
+}
+.section-header {
+    margin-bottom: var(--sp-5);
+}
+.section-title {
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+.split-char {
+    display: inline-block;
+    white-space: pre;
+}
+
+/* Project cards ------------------------------------------------------------ */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-5);
+}
+.project-img-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+.project-img-wrap {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    background: var(--surface-2);
+}
+.project-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+.project-img-wrap:hover .project-img { transform: scale(1.03); }
+.project-img-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: var(--sp-4);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+.project-img-wrap:hover .project-img-overlay,
+.project-img-link:focus-visible .project-img-overlay { opacity: 1; }
+.view-label {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.22);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-radius: var(--r-pill);
+    padding: var(--sp-2) var(--sp-4);
+}
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.12) 60%, transparent 70%);
+    transform: scale(0);
+    pointer-events: none;
+    z-index: 3;
+    animation: rippleAnim 0.6s ease-out forwards;
+}
+@keyframes rippleAnim {
+    to { transform: scale(1); opacity: 0; }
+}
+
+.card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-top: var(--sp-3);
+}
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 var(--sp-4);
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--green-bright);
+    background: var(--green-dim);
+    border-radius: var(--r-pill);
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+.card-link:hover { background: var(--green); color: var(--on-green); }
+.card-link:active { transform: scale(0.97); }
+
+/* Case-study pages -------------------------------------------------------- */
+.case {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--sp-7) var(--gutter) var(--sp-8);
+}
+.case-back {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-size: var(--fs-small);
+    color: var(--green-bright);
+    text-decoration: none;
+}
+.case-back:hover { text-decoration: underline; }
+.case-kicker {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+.case-title {
+    font-size: var(--fs-name);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin: var(--sp-2) 0 var(--sp-3);
+}
+.case-lead { font-size: var(--fs-lead); color: var(--text-sec); }
+.case-links { margin-top: var(--sp-4); }
+.case h2 {
+    font-size: var(--fs-card);
+    font-weight: 700;
+    margin: var(--sp-6) 0 var(--sp-2);
+}
+.case p,
+.case li { color: var(--text-sec); }
+.case strong { color: var(--text-pri); }
+.case ul { padding-left: var(--sp-5); display: grid; gap: var(--sp-2); }
+
+/* Toast */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--sp-6) + var(--nav-h));
+    z-index: 200;
+    transform: translate(-50%, 12px);
+    opacity: 0;
+    pointer-events: none;
+    background: var(--text-pri);
+    color: var(--bg);
+    border-radius: var(--r-pill);
+    padding: var(--sp-3) var(--sp-5);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* GitHub activity: hidden until data/contributions.json loads. */
+.contrib-block {
+    margin-top: var(--sp-5);
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--sp-5);
+}
+.contrib-block[hidden] { display: none; }
+.contrib-title {
+    font-size: var(--fs-card);
+    font-weight: 700;
+    margin-bottom: var(--sp-4);
+}
+
+/* Organizing: Kit2Code intro beside an inset list of contests. */
+.k2c-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: var(--sp-5);
+    align-items: start;
+}
+.k2c-intro,
+.k2c-log {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--sp-5);
+}
+.k2c-intro { display: flex; flex-direction: column; gap: var(--sp-2); }
+.k2c-role {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--amber);
+}
+.k2c-role-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+}
+.k2c-group {
+    font-size: var(--fs-h2);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+.k2c-lead { color: var(--text-pri); }
+.k2c-aka,
+.k2c-body { font-size: var(--fs-small); color: var(--text-sec); }
+.k2c-stats {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    color: var(--text-pri);
+}
+.k2c-tools { font-size: var(--fs-small); color: var(--text-sec); }
+.k2c-tools a { color: var(--green-bright); text-decoration: none; font-weight: 500; }
+.k2c-tools a:hover { text-decoration: underline; }
+.k2c-links { margin-top: var(--sp-2); gap: var(--sp-2); }
+.k2c-log-title {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: var(--sp-2);
+}
+.k2c-list { list-style: none; }
+.k2c-contest {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) 0;
+    border-bottom: 1px solid var(--border);
+}
+.k2c-contest:last-child { border-bottom: none; }
+.k2c-status {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    color: var(--text-sec);
+    background: var(--surface-2);
+    border-radius: var(--r-sm);
+    padding: 2px var(--sp-2);
+}
+.k2c-contest.is-done .k2c-status { color: var(--green-bright); background: var(--green-dim); }
+.k2c-name { font-size: var(--fs-body); font-weight: 600; line-height: 1.3; }
+.k2c-meta { font-size: var(--fs-micro); color: var(--text-sec); margin-top: 2px; }
+.k2c-go {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--green-bright);
+    text-decoration: none;
+    padding: 0 var(--sp-2);
+}
+.k2c-go::after { content: ' ›'; }
+.k2c-go:hover { text-decoration: underline; }
+
+/* Background timeline ------------------------------------------------------ */
+.timeline-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-5);
+    align-items: start;
+}
+.timeline-col {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--sp-5);
+}
+.timeline-col-title {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: var(--sp-3);
+}
+.timeline-track {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-left: var(--sp-5);
+}
+.timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border);
+}
+.is-gsap .timeline-track::before { display: none; }
+.timeline-rail {
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--border);
+    transform-origin: top center;
+}
+.timeline-item {
+    position: relative;
+    padding: var(--sp-3) 0;
+}
+.timeline-item + .timeline-item { border-top: 1px solid var(--border); }
+.timeline-dot {
+    position: absolute;
+    left: calc(-1 * var(--sp-5));
+    top: calc(var(--sp-3) + 8px);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border-strong);
+}
+.timeline-item.is-current .timeline-dot {
+    background: var(--green);
+    border-color: var(--green);
+    animation: pulseRing 2.4s ease-out infinite;
+}
+@keyframes pulseRing {
+    0%   { box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0.45); }
+    80%  { box-shadow: 0 0 0 10px rgba(var(--green-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0); }
+}
+.timeline-content[role="button"] {
+    cursor: pointer;
+    border-radius: var(--r-sm);
+}
+.timeline-year { font-size: var(--fs-micro); font-weight: 500; color: var(--text-muted); }
+.timeline-title { font-size: var(--fs-body); font-weight: 600; line-height: 1.3; }
+.timeline-place { font-size: var(--fs-small); color: var(--text-sec); }
+.timeline-place a { color: var(--green-bright); text-decoration: none; font-weight: 500; }
+.timeline-place a:hover { text-decoration: underline; }
+.timeline-item .timeline-award { margin-top: var(--sp-1); }
+.timeline-hint {
+    display: inline-block;
+    margin-top: var(--sp-1);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--green-bright);
+}
+.timeline-hint::after { content: ' ›'; }
+.project-info .timeline-year { margin-bottom: var(--sp-1); }
+
+/* Contact ------------------------------------------------------------------ */
+.contact-section .section-header { margin-bottom: var(--sp-4); }
+.contact-lead {
+    font-size: var(--fs-body);
+    color: var(--text-sec);
+    margin-bottom: var(--sp-4);
+    max-width: 52ch;
+}
+.contact-section .contact-row { margin-top: 0; }
+.contact-section .contact-row--social { margin-top: var(--sp-4); }
+
+/* Footer ------------------------------------------------------------------- */
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-3);
+    text-align: center;
+    padding: var(--sp-7) var(--gutter) var(--sp-8);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+}
+
+/* Codeforces rating, hidden until the public API answers. */
+.cf-rating {
+    display: block;
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-top: -2px;
+}
+.cf-rating[hidden] { display: none; }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
 /* The ring that fills while the photo is held: a conic sweep cut down to a
    thin band by a radial mask, sitting just outside the static ring. */
 .freyr-ring {
@@ -716,157 +1053,7 @@ body::after {
     to   { transform: translateX(calc(100vw + 20px)); }
 }
 
-/* Plain words, in the case they are written in. These used to read as ./email,
-   lowercased behind a CSS prefix, which made a recruiter decode a joke to find
-   the way to reach me. */
-.contact-btn {
-    text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: var(--fs-body);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--green-bright);
-    background: var(--green-dim);
-    border: 1px solid rgba(var(--green-rgb), 0.5);
-    border-radius: var(--r-sm);
-    padding: var(--sp-3) var(--sp-5);
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s, background 0.2s;
-}
-.contact-btn:hover {
-    color: var(--green-bright);
-    border-color: var(--green-bright);
-    background: rgba(var(--green-rgb), 0.18);
-}
-/* One family: every contact shares the green outline, and the three a
-   recruiter needs (email, GitHub, LinkedIn) are filled. */
-.contact-btn--primary {
-    color: var(--on-green);
-}
-.contact-btn--primary {
-    font-weight: 700;
-    background: var(--green);
-    border-color: var(--green);
-    box-shadow: 0 0 18px var(--green-glow);
-}
-.contact-btn--primary:hover {
-    color: var(--on-green);
-    background: var(--green-bright);
-    border-color: var(--green-bright);
-}
-.translate-btn {
-    position: absolute;
-    top: var(--sp-5);
-    right: var(--sp-5);
-    font-family: var(--font-mono);
-    /* Sized on its own rather than from the type scale: this is the hero's
-       one control, and it reads as an affordance only at this weight. */
-    font-size: clamp(1.5rem, 2vw, 1.75rem);
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    color: var(--text-sec);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-sm);
-    padding: var(--sp-3) var(--sp-4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: var(--sp-2);
-    transition: color 0.2s, border-color 0.2s, background 0.2s;
-    z-index: 2;
-}
-/* The display above outranks the UA's [hidden] rule, so the attribute alone
-   left the button on screen. It stays in the markup for `lang th`. */
-.translate-btn[hidden] {
-    display: none;
-}
-.translate-btn:hover,
-.translate-btn.active {
-    color: var(--green);
-    border-color: var(--green);
-    background: var(--green-dim);
-}
-.translate-icon {
-    font-size: 0.85em;
-    color: var(--green);
-}
 
-/* Sections ----------------------------------------------------------------- */
-.projects-section,
-.organizing-section,
-.background-section {
-    max-width: var(--section-max);
-    margin: 0 auto;
-    padding: var(--sp-9) var(--gutter);
-    border-top: 1px solid var(--border);
-}
-/* Highlights — project-card panels without the screenshot. Not links, so they
-   keep the green border on hover but not the lift that says "click me". */
-.highlights-section {
-    max-width: var(--section-max);
-    margin: 0 auto;
-    padding: 0 var(--gutter) var(--sp-7);
-}
-.highlight-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-    gap: var(--sp-5);
-}
-.highlight-card:hover {
-    transform: none;
-}
-/* A strip, not a row of posters: tight padding and a smaller title keep all
-   three cards short enough to sit under the hero on the first screen. */
-.highlight-card .project-info {
-    padding: var(--sp-3) var(--sp-5);
-}
-.highlight-card .project-title {
-    font-size: var(--fs-h3);
-}
-/* Glass rather than a full-width band: max-content keeps the panel the width of
-   the heading itself, so the raster still owns the space either side of it. */
-.section-header {
-    width: max-content;
-    max-width: 100%;
-    margin-bottom: var(--sp-5);
-    padding: var(--sp-4) var(--sp-5);
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    /* No border: with the prompt that used to ride its top rule gone, a box
-       around one word reads as a button. The glass stays for the contrast. */
-}
-.section-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-h2);
-    font-weight: 700;
-    color: var(--text-pri);
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-}
-
-/* Contribution heatmap ------------------------------------------------------ */
-/* Boxed like .about-inner / .timeline so it reads as its own card above the
-   black hole backdrop — unboxed, the raster showed straight through the gaps
-   between cells. The smaller heading keeps it visually subordinate to
-   "Things I've Built" despite now sharing the card treatment. */
-.contrib-block {
-    margin-top: var(--sp-8);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    padding: var(--sp-6) var(--sp-6) var(--sp-7);
-}
-.contrib-title {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    font-weight: 400;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    margin-bottom: var(--sp-4);
-}
-/* 53 columns cannot fit a phone, so the grid scrolls inside its own box and the
-   page body never scrolls sideways. */
 .contrib-scroll {
     overflow-x: auto;
     padding-bottom: var(--sp-2);
@@ -955,482 +1142,6 @@ body::after {
     margin-top: var(--sp-1);
 }
 
-/* Project filter ----------------------------------------------------------- */
-.filter-bar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--sp-3);
-    margin-bottom: var(--sp-6);
-    padding: var(--sp-4) var(--sp-5);
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-}
-.filter-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-}
-.filter-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2);
-}
-.filter-clear {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    color: var(--text-sec);
-    background: none;
-    border: none;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    padding: var(--sp-1) var(--sp-2);
-    border-radius: var(--r-sm);
-    transition: color 0.2s;
-}
-.filter-clear:hover {
-    color: var(--green);
-}
-/* Same glass as the bar above it, hugging the one line of text it holds. */
-.filter-empty {
-    width: max-content;
-    max-width: 100%;
-    font-size: var(--fs-small);
-    /* --text-sec, not --text-muted: on --glass muted falls to 4.22:1 over the
-       brightest glyphs, under AA. */
-    color: var(--text-sec);
-    margin-bottom: var(--sp-6);
-    padding: var(--sp-3) var(--sp-4);
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-}
-
-/* Project cards ------------------------------------------------------------ */
-.project-card.is-hidden {
-    display: none;
-}
-/* The grid's own entrance moved to motion.js, where it is a staggered batch.
-   It is written from JS rather than from here for the same reason it used to
-   strip its classes on animationend: the tag filter hides these cards, and a
-   start state this file owned could outlive the animation meant to clear it.
-   See the Motion layer block at the end of this file. */
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
-    gap: var(--sp-7);
-    /* motion.js parks each card tilted back in perspective until it scrolls
-       in, which flares its bottom edge wider than the card. On a phone a tall
-       card flared past the screen edge and made the page scroll sideways.
-       clip (not hidden) leaves vertical overflow and hover lifts alone. */
-    overflow-x: clip;
-}
-.project-card {
-    background: var(--glass-panel);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    transition: border-color 0.2s, transform 0.2s;
-}
-.project-card:hover {
-    border-color: var(--green);
-    transform: translateY(-5px);
-}
-.project-img-link {
-    display: block;
-    text-decoration: none;
-}
-.project-img-wrap {
-    position: relative;
-    overflow: hidden;
-    height: 300px;
-}
-.project-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    filter: grayscale(20%) brightness(0.85);
-    transition: filter 0.3s, transform 0.3s;
-}
-/* The label is always on screen, parked in the corner. It used to live at
-   opacity 0 behind a :hover, which meant that on a touch device — where there
-   is no hover — nothing on the card said it was a link at all. Hover now only
-   *strengthens* an affordance that is already legible, rather than being the
-   only way to discover it. */
-.project-img-overlay {
-    position: absolute;
-    inset: 0;
-    background: transparent;
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-end;
-    padding: var(--sp-3);
-    transition: background 0.25s;
-}
-.project-img-wrap:hover .project-img {
-    filter: grayscale(0%) brightness(0.75);
-    transform: scale(1.04);
-}
-.project-img-wrap:hover .project-img-overlay,
-.project-img-link:focus-visible .project-img-overlay {
-    background: rgba(var(--green-rgb), 0.12);
-}
-/* Its own chip, because it sits over photographs rather than over a known
-   colour — the fill is what keeps it legible on a light image. */
-.view-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    font-weight: 700;
-    color: var(--green-bright);
-    letter-spacing: 0.05em;
-    padding: var(--sp-1) var(--sp-3);
-    border-radius: var(--r-pill);
-    background: rgba(var(--bg-rgb), 0.82);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    border: 1px solid var(--green-line);
-    opacity: 0.85;
-    transition: opacity 0.25s, border-color 0.25s;
-}
-.project-img-wrap:hover .view-label,
-.project-img-link:focus-visible .view-label {
-    opacity: 1;
-    border-color: var(--green);
-}
-.project-info {
-    padding: var(--sp-5) var(--sp-6) var(--sp-6);
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-1);
-}
-/* The fixed terminal widget (pill + cat) reaches about 200px in from the
-   viewport's right edge, and the right-hand card's text used to run under it
-   when you landed on #projects. The card's own right edge sits the section's
-   centring margin plus the gutter in from that edge, so the text keeps clear of
-   whatever is left over. On a wide screen that is nothing and the normal
-   padding wins; on a phone the widget docks into the nav, so this stops there. */
-@media (min-width: 641px) {
-    .project-grid .project-info {
-        padding-right: max(var(--sp-6),
-            calc(200px - (100vw - min(var(--section-max), 100vw)) / 2 - var(--gutter)));
-    }
-}
-.project-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-card);
-    font-weight: 700;
-    color: var(--text-pri);
-    letter-spacing: -0.01em;
-}
-.project-sub {
-    font-size: var(--fs-body);
-    color: var(--text-sec);
-}
-.skill-container {
-    display: flex;
-    gap: var(--sp-2);
-    flex-wrap: wrap;
-    margin-top: var(--sp-3);
-}
-
-/* Skill tags — a static span in cards, a button in the filter bar and hero.
-   Two levels of specificity only; do not add a third. */
-.skill-tag {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    color: var(--green);
-    background: var(--green-dim);
-    border: 1px solid var(--green-line);
-    border-radius: var(--r-sm);
-    padding: var(--sp-1) var(--sp-3);
-}
-button.skill-tag {
-    position: relative;
-    font-family: var(--font-mono);
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
-}
-button.skill-tag:hover {
-    border-color: var(--green);
-    background: rgba(var(--green-rgb), 0.2);
-    transform: translateY(-1px);
-}
-button.skill-tag.is-active {
-    background: var(--green);
-    color: var(--bg);
-    border-color: var(--green);
-}
-/* In the hero the tags are a list of skills first and a filter second, so they
-   drop the fill and most of the border: they must not read as the same kind of
-   thing as the contact buttons above them. Hover brings the full chip back so
-   the filter is still discoverable. */
-.skills-block button.skill-tag {
-    font-size: var(--fs-micro);
-    color: var(--text-sec);
-    background: transparent;
-    border-color: var(--border);
-    padding: 2px var(--sp-2);
-}
-.skills-block button.skill-tag:hover,
-.skills-block button.skill-tag:focus-visible {
-    color: var(--green-bright);
-    border-color: var(--green);
-    background: var(--green-dim);
-}
-/* Tooltip copy is set from the i18n dictionary via data-tooltip. */
-button.skill-tag[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%) translateY(4px);
-    background: var(--surface-2);
-    color: var(--green-bright);
-    border: 1px solid var(--green);
-    border-radius: var(--r-sm);
-    padding: var(--sp-1) var(--sp-3);
-    font-size: var(--fs-micro);
-    font-family: var(--font-mono);
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    z-index: 10;
-}
-button.skill-tag[data-tooltip]:hover::after,
-button.skill-tag[data-tooltip]:focus-visible::after {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-}
-
-.ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(var(--green-bright-rgb),0.5) 0%, rgba(var(--green-rgb),0.15) 60%, transparent 70%);
-    transform: scale(0);
-    pointer-events: none;
-    z-index: 3;
-    animation: rippleAnim 0.6s ease-out forwards;
-}
-@keyframes rippleAnim {
-    to { transform: scale(1); opacity: 0; }
-}
-
-.toast {
-    position: fixed;
-    left: 50%;
-    bottom: var(--sp-7);
-    z-index: 200;
-    transform: translate(-50%, 12px);
-    opacity: 0;
-    pointer-events: none;
-    background: var(--surface-2);
-    color: var(--green-bright);
-    border: 1px solid var(--green);
-    border-radius: var(--r-sm);
-    padding: var(--sp-3) var(--sp-5);
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    letter-spacing: 0.03em;
-    transition: opacity 0.25s ease, transform 0.25s ease;
-}
-.toast.show {
-    opacity: 1;
-    transform: translate(-50%, 0);
-}
-
-/* Background timeline ------------------------------------------------------ */
-/* The same card the hero is built from — glass panel, hairline border, large
-   radius, green top edge — so the two long-form panels on the page read as one
-   family. No max-width of its own: it fills the section's content box, which is
-   how it lands on the same left edge as the hero card and the project grid. */
-.timeline {
-    width: 100%;
-    margin: 0 auto;
-    background: var(--glass-panel);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-    padding: var(--sp-8);
-}
-.timeline-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--sp-4) var(--sp-6);
-}
-/* The two tracks run at different lengths — three education entries beside
-   two experience entries — so the short column leaves a tall empty block to the
-   right of the long one. The rule makes that a boundary between two tracks
-   instead of an unexplained hole: it says the space belongs to the second
-   column and the column simply has less in it. Full-height by grid stretch, so
-   it holds whichever track happens to be longer. */
-.timeline-columns > .timeline-col + .timeline-col {
-    padding-left: var(--sp-6);
-    border-left: 1px solid var(--border);
-}
-.timeline-col-title {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 0 0 var(--sp-5);
-    padding-bottom: var(--sp-3);
-    border-bottom: 1px solid var(--border);
-}
-.timeline-track {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-6);
-}
-.timeline-track::before {
-    content: '';
-    position: absolute;
-    left: 7px;
-    top: 4px;
-    bottom: 4px;
-    width: 1px;
-    background: var(--border);
-}
-.timeline-item {
-    position: relative;
-    display: grid;
-    grid-template-columns: 16px 1fr;
-    column-gap: var(--sp-4);
-    align-items: start;
-}
-.timeline-dot {
-    grid-column: 1;
-    justify-self: center;
-    align-self: start;
-    position: relative;
-    margin-top: 6px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 2.5px solid var(--border-strong);
-    z-index: 2;
-}
-/* Green marks the live one — the rest of the track is structure. */
-.timeline-item.is-current .timeline-dot {
-    background: var(--green);
-    border-color: var(--green);
-    box-shadow: 0 0 14px rgba(var(--green-rgb), 0.6);
-}
-.timeline-item.is-current .timeline-dot::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2.5px solid var(--green);
-    animation: pulseRing 1.8s ease-out infinite;
-}
-.timeline-item.is-open .timeline-dot {
-    background: transparent;
-    border-color: var(--green);
-    border-style: dashed;
-}
-.timeline-item.is-open .timeline-dot::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px dashed var(--green);
-    animation: pulseRing 2.4s ease-out infinite;
-}
-@keyframes pulseRing {
-    0%   { transform: scale(1); opacity: 0.7; }
-    100% { transform: scale(2.3); opacity: 0; }
-}
-.timeline-content {
-    grid-column: 2;
-    text-align: left;
-    padding: var(--sp-2) var(--sp-4);
-    margin: calc(var(--sp-2) * -1) calc(var(--sp-4) * -1);
-    border-radius: var(--r-sm);
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-}
-/* Only the education entries carry a photo, so only they get the pointer and
-   the hover affordance. Previously every item looked clickable; five of the
-   nine did nothing when clicked. */
-.timeline-content[data-image] {
-    cursor: pointer;
-}
-.timeline-content[data-image]:focus-visible {
-    outline: none;
-}
-.timeline-content[data-image]:hover,
-.timeline-content[data-image]:focus-visible {
-    background: var(--green-dim);
-    box-shadow: 0 0 0 1px var(--green-line);
-}
-.timeline-content[data-image]:hover .timeline-title,
-.timeline-content[data-image]:focus-visible .timeline-title {
-    color: var(--green-bright);
-}
-.timeline-content[data-image]:hover .timeline-hint,
-.timeline-content[data-image]:focus-visible .timeline-hint {
-    opacity: 1;
-}
-.timeline-year {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-    margin-bottom: var(--sp-1);
-}
-.timeline-title {
-    font-size: var(--fs-h3);
-    font-weight: 600;
-    color: var(--text-pri);
-    line-height: 1.3;
-    transition: color 0.2s ease;
-}
-.timeline-place {
-    font-size: var(--fs-small);
-    color: var(--text-sec);
-    margin-top: var(--sp-1);
-}
-.timeline-note {
-    font-size: var(--fs-small);
-    color: var(--green-bright);
-    font-style: italic;
-    margin-top: var(--sp-1);
-}
-/* Amber = something earned: a GPAX, a medal, a placing. */
-.timeline-award {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    color: var(--amber);
-    letter-spacing: 0.03em;
-    margin-top: var(--sp-1);
-}
-/* Visible at rest, brighter on hover. These four cards open a photo, and at
-   opacity 0 there was nothing telling a phone visitor that — the entries read
-   as flat text. Dimmed rather than hidden keeps the hierarchy without hiding
-   the affordance. */
-.timeline-hint {
-    display: inline-block;
-    margin-top: var(--sp-1);
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.04em;
-    color: var(--green);
-    opacity: 0.6;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
 
 /* Timeline photo lightbox -------------------------------------------------- */
 .timeline-lightbox {
@@ -1742,6 +1453,33 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .term-line-error {
     color: var(--text-muted);
 }
+/* Directories in `ls`, the same green the prompt uses. */
+.term-dir {
+    color: var(--green);
+}
+/* `theme` recolours the terminal alone. The derived tints are resolved where
+   they are declared, on :root, so overriding --green-rgb here would leave them
+   behind; they are declared again on the widget so they pick the new value up.
+   Green is the default and has no rule - rune mode keeps working on it. */
+.term-widget[data-theme] {
+    --green:        rgb(var(--green-rgb));
+    --green-bright: rgb(var(--green-bright-rgb));
+    --green-dim:    rgba(var(--green-rgb), 0.10);
+    --green-line:   rgba(var(--green-rgb), 0.25);
+    --green-glow:   rgba(var(--green-rgb), 0.18);
+}
+.term-widget[data-theme="amber"] {
+    --green-rgb:        234, 179, 8;
+    --green-bright-rgb: 250, 204, 21;
+}
+.term-widget[data-theme="blue"] {
+    --green-rgb:        56, 189, 248;
+    --green-bright-rgb: 125, 211, 252;
+}
+.term-widget[data-theme="pink"] {
+    --green-rgb:        244, 114, 182;
+    --green-bright-rgb: 249, 168, 212;
+}
 /* Square like every other box here, and capped so one cat never pushes the
    prompt out of a short panel. */
 .term-line-img img {
@@ -1944,233 +1682,106 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     text-shadow: 0 0 6px var(--green-glow);
 }
 
-/* Footer ------------------------------------------------------------------- */
-.footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--sp-2);
-    text-align: center;
-    padding: var(--sp-8) var(--sp-7);
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    color: var(--text-sec);
-    letter-spacing: 0.08em;
-    border-top: 1px solid var(--border);
-    /* The footer sits where the black hole is largest and brightest, which is
-       why this one is a full-width band rather than a panel hugging its text. */
-    background: var(--glass);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
+
+.nav-indicator { border-radius: var(--r-pill); }
+
+@media (prefers-reduced-transparency: reduce) {
+    .navbar,
+    .view-label {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+    .navbar { background: var(--surface); }
 }
 
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* Responsive ---------------------------------------------------------------- */
+/* The photo lightbox is a bottom sheet on phones, with a grabber. */
+@media (max-width: 640px) {
+    .timeline-lightbox {
+        align-items: flex-end;
+        padding: 0;
+    }
+    .timeline-lightbox-frame {
+        width: 100%;
+        max-height: 88dvh;
+        border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+        border-bottom: none;
+        transform: translateY(40px);
+    }
+    .timeline-lightbox.is-open .timeline-lightbox-frame { transform: translateY(0); }
+    .timeline-lightbox-frame::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 5px;
+        margin: var(--sp-2) auto var(--sp-1);
+        border-radius: var(--r-pill);
+        background: var(--border-strong);
+    }
 }
-
-/* Responsive --------------------------------------------------------------- */
-/* Laptop widths: a slightly smaller photo and narrower card padding give the
-   text column the ~770px the two skill groups need side by side. Without it
-   they wrap to two rows and push the highlights below the fold. */
-@media (min-width: 1025px) and (max-width: 1599px) {
-    .about-inner {
-        gap: var(--sp-7);
-        padding-left: var(--sp-7);
-        padding-right: var(--sp-7);
-    }
-    .avatar-wrap {
-        --avatar-size: 240px;
-    }
-}
-@media (max-width: 1024px) {
-    /* The spine narrows here once, and all three sections follow it — they no
-       longer each restate their own horizontal padding. */
-    :root {
-        --gutter: var(--sp-5);
-    }
-    .navbar {
-        top: var(--sp-5);
-        right: var(--sp-5);
-        padding: var(--sp-2) var(--sp-3);
-    }
-    .nav-link {
-        padding: var(--sp-2) var(--sp-3);
-    }
-    .about-section {
-        padding: var(--sp-9) var(--gutter) var(--sp-7);
-    }
-    .about-inner {
-        gap: var(--sp-6);
-        padding: var(--sp-6) var(--sp-5);
-    }
-    .avatar-wrap {
-        --avatar-size: 200px;
-    }
-    .projects-section,
-    .organizing-section,
-    .background-section {
-        padding: var(--sp-8) var(--gutter);
-    }
-    .project-grid {
-        grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
-        gap: var(--sp-6);
-    }
-    .timeline {
-        max-width: 100%;
-        /* Tracks .about-inner at this breakpoint — the two cards step down
-           together rather than drifting apart. */
-        padding: var(--sp-6) var(--sp-5);
-    }
+@media (max-width: 900px) {
+    .project-grid,
+    .k2c-panel,
     .timeline-columns {
-        grid-template-columns: 1fr;
-        gap: var(--sp-7);
-    }
-    /* Stacked here, so the divider would cut across the flow rather than
-       between the tracks. */
-    .timeline-columns > .timeline-col + .timeline-col {
-        padding-left: 0;
-        border-left: none;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
-
+@media (max-width: 820px) {
+    .about-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--sp-5);
+    }
+    .text-section { align-items: center; }
+    .availability-row,
+    .skills-block,
+    .contact-row { justify-content: center; }
+    .skill-group { align-items: center; }
+    .highlight-grid { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 640px) {
     :root {
-        /* The nav goes fixed here, so it contributes nothing to layout and any
-           section ending at the viewport floor renders underneath it. 59px is
-           its measured box (sp-2 block padding + the link); the inset clears
-           the iOS home indicator on top of that. */
-        --nav-h: calc(59px + env(safe-area-inset-bottom, 0px));
+        --gutter: var(--sp-4);
+        --nav-h: calc(53px + env(safe-area-inset-bottom, 0px));
     }
+    html { scroll-padding-top: var(--sp-4); }
+    /* The nav becomes the bottom tab bar. The terminal button docks into its
+       right-hand end, so the bar keeps clear of it with padding-right. */
     .navbar {
         top: auto;
         bottom: 0;
-        right: 0;
         left: 0;
+        right: 0;
+        margin: 0;
+        width: auto;
+        max-width: none;
+        justify-content: center;
+        gap: 0;
+        padding: var(--sp-2) 70px calc(var(--sp-2) + env(safe-area-inset-bottom, 0px)) var(--sp-2);
         border-radius: 0;
-        border-top: 1px solid var(--border);
-        border-bottom: none;
-        border-left: none;
-        border-right: none;
-        justify-content: center;
-        padding: var(--sp-2) var(--sp-4);
+        border-width: 1px 0 0;
+        box-shadow: none;
     }
-    /* The bar centres its links into what is left beside the docked terminal
-       pill, and a centred row that outgrows its box spills off *both* edges —
-       which is how the first link kept losing its bracket off screen. Rather
-       than stepping the size down per breakpoint, solve for it: the row needs
-       roughly 20.7x the font size, and has (100vw - 86px) to live in. */
     .nav-link {
-        padding: var(--sp-2) var(--sp-1);
-        font-size: clamp(0.66rem, calc(4.6vw - 4.2px), 1rem);
-        letter-spacing: 0.04em;
+        padding: 0 6px;
+        font-size: clamp(0.6875rem, 3.4vw, 0.8125rem);
     }
     .about-section {
-        padding: var(--sp-7) var(--sp-4) calc(var(--sp-7) + var(--nav-h));
-        min-height: 100svh;
+        padding: var(--sp-5) var(--gutter) var(--sp-5);
     }
-    /* With one fewer skill group the hero fits without crushing its gaps to
-       near zero, which is what the old 0.02rem values were doing. */
-    .about-inner {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: var(--sp-5) var(--sp-4);
-        gap: var(--sp-5);
-    }
-    .text-section {
-        align-items: center;
-        gap: var(--sp-3);
-    }
-    /* The full name needs about 9.9x the nickname's size to stay on one line,
-       and has (100vw - 64px) of hero to do it in. Below the desktop clamp's
-       1.9rem floor that stopped being true and the last name orphaned onto a
-       line of its own, so the floor comes down here. */
-    .name-txt {
-        font-size: clamp(1.2rem, calc(8.2vw - 6px), 1.9rem);
-    }
-    /* The name, tagline, availability and contact row all have to clear the
-       fold on a 375x667 phone, so everything above them gives some height
-       back: a smaller avatar, the language switch pinned to the corner
-       instead of taking a row of its own, and a body-size tagline. */
-    .about-section {
-        padding-top: var(--sp-5);
-    }
-    .about-inner {
-        padding-top: var(--sp-6);
-        gap: var(--sp-3);
-    }
-    .status-txt {
-        font-size: var(--fs-small);
-    }
-    .availability-txt {
-        font-size: var(--fs-micro);
-    }
-    .availability-row {
-        justify-content: center;
-    }
-    .skill-grid {
-        justify-content: center;
-    }
-    /* Stacked full-width these ran 171px tall — on a 390x844 screen that alone
-       pushed the hero past 100svh and slid the buttons under the fixed nav.
-       Wrapping is worth the narrower tap targets: they still clear 44px. */
-    .contact-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: var(--sp-2);
-        width: 100%;
-    }
-    .contact-btn {
-        text-align: center;
-        font-size: var(--fs-micro);
-        letter-spacing: 0.04em;
-        padding: var(--sp-3) var(--sp-2);
-    }
-    .translate-btn {
-        position: absolute;
-        top: var(--sp-3);
-        right: var(--sp-2);
-        font-size: var(--fs-micro);
-        letter-spacing: 0.04em;
-        padding: var(--sp-1) var(--sp-2);
-    }
-    .avatar-wrap {
-        --avatar-size: 104px;
-    }
+    .avatar-wrap { --avatar-size: 112px; }
+    .about-inner { gap: var(--sp-4); }
+    .text-section { gap: var(--sp-2); }
     .projects-section,
     .organizing-section,
-    .background-section {
-        padding: var(--sp-7) var(--sp-4);
+    .background-section,
+    .contact-section {
+        padding-top: var(--sp-6);
     }
-    .project-grid {
-        grid-template-columns: 1fr;
-        gap: var(--sp-5);
-    }
-    .project-img-wrap {
-        height: 220px;
-    }
-    .project-info {
-        padding: var(--sp-5) var(--sp-5) var(--sp-5);
-    }
-    .timeline {
-        padding: var(--sp-5) var(--sp-4);
-    }
-    .timeline-track {
-        gap: var(--sp-5);
-    }
-    .timeline-track::before {
-        left: 6px;
-    }
-    .timeline-item {
-        column-gap: var(--sp-3);
-    }
-    .timeline-dot {
-        width: 14px;
-        height: 14px;
-    }
+    .k2c-contest { grid-template-columns: minmax(0, 1fr) auto; }
+    .k2c-status { grid-column: 1 / -1; justify-self: start; }
+    .footer { padding: var(--sp-6) var(--gutter) calc(var(--sp-6) + var(--nav-h)); }
+    button.skill-tag[data-tooltip]::after { display: none; }
     /* Docked into the nav strip rather than floating above the page. As a
        floating widget it sat on top of whatever happened to be underneath it,
        and on a 390px screen that was the right quarter of the Email button —
@@ -2228,370 +1839,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
        key to accept it with. */
     .term-ghost {
         display: none;
-    }
-    .footer {
-        padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + var(--nav-h));
-    }
-    /* Hover tooltips never show on touch, but a hidden one centred on the
-       last tag in a row still stuck out past the screen edge and made the
-       whole page scroll sideways. */
-    button.skill-tag[data-tooltip]::after {
-        display: none;
-    }
-}
-
-@media (max-width: 440px) {
-    .navbar {
-        gap: 0;
-    }
-}
-
-@media (min-width: 1600px) {
-    :root {
-        --gutter: var(--sp-8);
-    }
-    .about-section {
-        padding: var(--sp-9) var(--gutter);
-    }
-    .about-inner {
-        gap: var(--sp-9);
-        padding: var(--sp-8) var(--sp-9);
-    }
-    .avatar-wrap {
-        --avatar-size: 320px;
-    }
-    .projects-section,
-    .organizing-section,
-    .background-section {
-        padding: var(--sp-9) var(--gutter);
-    }
-    .project-grid {
-        gap: var(--sp-8);
-    }
-    .translate-btn {
-        font-size: 2rem;
-        padding: var(--sp-3) var(--sp-5);
-    }
-}
-
-/* Black hole backdrop -------------------------------------------------------
-   z-index -1 puts this above the body background (which propagates to the
-   canvas, since html sets none) and below every section's own content, so it
-   needs no stacking changes anywhere else. The scanline overlay at z-index 5
-   still lays its texture over the top, which is what we want: the raster is
-   part of the screen, not something in front of it. */
-.blackhole {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    overflow: hidden;
-    contain: layout paint;
-}
-/* One canvas, one fillText per row. It used to be a <pre> whose text was
-   replaced every frame, and laying out ~8,700 glyphs 30 times a second was the
-   single most expensive thing on the page. The font rules stay here even though
-   nothing is typeset: blackhole.js reads them to size its cells, so the three
-   breakpoints below still decide the raster's resolution. The amber-to-green
-   colouring is a canvas gradient now, built from the same custom properties. */
-.blackhole__world {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    font-family: var(--font-mono);
-    font-size: 16px;
-    line-height: 1;
-    opacity: 0.42;
-}
-/* Fewer, larger cells on small screens: the raster's cost is per cell, and a
-   phone reads a coarse ramp better than a fine one anyway.
-
-   The opacities went up across the board when the big panels became glass. The
-   panels now sit over the raster instead of hiding it, and glass costs the
-   glyphs underneath roughly a third of their strength — at the old values the
-   hole read as faint grain through the cards, and on a phone it was invisible
-   entirely. */
-@media (max-width: 1024px) {
-    .blackhole__world { font-size: 18px; opacity: 0.36; }
-}
-@media (max-width: 640px) {
-    .blackhole__world { font-size: 21px; opacity: 0.32; }
-}
-/* The blur is what earns --glass its low alpha: it spreads the raster's bright
-   glyphs into a flat wash before the text is drawn over it. Where there is no
-   backdrop-filter to do that spreading, the alpha has to carry the contrast on
-   its own. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .section-header,
-    .filter-bar,
-    .filter-empty,
-    .footer {
-        background: rgba(var(--bg-rgb), 0.92);
-    }
-    /* The long-form panels went from opaque to glass so the raster could read
-       through them. Without a blur to spread the glyphs first, that trade stops
-       paying — bright characters land under body copy as hard speckle — so
-       here the panels go back to being solid. */
-    .about-inner,
-    .timeline,
-    .k2c-panel,
-    .project-card {
-        background: var(--surface);
-    }
-    .view-label {
-        background: rgba(var(--bg-rgb), 0.95);
-    }
-}
-
-/* Organizing --------------------------------------------------------------- */
-/* One panel, two columns: what the group is on the left, and on the right the
-   contest log, read like shell output — done runs first, then what is planned. */
-.k2c-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: var(--sp-8);
-    padding: var(--sp-8);
-    background: var(--glass-panel);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
-}
-.k2c-intro {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-4);
-}
-.k2c-role {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--green);
-}
-.k2c-role-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--green);
-    box-shadow: 0 0 10px rgba(var(--green-rgb), 0.7);
-}
-/* The group's own name, now that the section heading is the generic one. */
-.k2c-group {
-    font-family: var(--font-display);
-    font-size: var(--fs-card);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    color: var(--text-pri);
-}
-.k2c-lead {
-    font-size: var(--fs-lead);
-    line-height: 1.45;
-    color: var(--text-pri);
-}
-.k2c-aka {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-}
-.k2c-stats {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    letter-spacing: 0.04em;
-    color: var(--amber);
-}
-.k2c-body {
-    font-size: var(--fs-body);
-    line-height: 1.6;
-    color: var(--text-sec);
-}
-.k2c-tools {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    color: var(--text-muted);
-}
-/* The same inline link wherever prose points somewhere else on the page. */
-.k2c-tools a,
-.timeline-place a {
-    color: var(--green);
-    text-decoration: none;
-    border-bottom: 1px dashed var(--green-line);
-    transition: border-color 0.2s;
-}
-.k2c-tools a:hover,
-.timeline-place a:hover {
-    border-bottom-color: var(--green);
-}
-.k2c-links {
-    margin-top: var(--sp-2);
-}
-.k2c-log {
-    padding-left: var(--sp-7);
-    border-left: 1px solid var(--border);
-}
-.k2c-log-title {
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    margin-bottom: var(--sp-3);
-}
-.k2c-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-.k2c-contest {
-    display: grid;
-    grid-template-columns: 6.5rem minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--sp-4);
-    padding: var(--sp-4) 0;
-    border-bottom: 1px dashed var(--border);
-}
-.k2c-contest:last-child {
-    border-bottom: none;
-}
-.k2c-status {
-    justify-self: start;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    letter-spacing: 0.08em;
-    padding: var(--sp-1) var(--sp-2);
-    border: 1px solid var(--border);
-}
-.k2c-status::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: currentColor;
-}
-.is-done .k2c-status {
-    color: var(--green);
-    border-color: var(--green-line);
-    background: var(--green-dim);
-}
-.is-planned .k2c-status {
-    color: var(--text-sec);
-    border-style: dashed;
-}
-/* Planned blinks like a cursor waiting for input: it is the one thing on the
-   panel that is still going to happen. */
-.is-planned .k2c-status::before {
-    animation: k2cWait 1.2s steps(1, end) infinite;
-}
-@keyframes k2cWait {
-    50% { opacity: 0; }
-}
-.k2c-name {
-    font-family: var(--font-mono);
-    font-size: var(--fs-body);
-    font-weight: 500;
-    color: var(--text-pri);
-}
-.is-planned .k2c-name {
-    color: var(--text-sec);
-}
-.k2c-meta {
-    margin-top: var(--sp-1);
-    font-family: var(--font-mono);
-    font-size: var(--fs-micro);
-    color: var(--text-muted);
-}
-.k2c-go {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    color: var(--text-sec);
-    text-decoration: none;
-    white-space: nowrap;
-    padding: var(--sp-1) var(--sp-2);
-    border: 1px solid transparent;
-    transition: color 0.2s, border-color 0.2s, background 0.2s;
-}
-.k2c-go:hover,
-.k2c-go:focus-visible {
-    color: var(--green);
-    border-color: var(--green);
-    background: var(--green-dim);
-}
-@media (max-width: 900px) {
-    .k2c-panel {
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--sp-6);
-        padding: var(--sp-6) var(--sp-5);
-    }
-    .k2c-log {
-        padding-left: 0;
-        padding-top: var(--sp-5);
-        border-left: none;
-        border-top: 1px solid var(--border);
-    }
-}
-/* Four links now share the docked phone bar with the terminal button. The
-   brackets take their width even while invisible, so they go, and the lit
-   block (or the plain fill under reduced motion) marks the active link alone. */
-@media (max-width: 640px) {
-    .navbar {
-        justify-content: flex-start;
-        gap: 0;
-        padding-left: var(--sp-2);
-    }
-    .nav-link {
-        font-size: var(--fs-small);
-        letter-spacing: 0;
-        padding: var(--sp-2) var(--sp-2);
-    }
-}
-/* Up to 420 rather than 400: at --fs-small the four links need ~350px, and the
-   docked terminal button starts at 100vw - 56px, so 401-406px would overlap. */
-@media (max-width: 420px) {
-    /* Five links never fit one line at a phone's width. Capping the row makes
-       the wrap fall three and two, instead of four and one left alone. */
-    .contact-row--secondary {
-        column-gap: var(--sp-4);
-        max-width: 17rem;
-        margin-inline: auto;
-    }
-    .contact-row--secondary .contact-btn {
-        font-size: var(--fs-micro);
-        letter-spacing: 0;
-    }
-    .nav-link {
-        font-size: var(--fs-micro);
-        padding: var(--sp-2) 6px;
-    }
-}
-/* Below that the row simply cannot fit beside the button, so it scrolls
-   sideways instead of sliding a link underneath it. */
-@media (max-width: 370px) {
-    .navbar {
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-    .navbar::-webkit-scrollbar {
-        display: none;
-    }
-    .nav-link {
-        flex-shrink: 0;
-        padding: var(--sp-2) var(--sp-1);
-    }
-}
-@media (max-width: 480px) {
-    /* The status chip moves above the name rather than squeezing it. */
-    .k2c-contest {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: var(--sp-2) var(--sp-3);
-    }
-    .k2c-status {
-        grid-column: 1 / -1;
     }
 }
 
@@ -2672,40 +1919,38 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     transition: border-color 0.2s, filter 0.25s, box-shadow 0.25s;
     will-change: transform;
 }
-/* The spotlight springs.js trails after the pointer. Two layers: a faint wash
-   across the face, and a lit stretch of the border drawn by masking the same
-   gradient down to a 1px ring. Both sit above the screenshot and the label but
-   take no pointer events, so the link underneath still clicks. */
-.card-glare,
-.card-edge {
+/* The Background columns lift on hover like the cards. */
+.timeline-col {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+.timeline-col.is-rigged { transition: none; will-change: transform; }
+/* Each row in them tints under the pointer, like a row in a grouped list. */
+@media (hover: hover) {
+    .timeline-content {
+        margin: 0 calc(-1 * var(--sp-3));
+        padding: var(--sp-1) var(--sp-3);
+        border-radius: var(--r-sm);
+        transition: background 0.2s;
+    }
+    .timeline-content:hover { background: rgba(var(--green-rgb), 0.06); }
+}
+/* Scroll progress, drawn by motion.js along the bottom of the nav. */
+.nav-progress {
     position: absolute;
-    z-index: 2;
+    left: var(--sp-5);
+    right: var(--sp-5);
+    bottom: 1px;
+    height: 2px;
+    border-radius: var(--r-pill);
+    background: var(--green);
+    transform: scaleX(0);
+    transform-origin: left center;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.35s;
 }
-.card-glare {
-    inset: 0;
-    background: radial-gradient(420px circle at var(--glare-x, 50%) var(--glare-y, 50%),
-                rgba(var(--green-rgb), 0.10), transparent 65%);
-}
-.card-edge {
-    inset: -1px;
-    padding: 1px;
-    background: radial-gradient(320px circle at var(--glare-x, 50%) var(--glare-y, 50%),
-                rgba(var(--green-bright-rgb), 0.95), transparent 70%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-.project-card.is-lit .card-glare,
-.project-card.is-lit .card-edge {
-    opacity: 1;
-}
-/* The plain :hover rule lights the whole border, which would drown the lit
-   stretch; with the spotlight on, the rest of the border stays dim. */
-.project-card.is-lit {
-    border-color: var(--green-line);
+@media (max-width: 640px) {
+    .nav-progress { left: 0; right: 0; top: 0; bottom: auto; border-radius: 0; }
 }
 /* Tag preview: the projects built with the tag under the pointer light up, and
    the rest dim. Dimmed with filter rather than opacity because the filter

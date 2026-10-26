@@ -3,7 +3,7 @@
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
 
-//Project cards carry their stack as a comma-separated attribute. The tag filter
+//Project cards carry their stack as a comma-separated attribute. The hero tags
 //and the terminal's `projects` command both read it, so the parse lives here
 //rather than once in each.
 const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
@@ -11,6 +11,17 @@ const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
 //Flip to true once resume.pdf is committed at the site root. Until then the
 //button stays visibly disabled with no href, so it can never lead to a 404.
 const RESUME_READY = false;
+
+//Photos of me at each school, shown instead of the school's own photo. Flip an
+//entry to true once images/education/me-<key>.webp is committed; until then
+//the entry keeps the school photo, so nothing ever points at a missing file.
+//TODO(owner): the three me-*.webp files are placeholders ("Photo coming
+//soon"). Overwrite them with real photos, same names, before deploying.
+const MY_EDU_PHOTOS = {
+    chula: true,
+    witcom: true,
+    gifted: true,
+};
 
 //The cat that used to be the avatar. Recruiters get the face; anyone who opens
 //the terminal and types `cat` still gets the cat.
@@ -42,7 +53,7 @@ const i18n = (function () {
             tooltipHas: '→ see projects',
             tooltipNone: '→ no projects yet',
             //Same order as the .contact-row buttons in index.html.
-            btns: ['Email', 'GitHub', 'LinkedIn', 'Codeforces'],
+            btns: ['Email', 'GitHub', 'LinkedIn', 'Discord'],
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },
         th: {
@@ -54,7 +65,7 @@ const i18n = (function () {
             skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
             tooltipHas: '→ ดูโปรเจกต์',
             tooltipNone: '→ ยังไม่มีโปรเจกต์',
-            btns: ['อีเมล', 'GitHub', 'LinkedIn', 'Codeforces'],
+            btns: ['อีเมล', 'GitHub', 'LinkedIn', 'Discord'],
             resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
         },
     };
@@ -184,7 +195,7 @@ const runeMode = (function () {
         .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
     //The terminal stays readable (it is how keyboard visitors get here), and
     //the toasts are what explain the joke.
-    const SKIP = '#termWidget, #blackhole, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop, .freyr-portal';
+    const SKIP = '#termWidget, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop, .freyr-portal';
 
     let active = false;
     let frame = null;
@@ -324,7 +335,7 @@ const runeMode = (function () {
         const ctx = canvas.getContext('2d');
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const fs = w < 640 ? 13 : 16;
-        ctx.font = `700 ${fs}px "JetBrains Mono", ui-monospace, monospace`;
+        ctx.font = `700 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const cw = ctx.measureText('M').width || fs * 0.6;
@@ -553,7 +564,6 @@ const runeMode = (function () {
         if (active) return false;
         active = true;
         root.classList.add('is-freyr');
-        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
         const fancy = !reducedMotion.matches && canPortal();
         if (fancy) {
             openPortal();
@@ -594,7 +604,6 @@ const runeMode = (function () {
         }
         closePortal();
         root.classList.remove('is-freyr');
-        if (window.blackhole && window.blackhole.repaint) window.blackhole.repaint();
         sweep(swapped, false, () => { swapped = []; });
         if (titleBefore) document.title = titleBefore;
         showToast('ᛜ The runes fade');
@@ -695,7 +704,7 @@ window.runGullinbursti = function () {
         };
 
         scrambleList('.skill-group-label',  d.skillGroups, 450, 320, 80);
-        scrambleList('.about-section .contact-btn', d.btns, 450, 400, 60);
+        scrambleList('.about-section .contact-label', d.btns, 450, 400, 60);
 
         setTimeout(() => { animating = false; }, 1100);
     });
@@ -739,6 +748,26 @@ window.runGullinbursti = function () {
     link.textContent = i18n.strings.resume;
 })();
 
+//Codeforces rating -----------------------------------------------------------
+//Read from the public API on load and shown under the Codeforces button. Stays
+//hidden when the request fails or the account is unrated, so a visitor never
+//sees a placeholder.
+(function () {
+    const badge = document.getElementById('cfRating');
+    const link = document.getElementById('codeforcesLink');
+    if (!badge || !link) return;
+    const handle = link.getAttribute('href').split('/').pop();
+    fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(handle)}`)
+        .then(res => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
+        .then(data => {
+            const user = data.status === 'OK' && data.result && data.result[0];
+            if (!user || typeof user.rating !== 'number') return;
+            badge.textContent = `${user.rating} · ${user.rank || 'rated'}`;
+            badge.hidden = false;
+        })
+        .catch(() => {});
+})();
+
 //Project card click ripple --------------------------------------------------
 (function () {
     document.querySelectorAll('.project-img-link').forEach(link => {
@@ -758,67 +787,17 @@ window.runGullinbursti = function () {
     });
 })();
 
-//Project tech-stack filter --------------------------------------------------
+//Hero skill tags -------------------------------------------------------------
+//With four projects there is nothing to filter, so a tag now scrolls to the
+//projects and lights the ones built with it for a moment. springs.js previews
+//the same thing on hover.
 (function () {
     const projectCards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
-    const filterTagsContainer = document.getElementById('filterTags');
-    const filterClearBtn = document.getElementById('filterClear');
-    const filterEmptyMsg = document.getElementById('filterEmpty');
-    if (!projectCards.length || !filterTagsContainer || !filterClearBtn || !filterEmptyMsg) return;
-
-    const activeFilters = new Set();
-    //Tags never change, so each card is parsed once here rather than on every
-    //filter pass, and into a Set so the match below is a lookup, not a scan.
-    const cardTags = new Map(projectCards.map(card => [card, new Set(tagsOf(card))]));
-    //Set keeps insertion order, so the buttons still come out in card order.
-    const uniqueTags = new Set(projectCards.flatMap(tagsOf));
-
-    function applyFilters() {
-        //every() on an empty list is already true, so no filters means no match
-        //test — the same shortcut the explicit size check used to spell out.
-        const wanted = [...activeFilters];
-        const next = new Map(projectCards.map(card => {
-            const tags = cardTags.get(card);
-            return [card, wanted.every(f => tags.has(f))];
-        }));
-        const visibleCount = [...next.values()].filter(Boolean).length;
-        //springs.js, when it loaded, animates the cards across; it still hands
-        //the class change back to commit(), so which cards show stays decided here.
-        const commit = () => next.forEach((matches, card) => card.classList.toggle('is-hidden', !matches));
-        if (typeof window.animateProjectFilter === 'function') window.animateProjectFilter(next, commit);
-        else commit();
-        filterEmptyMsg.hidden = visibleCount !== 0;
-        filterClearBtn.hidden = activeFilters.size === 0;
-        filterTagsContainer.querySelectorAll('.skill-tag').forEach(btn => {
-            btn.classList.toggle('is-active', activeFilters.has(btn.dataset.tech));
-        });
-    }
-
-    function toggleFilter(tag) {
-        if (activeFilters.has(tag)) activeFilters.delete(tag);
-        else activeFilters.add(tag);
-        applyFilters();
-    }
-
-    function clearFilters() {
-        activeFilters.clear();
-        applyFilters();
-    }
-
-    uniqueTags.forEach(tag => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'skill-tag';
-        btn.dataset.tech = tag;
-        btn.textContent = tag;
-        btn.addEventListener('click', () => toggleFilter(tag));
-        filterTagsContainer.appendChild(btn);
-    });
-
-    filterClearBtn.addEventListener('click', clearFilters);
-
-    //Hero skill tags jump to the matching (filtered) projects
     const heroTechBtns = document.querySelectorAll('.skills-block button.skill-tag[data-tech]');
+    if (!projectCards.length || !heroTechBtns.length) return;
+
+    const uniqueTags = new Set(projectCards.flatMap(tagsOf));
+    let flashTimer;
 
     function updateTechTooltips() {
         const d = i18n.strings;
@@ -833,15 +812,16 @@ window.runGullinbursti = function () {
     heroTechBtns.forEach(btn => {
         const tech = btn.dataset.tech;
         btn.addEventListener('click', () => {
-            if (uniqueTags.has(tech)) {
-                activeFilters.clear();
-                activeFilters.add(tech);
-                applyFilters();
-            } else {
-                clearFilters();
+            if (!uniqueTags.has(tech)) {
                 showToast(`No projects tagged ${tech} yet`);
+                return;
             }
             document.getElementById('projects').scrollIntoView({ behavior: scrollBehavior() });
+            projectCards.forEach(card => card.classList.toggle('is-linked', tagsOf(card).includes(tech)));
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(() => {
+                projectCards.forEach(card => card.classList.remove('is-linked'));
+            }, 2200);
         });
     });
 })();
@@ -916,6 +896,16 @@ window.runGullinbursti = function () {
 
     let lastFocused = null;
 
+    //Swap in my own photo wherever one is ready (see MY_EDU_PHOTOS).
+    items.forEach(item => {
+        const key = item.dataset.me;
+        if (!key || !MY_EDU_PHOTOS[key]) return;
+        item.dataset.image = 'images/education/me-' + key + '.webp';
+        if (item.dataset.meCaption) item.dataset.caption = item.dataset.meCaption;
+        const hint = item.querySelector('.timeline-hint');
+        if (hint) hint.textContent = 'Me there';
+    });
+
     function openLightbox(item) {
         lastFocused = document.activeElement;
         lightbox.classList.remove('is-missing');
@@ -955,8 +945,46 @@ window.runGullinbursti = function () {
         if (e.target === lightbox) closeLightbox();
     });
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+        if (!lightbox.classList.contains('is-open')) return;
+        if (e.key === 'Escape') closeLightbox();
+        //Keep Tab inside the dialog: the page behind it is not reachable.
+        if (e.key === 'Tab') {
+            const stops = [lightboxClose, lightboxImgLink].filter(el => el.getAttribute('href') || el === lightboxClose);
+            const first = stops[0];
+            const last = stops[stops.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
     });
+})();
+
+//Kit2Code numbers ------------------------------------------------------------
+//The three figures count up once, under a second, the first time they are on
+//screen. The final text is already in the markup, so without this (or with
+//reduced motion) nothing changes.
+(function () {
+    const stats = document.querySelector('.k2c-stats');
+    if (!stats || reducedMotion.matches || !('IntersectionObserver' in window)) return;
+    const finalText = stats.textContent;
+    const spans = [];
+    stats.innerHTML = stats.innerHTML.replace(/\d+/g, n => `<span data-count="${n}">${n}</span>`);
+    stats.querySelectorAll('[data-count]').forEach(el => spans.push(el));
+    const observer = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        observer.disconnect();
+        const start = performance.now();
+        const DURATION = 800;
+        const tick = now => {
+            const t = Math.min(1, (now - start) / DURATION);
+            const eased = 1 - Math.pow(1 - t, 3);
+            spans.forEach(el => { el.textContent = Math.round(Number(el.dataset.count) * eased); });
+            if (t < 1) requestAnimationFrame(tick);
+            else stats.textContent = finalText;
+        };
+        spans.forEach(el => { el.textContent = '0'; });
+        requestAnimationFrame(tick);
+    }, { threshold: 0.6 });
+    observer.observe(stats);
 })();
 
 //Terminal widget
@@ -970,10 +998,37 @@ window.runGullinbursti = function () {
     const ghost = document.getElementById('termGhost');
     if (!widget || !trigger || !panel || !closeBtn || !output || !input || !ghost) return;
 
+    const titleEl = document.getElementById('termTitle');
+
+    //Storage can be blocked (private windows, site data off) and can throw on
+    //either end, so the terminal only ever treats it as a bonus.
+    const HISTORY_KEY = 'freyr-term-history';
+    const THEME_KEY = 'freyr-term-theme';
+    const HISTORY_KEPT = 50;
+    const loadSaved = key => { try { return localStorage.getItem(key); } catch (e) { return null; } };
+    const storeSaved = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { /*not remembered */ } };
+
+    const cmdHistory = (() => {
+        try {
+            const saved = JSON.parse(loadSaved(HISTORY_KEY));
+            return Array.isArray(saved) ? saved.filter(s => typeof s === 'string').slice(-HISTORY_KEPT) : [];
+        } catch (e) {
+            return [];
+        }
+    })();
+    //What came back from a past visit, so `neofetch` can count this session alone.
+    const restoredCmds = cmdHistory.length;
+
     let hasBooted = false;
-    const cmdHistory = [];
-    let historyIndex = -1;
+    let historyIndex = cmdHistory.length;
     let mode = 'command';
+    //The next line of `vim`'s joke: while set, only :q gets out.
+    let trapped = false;
+    //While a piped command runs, appendBlock collects its lines here instead of
+    //printing them, so `| grep` can filter what the command would have shown.
+    let capture = null;
+    //What the terminal says when an effect (matrix, sl) ends.
+    let fxEndMsg = '';
     let menuIndex = 0;
     let controlsEl = null;
     let gameTotal = 0;
@@ -1043,8 +1098,34 @@ window.runGullinbursti = function () {
     }
 
     function appendBlock(lines, className) {
+        const list = Array.isArray(lines) ? lines : [lines];
+        if (capture) {
+            capture.push(...list);
+            return;
+        }
         //appendLine already scrolls, so the last line has done it.
-        (Array.isArray(lines) ? lines : [lines]).forEach(l => appendLine(l, className));
+        list.forEach(l => appendLine(l, className));
+    }
+
+    //`ls` is the one output with colour in it: directories are green, files are
+    //not. Each entry is { name, dir }; when a pipe is collecting, they go out
+    //as plain lines, one per name, so grep can match them.
+    function appendListing(entries) {
+        if (capture) {
+            capture.push(...entries.map(e => e.name + (e.dir ? '/' : '')));
+            return;
+        }
+        const line = document.createElement('div');
+        line.className = 'term-line';
+        entries.forEach((e, i) => {
+            if (i) line.appendChild(document.createTextNode('  '));
+            const span = document.createElement('span');
+            if (e.dir) span.className = 'term-dir';
+            span.textContent = e.name + (e.dir ? '/' : '');
+            line.appendChild(span);
+        });
+        output.appendChild(line);
+        scrollOut();
     }
 
     //An image is a line too. Scroll again once it has decoded: before that it
@@ -1095,16 +1176,19 @@ window.runGullinbursti = function () {
         }
         const lines = [];
         filtered.forEach((card, i) => {
-            const title = card.querySelector('.project-title')?.textContent.trim();
-            const subs = Array.from(card.querySelectorAll('.project-sub')).map(p => p.textContent.trim());
-            const link = card.querySelector('.project-img-link')?.getAttribute('href');
             if (i > 0) lines.push('');
-            lines.push(title);
-            subs.forEach(s => lines.push(`  ${s}`));
-            lines.push(`  stack: ${card.dataset.tags}`);
-            lines.push(`  link: ${link}`);
+            lines.push(...projectLines(card));
         });
         return lines;
+    }
+
+    //One card as terminal lines. `projects` prints several of these and a
+    //file under ~/projects prints exactly one.
+    function projectLines(card) {
+        const title = card.querySelector('.project-title')?.textContent.trim();
+        const subs = Array.from(card.querySelectorAll('.project-sub')).map(p => p.textContent.trim());
+        const link = card.querySelector('.project-img-link')?.getAttribute('href');
+        return [title, ...subs.map(s => `  ${s}`), `  stack: ${card.dataset.tags}`, `  link: ${link}`];
     }
 
     function readEducation() {
@@ -1566,15 +1650,6 @@ window.runGullinbursti = function () {
         return null;
     }
 
-    //blackhole.js is a separate script, so it may legitimately not be here
-    //(blocked, failed to load); the command says so rather than throwing.
-    function cmdBlackhole() {
-        if (!window.blackhole) return 'blackhole: no such object in this universe.';
-        return window.blackhole.toggle()
-            ? 'accretion disk spun up. scroll to fall in.'
-            : 'horizon collapsed. the sky is quiet again.';
-    }
-
     //Commands that reach out of the widget and move the page ------------------
 
     const SECTIONS = {
@@ -1676,7 +1751,6 @@ window.runGullinbursti = function () {
             .split('@')[0]
             .trim();
         const role = status.length > 16 ? status.slice(0, 15).trimEnd() + '…' : status;
-        const elapsed = Date.now() - BOOT_AT;
         const info = [
             'guest@freyr',
             '───────────',
@@ -1685,9 +1759,9 @@ window.runGullinbursti = function () {
             `name:   ${name}`,
             `role:   ${role}`,
             `lang:   ${i18n.lang}`,
-            `uptime: ${Math.floor(elapsed / 60000)}m ${Math.floor(elapsed / 1000) % 60}s`,
-            `cmds:   ${cmdHistory.length}`,
-            'theme:  green on black',
+            `uptime: ${sessionAge()}`,
+            `cmds:   ${sessionCmds()}`,
+            `theme:  ${widget.dataset.theme || 'green'} on black`,
         ];
         const art = [
             ' ╭──────╮ ',
@@ -1755,6 +1829,7 @@ window.runGullinbursti = function () {
         }
 
         mode = 'fx';
+        fxEndMsg = '...you were never really in there.';
         input.disabled = true;
         input.placeholder = 'press any key to wake up';
 
@@ -1777,15 +1852,326 @@ window.runGullinbursti = function () {
             raf = null;
             rain.remove();
         };
-        stopTimer = setTimeout(() => { stopTimer = null; stopMatrix(); }, 4200);
+        stopTimer = setTimeout(() => { stopTimer = null; stopFx(); }, 4200);
         return null;
     }
 
-    function stopMatrix() {
+    function stopFx() {
         cancelActive();
         exitToCommandMode();
-        appendLine('...you were never really in there.');
+        appendLine(fxEndMsg);
         input.focus();
+    }
+
+    //File system --------------------------------------------------------------
+    //A small pretend home directory. It is built from the page every time it is
+    //asked for, so a file can never disagree with the card or column it was
+    //read from, and nothing here is stored.
+    const slugOf = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const cwdParts = [];
+
+    function buildFs() {
+        const dir = children => ({ dir: true, children });
+        const file = read => ({ dir: false, read });
+
+        const projects = {};
+        document.querySelectorAll('.project-card[data-tags]').forEach(card => {
+            const title = card.querySelector('.project-title')?.textContent.trim();
+            if (title) projects[`${slugOf(title)}.md`] = file(() => projectLines(card));
+        });
+
+        const education = {};
+        document.querySelectorAll('.timeline-col[data-track="education"] .timeline-item').forEach(item => {
+            const year = item.querySelector('.timeline-year')?.textContent.trim();
+            const title = item.querySelector('.timeline-title')?.textContent.trim();
+            const place = item.querySelector('.timeline-place')?.textContent.trim();
+            if (place) education[`${slugOf(place)}.txt`] = file(() => [year, `${title} - ${place}`].filter(Boolean));
+        });
+
+        return dir({
+            'about.txt': file(readAbout),
+            'skills.txt': file(readSkills),
+            'contact.txt': file(readContact),
+            projects: dir(projects),
+            education: dir(education),
+            '.secret': file(() => ['some commands never made it into help.', 'try the names of the old gods.']),
+        });
+    }
+
+    //Walks a path from the current folder. `~` and a leading `/` both mean the
+    //root, since there is nowhere else to stand. Returns null for a miss.
+    function resolvePath(arg, root) {
+        const text = arg || '';
+        const absolute = text === '~' || text.startsWith('~/') || text.startsWith('/');
+        const parts = absolute ? [] : cwdParts.slice();
+        for (const seg of text.replace(/^~/, '').split('/')) {
+            if (!seg || seg === '.') continue;
+            if (seg === '..') { parts.pop(); continue; }
+            parts.push(seg);
+        }
+        let node = root;
+        for (const seg of parts) {
+            if (!node.dir || !Object.hasOwn(node.children, seg)) return null;
+            node = node.children[seg];
+        }
+        return { node, parts };
+    }
+
+    const homePath = parts => '~' + parts.map(p => '/' + p).join('');
+    const syncPrompt = () => {
+        if (titleEl) titleEl.textContent = `> guest@freyr:${homePath(cwdParts)}$`;
+    };
+
+    //Folders first, then alphabetical; dotfiles only when asked for.
+    function namesIn(node, all) {
+        return Object.keys(node.children)
+            .filter(n => all || !n.startsWith('.'))
+            .sort((a, b) => (node.children[b].dir - node.children[a].dir) || a.localeCompare(b));
+    }
+
+    function cmdLs(args) {
+        const all = args.some(a => a.startsWith('-') && a.includes('a'));
+        const target = args.find(a => !a.startsWith('-'));
+        const hit = resolvePath(target, buildFs());
+        if (!hit) return `ls: cannot access '${target}': no such file or directory`;
+        if (!hit.node.dir) return target;
+        const entries = namesIn(hit.node, all).map(name => ({ name, dir: hit.node.children[name].dir }));
+        if (entries.length) appendListing(entries);
+        return null;
+    }
+
+    function cmdCd(args) {
+        const target = args[0];
+        const hit = resolvePath(target === undefined ? '~' : target, buildFs());
+        if (!hit) return `cd: no such directory: ${target}`;
+        if (!hit.node.dir) return `cd: not a directory: ${target}`;
+        cwdParts.splice(0, cwdParts.length, ...hit.parts);
+        syncPrompt();
+        return null;
+    }
+
+    const cmdPwd = () => '/home/guest' + cwdParts.map(p => '/' + p).join('');
+
+    function cmdTree(args) {
+        const all = args.includes('-a');
+        const target = args.find(a => !a.startsWith('-'));
+        const hit = resolvePath(target, buildFs());
+        if (!hit) return `tree: ${target}: no such directory`;
+        if (!hit.node.dir) return `tree: ${target}: not a directory`;
+        const counts = { dirs: 0, files: 0 };
+        const walk = (node, prefix) => namesIn(node, all).flatMap((name, i, list) => {
+            const child = node.children[name];
+            const last = i === list.length - 1;
+            counts[child.dir ? 'dirs' : 'files']++;
+            const line = `${prefix}${last ? '└── ' : '├── '}${name}${child.dir ? '/' : ''}`;
+            return child.dir ? [line, ...walk(child, prefix + (last ? '    ' : '│   '))] : [line];
+        });
+        const lines = walk(hit.node, '');
+        const { dirs, files } = counts;
+        return [homePath(hit.parts), ...lines, '',
+                `${dirs} director${dirs === 1 ? 'y' : 'ies'}, ${files} file${files === 1 ? '' : 's'}`];
+    }
+
+    function catFiles(names) {
+        const root = buildFs();
+        return names.flatMap(name => {
+            const hit = resolvePath(name, root);
+            if (!hit) return [`cat: ${name}: no such file or directory`];
+            if (hit.node.dir) return [`cat: ${name}: is a directory`];
+            return hit.node.read();
+        });
+    }
+
+    //Candidates are whole words, because the completer swaps the word under the
+    //cursor for their common prefix. A folder keeps its trailing slash so the
+    //next Tab goes one level deeper.
+    function completePath(partial, dirsOnly) {
+        if (partial.startsWith('-')) return [];
+        const slash = partial.lastIndexOf('/');
+        const base = partial.slice(0, slash + 1);
+        const stem = partial.slice(slash + 1).toLowerCase();
+        const hit = resolvePath(base, buildFs());
+        if (!hit || !hit.node.dir) return [];
+        return namesIn(hit.node, stem.startsWith('.'))
+            .filter(n => n.toLowerCase().startsWith(stem) && (!dirsOnly || hit.node.children[n].dir))
+            .map(n => base + n + (hit.node.children[n].dir ? '/' : ''));
+    }
+
+    //Every file under a node, as paths. `rm -rf /` reads its victims from here.
+    function listPaths(node, base) {
+        return Object.keys(node.children).flatMap(name => {
+            const child = node.children[name];
+            return child.dir ? listPaths(child, `${base}/${name}`) : [`${base}/${name}`];
+        });
+    }
+
+    //Shell basics -------------------------------------------------------------
+
+    function sessionAge() {
+        const elapsed = Date.now() - BOOT_AT;
+        return `${Math.floor(elapsed / 60000)}m ${Math.floor(elapsed / 1000) % 60}s`;
+    }
+    const sessionCmds = () => cmdHistory.length - restoredCmds;
+
+    function cmdHistoryList() {
+        if (!cmdHistory.length) return 'history: nothing yet.';
+        return cmdHistory.map((c, i) => `${String(i + 1).padStart(3)}  ${c}`);
+    }
+
+    const cmdDate = () => new Date().toLocaleString('en-GB', {
+        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+    });
+
+    const cmdUptime = () => `up ${sessionAge()}, ${sessionCmds()} command${sessionCmds() === 1 ? '' : 's'}`;
+
+    function cmdMan(args) {
+        const name = (args[0] || '').toLowerCase();
+        if (!name) return "man: which manual page? try 'man ls'.";
+        const entry = commandMap.get(name);
+        if (!entry || entry.hidden) return `man: no manual entry for ${args[0]}`;
+        return [
+            `${entry.name.toUpperCase()}(1)`,
+            '',
+            `  ${`${entry.name} ${entry.args || ''}`.trim()}`,
+            '',
+            ...(entry.man || [entry.help]).map(l => `  ${l}`),
+        ];
+    }
+
+    //Green is the default and has no attribute: the stylesheet only recolours
+    //when data-theme is set, which keeps rune mode working on the default.
+    const THEMES = ['green', 'amber', 'blue', 'pink'];
+    function applyTheme(name) {
+        if (name === 'green') widget.removeAttribute('data-theme');
+        else widget.dataset.theme = name;
+    }
+    const savedTheme = loadSaved(THEME_KEY);
+    if (THEMES.includes(savedTheme)) applyTheme(savedTheme);
+
+    function cmdTheme(args) {
+        const want = (args[0] || '').toLowerCase();
+        if (!want) return [`theme: ${widget.dataset.theme || 'green'}`, `try: ${THEMES.join(', ')}`];
+        if (!THEMES.includes(want)) return `theme: no "${args[0]}". try: ${THEMES.join(', ')}.`;
+        applyTheme(want);
+        storeSaved(THEME_KEY, want);
+        return `theme: ${want}.`;
+    }
+
+    //Fun ----------------------------------------------------------------------
+    //Everything from here down is hidden: out of help and out of Tab, so finding
+    //one is still finding something.
+
+    const FORTUNES = [
+        ['it works on my machine.', 'ship the machine.'],
+        ['a bug is a feature', 'with no marketing.'],
+        ['tabs or spaces:', 'both are wrong at 3am.'],
+        ['the cat reviewed your code.', 'it is unimpressed.'],
+        ['git push --force is a', 'personality, not a plan.'],
+        ['O(n) is fine', 'until n is the internet.'],
+        //Quoted from the same public-domain translations as `freyr`.
+        ['"Of the heroes brave is Freyr', ' the best"', '  — Lokasenna 37'],
+        ['"he rules over the rain and the', ' shining of the sun"', '  — Gylfaginning 24'],
+    ];
+
+    function cmdRm(args) {
+        if (!args.length) return 'rm: missing operand';
+        const recursive = args.some(a => /^-[a-z]*r/i.test(a));
+        const everything = args.some(a => ['/', '/*', '~', '~/', '~/*', '*'].includes(a));
+        if (recursive && everything) {
+            return [
+                ...listPaths(buildFs(), '~').map(p => `removed '${p}'`),
+                "removed '~'",
+                '',
+                'just kidding. this is a static site;',
+                'nothing was harmed.',
+            ];
+        }
+        return `rm: cannot remove '${args[args.length - 1]}': read-only file system`;
+    }
+
+    function cmdPing(args) {
+        const host = (args[0] || 'freyr').slice(0, 24);
+        const ms = () => (Math.random() * 0.8 + 0.1).toFixed(2);
+        return [
+            `PING ${host}: 56 data bytes`,
+            ...[0, 1, 2].map(i => `64 bytes: seq=${i} time=${ms()} ms`),
+            '',
+            '3 packets sent, 3 received, 0% loss',
+            '(he was already here.)',
+        ];
+    }
+
+    function cmdHire() {
+        const availability = document.querySelector('.availability-txt')?.textContent.trim();
+        return ['good choice.', ...(availability ? [availability] : []), cmdOpen(['email'])];
+    }
+
+    const COFFEE = [
+        "418 i'm a teapot.",
+        '',
+        '    ( (',
+        '     ) )',
+        '  ........',
+        '  |      |]',
+        '  \\      /',
+        "   `----'",
+    ];
+
+    //Four rows, padded to one width so the slide can cut them all the same way.
+    const TRAIN = [
+        '   (@@)    ______________________',
+        '  (    )  | [] [] [] [] [] [] [] |',
+        ' =========|______________________|',
+        '  O  O  O    O  O      O  O  O  O',
+    ];
+
+    //An effect that animates instead of printing. It rewrites one node every
+    //frame, so that node stays out of the accessibility tree.
+    function cmdSl() {
+        const COLS = 34;
+        const width = Math.max(...TRAIN.map(r => r.length));
+        const art = TRAIN.map(r => r.padEnd(width));
+        if (reducedMotion.matches) {
+            appendBlock(art, 'term-line-art');
+            return 'choo choo. (one frame - you asked for less motion.)';
+        }
+        const train = document.createElement('div');
+        train.className = 'term-line term-rain';
+        train.setAttribute('aria-hidden', 'true');
+        output.appendChild(train);
+        scrollOut();
+
+        mode = 'fx';
+        fxEndMsg = 'choo choo.';
+        input.disabled = true;
+        input.placeholder = 'press any key to stop the train';
+
+        let x = COLS;
+        let raf = null;
+        let last = 0;
+        const step = (now) => {
+            if (now - last > 45) {
+                last = now;
+                x -= 1;
+                if (x < -width) {
+                    stopFx();
+                    return;
+                }
+                train.textContent = art
+                    .map(r => (' '.repeat(Math.max(0, x)) + r.slice(Math.max(0, -x))).slice(0, COLS))
+                    .join('\n');
+            }
+            raf = requestAnimationFrame(step);
+        };
+        raf = requestAnimationFrame(step);
+
+        activeCleanup = () => {
+            if (raf !== null) cancelAnimationFrame(raf);
+            raf = null;
+            train.remove();
+        };
+        return null;
     }
 
     //One table, three consumers. `help`, tab-completion and the did-you-mean
@@ -1798,28 +2184,63 @@ window.runGullinbursti = function () {
         { name: 'help',      args: '',      help: 'show this list',      run: () => renderHelp() },
         { name: 'whoami',    args: '',      help: 'who am i',            run: () => readAbout(), alias: ['about'] },
         { name: 'skills',    args: '',      help: 'tech stack',          run: () => readSkills() },
-        { name: 'projects',  args: '[tag]', help: "things i've built",   run: (a) => readProjects(a[0]) },
+        //`complete` is the per-command half of Tab: given the word under the
+        //cursor, it returns whole candidate words. A command without one
+        //completes its name only.
+        { name: 'projects',  args: '[tag]', help: "things i've built",   run: (a) => readProjects(a[0]),
+          man: ['list projects. a tag shows', 'only those built with it.', '', 'try: projects | grep stack'],
+          //The tags the cards actually carry, so the shell can never offer a
+          //filter that would come back empty.
+          complete: partial => {
+              const tags = new Set();
+              document.querySelectorAll('.project-card[data-tags]')
+                  .forEach(card => tagsOf(card).forEach(t => tags.add(t)));
+              return [...tags].filter(t => t.toLowerCase().startsWith(partial.toLowerCase())).sort();
+          } },
         { name: 'education', args: '',      help: 'where i studied',     run: () => readEducation() },
         { name: 'contact',   args: '',      help: 'how to reach me',     run: () => readContact() },
         { name: 'contrib',   args: '',      help: 'activity heatmap',    run: () => cmdContrib() },
-        { name: 'game',      args: '',      help: 'play a game',        run: () => cmdGame() },
-        { name: 'goto',      args: '<where>',   help: 'jump to a section', run: (a) => cmdGoto(a) },
-        { name: 'lang',      args: '[en|th]',   help: 'switch language',   run: (a) => cmdLang(a) },
-        { name: 'open',      args: '<link>',    help: 'open a link',       run: (a) => cmdOpen(a) },
-        { name: 'blackhole', args: '',      help: 'toggle the sky',     run: () => cmdBlackhole() },
-        { name: 'matrix',    args: '',      help: 'follow the rabbit',   run: () => cmdMatrix() },
-        { name: 'neofetch',  args: '',      help: 'system info',
-          run: () => { appendBlock(cmdNeofetch(), 'term-line-art'); return null; } },
-        { name: 'cat',       args: '',      help: 'meet the cat',
-          run: () => {
+        { name: 'ls',        args: '[-a] [dir]', help: 'list files',
+          run: (a) => cmdLs(a), complete: p => completePath(p, false),
+          man: ['list what is in a folder.', '', '  -a  show hidden files', '', 'try: ls projects'] },
+        { name: 'cd',        args: '[dir]', help: 'change folder',
+          run: (a) => cmdCd(a), complete: p => completePath(p, true),
+          man: ['change folder. no argument', 'goes home.', '', '  cd ..  up one level', '  cd ~   home'] },
+        { name: 'pwd',       args: '',      help: 'where am i',          run: () => cmdPwd() },
+        { name: 'tree',      args: '[dir]', help: 'folder tree',
+          run: (a) => cmdTree(a), complete: p => completePath(p, true),
+          man: ['draw the folders as a tree.', '', '  -a  include hidden files'] },
+        { name: 'cat',       args: '[file]', help: 'read file or cat',
+          man: ['print a file. with no file,', 'shows a photo of the cat.', '', 'try: cat about.txt'],
+          complete: p => completePath(p, false),
+          run: (a) => {
+              if (a.length) return catFiles(a);
               const { src, alt } = CAT_PHOTOS[Math.floor(Math.random() * CAT_PHOTOS.length)];
               appendImage(src, alt);
               return null;
           } },
+        { name: 'history',   args: '',      help: 'past commands',       run: () => cmdHistoryList(),
+          man: ['numbered past commands,', 'kept between visits.', '', '  !!  run the last one again', '  !3  run number 3'] },
+        { name: 'echo',      args: '<text>', help: 'repeat text',        run: (a) => a.length ? a.join(' ') : null },
+        { name: 'date',      args: '',      help: 'date and time',       run: () => cmdDate() },
+        { name: 'uptime',    args: '',      help: 'time in terminal',    run: () => cmdUptime() },
+        { name: 'man',       args: '<cmd>', help: 'command manual',
+          run: (a) => cmdMan(a),
+          complete: p => COMMANDS.filter(c => !c.hidden && c.name.startsWith(p.toLowerCase())).map(c => c.name) },
+        { name: 'theme',     args: '[name]', help: 'terminal colour',
+          run: (a) => cmdTheme(a), complete: p => THEMES.filter(t => t.startsWith(p.toLowerCase())),
+          man: ['recolour the terminal.', 'green, amber, blue or pink.', 'remembered for next visit.'] },
+        { name: 'game',      args: '',      help: 'play a game',        noPipe: true, run: () => cmdGame() },
+        { name: 'goto',      args: '<where>',   help: 'jump to a section', run: (a) => cmdGoto(a) },
+        { name: 'lang',      args: '[en|th]',   help: 'switch language',   run: (a) => cmdLang(a) },
+        { name: 'open',      args: '<link>',    help: 'open a link',       run: (a) => cmdOpen(a) },
+        { name: 'matrix',    args: '',      help: 'follow the rabbit',   noPipe: true, run: () => cmdMatrix() },
+        { name: 'neofetch',  args: '',      help: 'system info',
+          run: () => { appendBlock(cmdNeofetch(), 'term-line-art'); return null; } },
         { name: 'cowsay',    args: '<text>', help: 'the cat says it',
           run: (a) => { appendBlock(cmdCowsay(a), 'term-line-art'); return null; } },
-        { name: 'clear',     args: '',      help: 'clear the screen',    run: () => { output.innerHTML = ''; return null; } },
-        { name: 'exit',      args: '',      help: 'close the panel',     run: () => { closeTerminal(); return null; } },
+        { name: 'clear',     args: '',      help: 'clear the screen',    noPipe: true, run: () => { output.innerHTML = ''; return null; } },
+        { name: 'exit',      args: '',      help: 'close the panel',     noPipe: true, run: () => { closeTerminal(); return null; } },
         //Hidden: kept out of help and out of tab-completion, so finding one is
         //still finding something.
         { name: 'freyr', hidden: true, alias: ['yngvi'],
@@ -1849,6 +2270,19 @@ window.runGullinbursti = function () {
               ], 'term-line-art');
               return runeMode.begin() ? 'ᛜ the runes wake.' : 'ᛜ the runes are already awake.';
           } },
+        { name: 'rm', hidden: true, run: (a) => cmdRm(a) },
+        //The trap is a flag the next lines check: only :q gets out, and closing
+        //the panel lets go of it as well.
+        { name: 'vim', hidden: true, noPipe: true, alias: ['vi', 'nvim'],
+          run: () => {
+              trapped = true;
+              return ['-- INSERT --', 'you are now trapped. nobody here', 'knows how to leave.', '(hint: it starts with a colon.)'];
+          } },
+        { name: 'sl', hidden: true, noPipe: true, run: () => cmdSl() },
+        { name: 'fortune', hidden: true, run: () => FORTUNES[Math.floor(Math.random() * FORTUNES.length)] },
+        { name: 'ping', hidden: true, run: (a) => cmdPing(a) },
+        { name: 'hire', hidden: true, noPipe: true, run: () => cmdHire() },
+        { name: 'coffee', hidden: true, alias: ['tea'], run: () => COFFEE },
         { name: 'sudo', hidden: true, run: (a) => a.length
             ? `sudo: ${a[0]}: you are not in the sudoers file. this incident has been reported to freyr.`
             : 'permission denied: nice try.' },
@@ -1872,6 +2306,8 @@ window.runGullinbursti = function () {
             'shortcuts:',
             '  tab completes - ^C cancels',
             '  ^L clears - esc closes',
+            '  ^U wipes line - ^A/^E ends',
+            '  !! reruns - cmd | grep word',
         ];
     }
 
@@ -1903,20 +2339,17 @@ window.runGullinbursti = function () {
 
     //Completion --------------------------------------------------------------
 
-    //Candidates come from the same table `help` reads, plus — once the first
-    //word is `projects` — the tags the cards actually carry, so the shell can
-    //never offer a filter that would come back empty.
+    //The first word completes from the same table `help` reads. After that it
+    //is the command's own business: a row with a `complete` function decides
+    //what its arguments can be, and one without simply has no suggestions.
     function completionsFor(value) {
         const parts = value.split(/\s+/);
         if (parts.length <= 1) {
             return COMMANDS.filter(c => !c.hidden && c.name.startsWith(parts[0])).map(c => c.name);
         }
-        if (parts[0].toLowerCase() !== 'projects') return [];
-        const tags = new Set();
-        document.querySelectorAll('.project-card[data-tags]')
-            .forEach(card => tagsOf(card).forEach(t => tags.add(t)));
-        const partial = parts[parts.length - 1].toLowerCase();
-        return [...tags].filter(t => t.toLowerCase().startsWith(partial)).sort();
+        const entry = commandMap.get(parts[0].toLowerCase());
+        if (!entry || !entry.complete) return [];
+        return entry.complete(parts[parts.length - 1]);
     }
 
     //The longest prefix every candidate agrees on. Two matches that share more
@@ -1955,8 +2388,9 @@ window.runGullinbursti = function () {
         if (prefix.length > last.length) {
             input.value = value.slice(0, value.length - last.length) + prefix;
             //A lone match is a finished word, so hand it the trailing space and
-            //the next tab starts on the argument.
-            if (list.length === 1) input.value += ' ';
+            //the next tab starts on the argument. A folder is not finished: it
+            //ends in a slash and the next tab goes inside it.
+            if (list.length === 1 && !list[0].endsWith('/')) input.value += ' ';
         } else if (list.length > 1) {
             appendLine(value, 'term-line-cmd');
             appendBlock(list.join('   '), 'term-line-hint');
@@ -1994,14 +2428,58 @@ window.runGullinbursti = function () {
         return false;
     }
 
-    function runCommand(raw) {
-        const trimmed = raw.trim();
-        if (!trimmed) return;
-        appendLine(trimmed, 'term-line-cmd');
-        cmdHistory.push(trimmed);
+    function remember(line) {
+        cmdHistory.push(line);
         historyIndex = cmdHistory.length;
+        storeSaved(HISTORY_KEY, JSON.stringify(cmdHistory.slice(-HISTORY_KEPT)));
+    }
 
-        const [name, ...args] = trimmed.split(/\s+/);
+    function runCommand(raw) {
+        let trimmed = raw.trim();
+        if (!trimmed) return;
+
+        //`!!` and `!3` are replaced by the line they point at before anything
+        //else happens, and it is the replacement that lands in the history.
+        const recall = trimmed.match(/^!(!|\d+)$/);
+        if (recall) {
+            const wanted = recall[1] === '!' ? cmdHistory.length - 1 : Number(recall[1]) - 1;
+            if (!cmdHistory[wanted]) {
+                appendLine(trimmed, 'term-line-cmd');
+                appendBlock(`${trimmed}: event not found`, 'term-line-error');
+                return;
+            }
+            trimmed = cmdHistory[wanted];
+        }
+        appendLine(trimmed, 'term-line-cmd');
+        remember(trimmed);
+
+        if (trapped) {
+            if (/^:(q|wq|x)!?$/.test(trimmed)) {
+                trapped = false;
+                appendBlock('you escaped. barely.');
+            } else {
+                appendBlock('E37: no write since last change. type :q to leave.', 'term-line-error');
+            }
+            return;
+        }
+
+        //One pipe, and only into grep: `cmd | grep word` keeps the lines of the
+        //command's output that contain the word.
+        let left = trimmed;
+        let pattern = null;
+        const pipeAt = trimmed.indexOf('|');
+        if (pipeAt >= 0) {
+            left = trimmed.slice(0, pipeAt).trim();
+            const right = trimmed.slice(pipeAt + 1).trim();
+            const grep = right.match(/^grep\s+(.+)$/i);
+            if (!grep) {
+                appendBlock(`${right.split(/\s+/)[0] || '|'}: only 'grep' works after a pipe.`, 'term-line-error');
+                return;
+            }
+            pattern = grep[1].trim().replace(/^["']|["']$/g, '').toLowerCase();
+        }
+
+        const [name, ...args] = left.split(/\s+/);
         const entry = commandMap.get(name.toLowerCase());
         if (!entry) {
             appendBlock(`command not found: "${name}".`, 'term-line-error');
@@ -2010,8 +2488,30 @@ window.runGullinbursti = function () {
                         'term-line-error');
             return;
         }
-        const result = entry.run(args);
-        if (result) appendBlock(result);
+        if (pattern === null) {
+            const result = entry.run(args);
+            if (result) appendBlock(result);
+            return;
+        }
+        if (entry.noPipe) {
+            appendBlock(`${entry.name}: nothing to pipe.`, 'term-line-error');
+            return;
+        }
+
+        capture = [];
+        let result;
+        let collected;
+        try {
+            result = entry.run(args);
+        } finally {
+            //Released before anything is printed: appendBlock would otherwise
+            //collect its own output again.
+            collected = capture;
+            capture = null;
+        }
+        const lines = [...collected, ...(result ? [].concat(result) : [])];
+        const hits = lines.filter(l => l.toLowerCase().includes(pattern));
+        appendBlock(hits.length ? hits : 'grep: no matches.', hits.length ? undefined : 'term-line-error');
     }
 
     function bootSequence() {
@@ -2038,6 +2538,7 @@ window.runGullinbursti = function () {
             cancelActive();
             exitToCommandMode();
         }
+        trapped = false;
         trigger.focus();
     }
 
@@ -2052,7 +2553,7 @@ window.runGullinbursti = function () {
         //there is nothing else to press.
         if (mode === 'fx') {
             e.preventDefault();
-            stopMatrix();
+            stopFx();
             return;
         }
 
@@ -2088,6 +2589,19 @@ window.runGullinbursti = function () {
     });
 
     input.addEventListener('keydown', (e) => {
+        //Line editing. These only make sense while there is a line to edit, and
+        //^A would otherwise select the whole field.
+        if (e.ctrlKey && !e.altKey && !e.metaKey && mode === 'command') {
+            const key = e.key.toLowerCase();
+            if (key === 'u' || key === 'a' || key === 'e') {
+                e.preventDefault();
+                if (key === 'u') input.value = input.value.slice(input.selectionStart);
+                const at = key === 'e' ? input.value.length : 0;
+                input.setSelectionRange(at, at);
+                applyGhost();
+                return;
+            }
+        }
         //^L and ^C run whatever mode the terminal is in, so they come first.
         if (e.ctrlKey) {
             if (handleControlKey(e)) e.stopPropagation();

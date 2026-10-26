@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaker case study | Thitiwut Sreewasut (Freyr)</title>
+    <meta name="description" content="How TaskMaker, a problem studio for Kit2Code contests, keeps the live preview and the printed PDF identical, with Thai typography and KaTeX math.">
+    <meta name="theme-color" content="#080b08">
+    <link rel="canonical" href="https://miyazaki1072.github.io/projects/taskmaker.html">
+    <link rel="icon" href="../images/icon.png">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <main class="case">
+        <a class="case-back" href="../#projects">‹ Projects</a>
+        <p class="case-kicker">Case study · Kit2Code</p>
+        <h1 class="case-title">TaskMaker</h1>
+        <p class="case-lead">A problem studio for contest authors: write an olympiad problem in YAML, see it rendered, print the same thing as a PDF.</p>
+        <div class="case-links">
+            <a class="card-link" href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
+        </div>
+
+        <h2>Problem</h2>
+        <p>Kit2Code contests are written in Thai and judged on Codeforces or our own CMS. Each problem needs a statement that looks right on screen and in the printed packet, with Thai text and math in the same page. Before TaskMaker, statements were written in Word. Compiling those documents into a finished packet, with the fonts, images and everything else in place, was hard.</p>
+
+        <h2>Constraints</h2>
+        <ul>
+            <li>Thai typography and KaTeX math both have to print correctly.</li>
+            <li>What an author sees in the preview has to be exactly what prints.</li>
+        </ul>
+
+        <h2>Decisions</h2>
+        <ul>
+            <li><strong>One template for preview and PDF.</strong> The live preview and the PDF export share a single template, so the two cannot drift apart.</li>
+            <li><strong>YAML, validated against a schema.</strong> Authors write problems as plain text in a fixed structure.</li>
+            <li><strong>Docker and PostgreSQL.</strong> I already run a home server, so TaskMaker runs there in Docker with PostgreSQL behind it.</li>
+        </ul>
+
+        <h2>Result</h2>
+        <p>Used to write the problems for Kit2Code's contests (2 contests, 11 original problems so far).</p>
+
+        <h2>What I'd do next</h2>
+        <p>Change the template style and add more customization.</p>
+    </main>
+</body>
+</html>

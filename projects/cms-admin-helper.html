@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Admin Helper case study | Thitiwut Sreewasut (Freyr)</title>
+    <meta name="description" content="How CMS Admin Helper adds contest-day tools to the CMS v1.5 admin without changing the server, load-tested at 2,000 submissions.">
+    <meta name="theme-color" content="#080b08">
+    <link rel="canonical" href="https://miyazaki1072.github.io/projects/cms-admin-helper.html">
+    <link rel="icon" href="../images/icon.png">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <main class="case">
+        <a class="case-back" href="../#projects">‹ Projects</a>
+        <p class="case-kicker">Case study · Kit2Code</p>
+        <h1 class="case-title">CMS Admin Helper</h1>
+        <p class="case-lead">A Chrome and Firefox extension that adds the contest-day tools the CMS v1.5 admin is missing, without touching the server.</p>
+        <div class="case-links">
+            <a class="card-link" href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
+        </div>
+
+        <h2>Problem</h2>
+        <p>CMS, the contest system the IOI runs on, is what Kit2Code uses for onsite contests. Its admin has no contestant tracker, no bulk import and no Bangkok-time scheduling, which are the things an organiser needs on the day. Contestants had to be added to CMS one at a time, by hand. It was also hard to track contestants who cheated by using AI.</p>
+
+        <h2>Constraints</h2>
+        <ul>
+            <li>The CMS server must stay unmodified.</li>
+            <li>It runs as a browser extension, for Chrome and Firefox.</li>
+        </ul>
+
+        <h2>Decisions</h2>
+        <ul>
+            <li><strong>Drive the admin's own forms.</strong> The extension drives the forms CMS already has, instead of patching CMS, so the server needs no changes.</li>
+            <li><strong>Bulk import from Excel or Google Sheets.</strong></li>
+            <li><strong>Bangkok-time scheduling.</strong></li>
+        </ul>
+
+        <h2>Result</h2>
+        <p>Load-tested on AWS with 2,000 submissions and a 300-user import: median 171&nbsp;ms, p95 under 650&nbsp;ms.</p>
+
+        <h2>What I'd do next</h2>
+        <p>A customizable scoreboard that syncs through the extension, so the host no longer has to set up a scoreboard themselves.</p>
+    </main>
+</body>
+</html>

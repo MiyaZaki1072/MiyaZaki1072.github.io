@@ -1,7 +1,7 @@
 //Motion layer -----------------------------------------------------------------
 //
 //GSAP owns the entrances and the scroll-driven moves. Every other file keeps the
-//behaviour it already had: blackhole.js still runs its own camera, index.js
+//behaviour it already had: index.js
 //still owns the language scramble and the Education/Experience cascade, and the
 //scroll rail still measures a page whose height nothing here changes — no
 //pinning, so scrollHeight is exactly what it was.
@@ -74,9 +74,11 @@
             defaults: { ease: 'power3.out' },
             onComplete: () => gsap.set([card, avatar, ...lines], { clearProps: 'all' }),
         });
-        tl.from(card, { opacity: 0, y: 26, duration: 0.7 })
-            .from(avatar, { opacity: 0, scale: 0.88, duration: 0.7, ease: 'back.out(1.6)' }, 0.1)
-            .from(lines, { opacity: 0, y: 14, duration: 0.5, stagger: 0.07 }, 0.2);
+        //Text only slides: it is the page's largest paint, and a fade from
+        //opacity 0 holds the first meaningful frame back by the whole move.
+        tl.from(card, { y: 16, duration: 0.5 })
+            .from(avatar, { opacity: 0, scale: 0.88, duration: 0.6, ease: 'back.out(1.6)' }, 0)
+            .from(lines, { y: 10, duration: 0.45, stagger: 0.05 }, 0.05);
     }
 
     //The prompt above each section types itself out, then the heading arrives
@@ -115,7 +117,7 @@
         });
         const settle = targets => gsap.set(targets, { clearProps: 'all' });
 
-        const triggers = ScrollTrigger.batch(cards, {
+        ScrollTrigger.batch(cards, {
             start: 'top 92%',
             once: true,
             onEnter: group => gsap.to(group, {
@@ -124,22 +126,6 @@
                 onComplete: () => settle(group),
             }),
         });
-
-        //The tag filter hides and shows these cards with a class, and the filter
-        //bar sits above the grid: a card can be filtered out while it is still
-        //below the fold, never having crossed its trigger line. It would come
-        //back holding the start state with nothing left to play it. So the first
-        //touch of the filter ends the reveal outright — triggers off, inline
-        //state gone — for the same reason the old CSS version stripped its
-        //classes on animationend.
-        const bar = document.querySelector('.filter-bar');
-        if (!bar) return;
-        const drop = () => {
-            triggers.forEach(trigger => trigger.kill());
-            settle(cards);
-        };
-        bar.addEventListener('click', drop, { once: true });
-        cleanups.push(() => bar.removeEventListener('click', drop));
     }
 
 
@@ -305,6 +291,23 @@
 
     //--- driving it -----------------------------------------------------------
 
+    //A thin line along the nav that fills as you read down the page. Scrubbed
+    //straight off the scroll position, so it is never ahead of or behind it.
+    function scrollProgress(cleanups) {
+        const navbar = document.querySelector('.navbar');
+        if (!navbar) return;
+        const bar = document.createElement('span');
+        bar.className = 'nav-progress';
+        bar.setAttribute('aria-hidden', 'true');
+        navbar.appendChild(bar);
+        gsap.fromTo(bar, { scaleX: 0 }, {
+            scaleX: 1,
+            ease: 'none',
+            scrollTrigger: { start: 0, end: 'max', scrub: true },
+        });
+        cleanups.push(() => bar.remove());
+    }
+
     //One matchMedia for the whole file. Reduced motion is not a branch inside
     //each move here: the callback simply never builds them, and GSAP reverts
     //every tween and start state it did build if the preference changes later.
@@ -325,6 +328,7 @@
         //is worth having on a phone too. Only the hover half of it needs one, and
         //pointerenter simply never fires there.
         navHighlight(cleanups);
+        scrollProgress(cleanups);
 
         return () => cleanups.forEach(fn => fn());
     });
