@@ -35,6 +35,8 @@
          Elder Futhark plus the two Younger runes in the name): about 2KB. -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&text=%E1%9A%A0%E1%9A%A2%E1%9A%A6%E1%9A%A8%E1%9A%B1%E1%9A%B2%E1%9A%B7%E1%9A%B9%E1%9A%BA%E1%9A%BE%E1%9B%81%E1%9B%83%E1%9B%87%E1%9B%88%E1%9B%89%E1%9B%8A%E1%9B%8F%E1%9B%92%E1%9B%96%E1%9B%97%E1%9B%9A%E1%9B%9C%E1%9B%9E%E1%9B%9F%E1%9B%85%E1%9B%A6&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&text=%E1%9A%A0%E1%9A%A2%E1%9A%A6%E1%9A%A8%E1%9A%B1%E1%9A%B2%E1%9A%B7%E1%9A%B9%E1%9A%BA%E1%9A%BE%E1%9B%81%E1%9B%83%E1%9B%87%E1%9B%88%E1%9B%89%E1%9B%8A%E1%9B%8F%E1%9B%92%E1%9B%96%E1%9B%97%E1%9B%9A%E1%9B%9C%E1%9B%9E%E1%9B%9F%E1%9B%85%E1%9B%A6&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Almendra:wght@400;700&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json">
     {
@@ -61,6 +63,7 @@
 <body>
     <header>
     <nav class="navbar" aria-label="Sections">
+        <a href="#about" class="nav-mark" aria-label="Back to top">ᛜ</a>
         <a href="#about" class="nav-link">Home</a>
         <a href="#projects" class="nav-link">Projects</a>
         <a href="#organizing" class="nav-link">Organizing</a>
@@ -107,10 +110,10 @@
                     <p class="availability-txt">Open to new opportunities</p>
                     <a class="resume-link" id="resumeLink" aria-disabled="true" hidden>Résumé · coming soon</a>
                 </div>
-                <!-- Four round action buttons: the ways to reach me fastest.
-                     Codeforces and the personal accounts are in Contact. The
-                     label is its own span so the EN/TH scramble never touches
-                     the icon. -->
+                <!-- Four text links: the ways to reach me fastest. Codeforces
+                     and the personal accounts are in Contact. The label is its
+                     own span so the EN/TH scramble never touches the rune that
+                     CSS puts in front of it. -->
                 <div class="contact-row">
                     <a class="contact-btn" id="emailBtn" href="mailto:titiwutfay2550@gmail.com" data-email="titiwutfay2550@gmail.com"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><span class="contact-label">Email</span></a>
                     <a class="contact-btn" id="githubLink" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></span><span class="contact-label">GitHub</span></a>
@@ -140,53 +143,60 @@
                 </div>
             </div>
         </div>
-    </section>
-    <!-- The medals up front. The same entries stay in Background > Experience;
-         this row only makes them visible without a click. No id on purpose:
-         the nav scrollspy watches section[id], and this has no nav link. -->
-    <section class="highlights-section" aria-label="Highlights">
-        <div class="highlight-grid">
-            <div class="project-card highlight-card">
-                <div class="project-info">
-                    <p class="timeline-year">2025 · 2026</p>
-                    <p class="project-title">2× TOI Bronze</p>
-                    <p class="project-sub">Thailand Olympiad in Informatics</p>
-                    <p class="timeline-award">National final · ~90 students · bronze at TOI21 and TOI22</p>
+    <!-- The medals, in the first screen. The same entries stay in Background >
+                 Experience; this row only makes them visible without a scroll. -->
+        <div class="highlights-section" role="group" aria-label="Highlights">
+            <div class="highlight-grid">
+                <div class="highlight highlight--bronze">
+                    <span class="hl-rune" aria-hidden="true">ᛏ</span>
+                    <p class="hl-year">2025 · 2026</p>
+                    <p class="hl-title">2× TOI Bronze</p>
+                    <p class="hl-sub">Thailand Olympiad in Informatics</p>
+                    <p class="hl-award">National final · ~90 students · bronze at TOI21 and TOI22</p>
                 </div>
-            </div>
-            <div class="project-card highlight-card">
-                <div class="project-info">
-                    <p class="timeline-year">2024</p>
-                    <p class="project-title">NSC2024 Finalist</p>
-                    <p class="project-sub">National Software Contest</p>
-                    <p class="timeline-award">Mesosuem · 3D museum-building game in Unity</p>
+                <div class="highlight">
+                    <span class="hl-rune" aria-hidden="true">ᚲ</span>
+                    <p class="hl-year">2024</p>
+                    <p class="hl-title">NSC2024 Finalist</p>
+                    <p class="hl-sub">National Software Contest</p>
+                    <p class="hl-award">Mesosuem · 3D museum-building game in Unity</p>
                 </div>
-            </div>
-            <div class="project-card highlight-card">
-                <div class="project-info">
-                    <p class="timeline-year">formerly RYWCC</p>
-                    <p class="project-title">Kit2Code Founder</p>
-                    <p class="project-sub">Contest group for POSN Computer students</p>
-                    <p class="timeline-award">Built TaskMaker &amp; CMS Admin Helper to run it</p>
+                <div class="highlight">
+                    <span class="hl-rune" aria-hidden="true">ᛟ</span>
+                    <p class="hl-year">formerly RYWCC</p>
+                    <p class="hl-title">Kit2Code Founder</p>
+                    <p class="hl-sub">Contest group for POSN Computer students</p>
+                    <p class="hl-award">Built TaskMaker &amp; CMS Admin Helper to run it</p>
                 </div>
             </div>
         </div>
+        <figure class="hero-quote">
+            <div class="rune-run" aria-hidden="true">ᛖᚹᛖᚱᛃ · ᛞᛖᚨᛞ · ᛖᚾᛞ · ᛁᛊ · ᚨ · ᛈᛁᚹᛟᛏ · ᛈᛟᛁᚾᛏ</div>
+            <blockquote class="hero-quote-text"><p>Every dead end is a pivot point.</p></blockquote>
+            <div class="rune-run" aria-hidden="true">ᚠᚱᛖᛃᚱ · ᚠᚱᛖᛃᚱ · ᚠᚱᛖᛃᚱ · ᚠᚱᛖᛃᚱ · ᚠᚱᛖᛃᚱ · ᚠᚱᛖᛃᚱ</div>
+        </figure>
     </section>
     <section class="projects-section" id="projects">
         <div class="section-header">
             <h2 class="section-title">Projects</h2>
         </div>
+        <div class="shelf-frame">
+            <span class="frame-knot frame-knot--tl" aria-hidden="true">ᛜ</span>
+            <span class="frame-knot frame-knot--tr" aria-hidden="true">ᛜ</span>
+            <span class="bookend bookend--l" aria-hidden="true">ᚠ</span>
+            <span class="bookend bookend--r" aria-hidden="true">ᛟ</span>
         <div class="project-grid">
-            <div class="project-card" data-tags="TypeScript,Docker,PostgreSQL">
-                <a href="projects/taskmaker.html" class="project-img-link">
-                    <div class="project-img-wrap">
-                        <img src="images/TaskMaker.webp" class="project-img" alt="TaskMaker"
-                             width="800" height="538" loading="lazy" decoding="async">
-                        <div class="project-img-overlay">
-                            <span class="view-label">Read the case study →</span>
-                        </div>
-                    </div>
-                </a>
+            <article class="project-card book" data-tags="TypeScript,Docker,PostgreSQL">
+                <button type="button" class="book-pick" aria-haspopup="dialog" aria-label="Open TaskMaker">
+                    <span class="book-body">
+                        <span class="book-cover">
+                            <img class="book-shot" src="images/TaskMaker.webp" alt="" width="800" height="538" loading="lazy" decoding="async">
+                            <span class="book-plate"><span class="book-rune" aria-hidden="true">ᛏ</span><span class="book-name">TaskMaker</span></span>
+                        </span>
+                        <span class="book-edge" aria-hidden="true"></span>
+                    </span>
+                </button>
+                <span class="prop prop-scroll" aria-hidden="true"></span>
                 <div class="project-info">
                     <p class="project-title">TaskMaker</p>
                     <p class="project-sub">Problem studio for Kit2Code contests</p>
@@ -201,21 +211,21 @@
                     <!-- TODO(owner): add a Live / Try it link here when one exists
                          (store page, demo, itch.io, Discord invite). -->
                     <div class="card-links">
+                        <a class="card-link project-img-link" href="projects/taskmaker.html">Read the notes<span aria-hidden="true"> ›</span></a>
                         <a class="card-link" href="https://github.com/MiyaZaki1072/TaskMaker" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
-                        <a class="card-link" href="projects/taskmaker.html">Case study<span aria-hidden="true"> ›</span></a>
                     </div>
                 </div>
-            </div>
-            <div class="project-card" data-tags="TypeScript,Browser Extension">
-                <a href="projects/cms-admin-helper.html" class="project-img-link">
-                    <div class="project-img-wrap">
-                        <img src="images/CmsAdminHelper.webp" class="project-img" alt="CMS Admin Helper"
-                             width="800" height="514" loading="lazy" decoding="async">
-                        <div class="project-img-overlay">
-                            <span class="view-label">Read the case study →</span>
-                        </div>
-                    </div>
-                </a>
+            </article>
+            <article class="project-card book" data-tags="TypeScript,Browser Extension">
+                <button type="button" class="book-pick" aria-haspopup="dialog" aria-label="Open CMS Admin Helper">
+                    <span class="book-body">
+                        <span class="book-cover">
+                            <img class="book-shot" src="images/CmsAdminHelper.webp" alt="" width="800" height="514" loading="lazy" decoding="async">
+                            <span class="book-plate"><span class="book-rune" aria-hidden="true">ᚲ</span><span class="book-name">CMS Admin Helper</span></span>
+                        </span>
+                        <span class="book-edge" aria-hidden="true"></span>
+                    </span>
+                </button>
                 <div class="project-info">
                     <p class="project-title">CMS Admin Helper</p>
                     <p class="project-sub">Chrome &amp; Firefox Extension</p>
@@ -228,21 +238,22 @@
                     <!-- TODO(owner): add a Live / Try it link here when one exists
                          (store page, demo, itch.io, Discord invite). -->
                     <div class="card-links">
+                        <a class="card-link project-img-link" href="projects/cms-admin-helper.html">Read the notes<span aria-hidden="true"> ›</span></a>
                         <a class="card-link" href="https://github.com/MiyaZaki1072/cms-admin-helper-extension" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
-                        <a class="card-link" href="projects/cms-admin-helper.html">Case study<span aria-hidden="true"> ›</span></a>
                     </div>
                 </div>
-            </div>
-            <div class="project-card" data-tags="C#,Unity Engine">
-                <a href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer" class="project-img-link">
-                    <div class="project-img-wrap">
-                        <img src="images/MesosuemPic.webp" class="project-img" alt="Mesosuem"
-                             width="420" height="315" loading="lazy" decoding="async">
-                        <div class="project-img-overlay">
-                            <span class="view-label">View on GitHub →</span>
-                        </div>
-                    </div>
-                </a>
+            </article>
+            <article class="project-card book" data-tags="C#,Unity Engine">
+                <button type="button" class="book-pick" aria-haspopup="dialog" aria-label="Open Mesosuem">
+                    <span class="book-body">
+                        <span class="book-cover">
+                            <img class="book-shot" src="images/MesosuemPic.webp" alt="" width="420" height="315" loading="lazy" decoding="async">
+                            <span class="book-plate"><span class="book-rune" aria-hidden="true">ᛗ</span><span class="book-name">Mesosuem</span></span>
+                        </span>
+                        <span class="book-edge" aria-hidden="true"></span>
+                    </span>
+                </button>
+                <span class="prop prop-papers" aria-hidden="true"></span>
                 <div class="project-info">
                     <p class="project-title">Mesosuem</p>
                     <p class="project-sub">NSC2024 Finalist</p>
@@ -254,20 +265,20 @@
                     <!-- TODO(owner): add a Live / Try it link here when one exists
                          (store page, demo, itch.io, Discord invite). -->
                     <div class="card-links">
-                        <a class="card-link" href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
+                        <a class="card-link project-img-link" href="https://github.com/MiyaZaki1072/Mesosuem" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
                     </div>
                 </div>
-            </div>
-            <div class="project-card" data-tags="JavaScript,Node.js">
-                <a href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" rel="noopener noreferrer" class="project-img-link">
-                    <div class="project-img-wrap">
-                        <img src="images/SeriesTracker.webp" class="project-img" alt="SeriesTracker"
-                             width="420" height="315" loading="lazy" decoding="async">
-                        <div class="project-img-overlay">
-                            <span class="view-label">View on GitHub →</span>
-                        </div>
-                    </div>
-                </a>
+            </article>
+            <article class="project-card book" data-tags="JavaScript,Node.js">
+                <button type="button" class="book-pick" aria-haspopup="dialog" aria-label="Open Series Tracker">
+                    <span class="book-body">
+                        <span class="book-cover">
+                            <img class="book-shot" src="images/SeriesTracker.webp" alt="" width="420" height="315" loading="lazy" decoding="async">
+                            <span class="book-plate"><span class="book-rune" aria-hidden="true">ᛊ</span><span class="book-name">Series Tracker</span></span>
+                        </span>
+                        <span class="book-edge" aria-hidden="true"></span>
+                    </span>
+                </button>
                 <div class="project-info">
                     <p class="project-title">Series Tracker</p>
                     <p class="project-sub">Discord Bot</p>
@@ -279,11 +290,12 @@
                     <!-- TODO(owner): add a Live / Try it link here when one exists
                          (store page, demo, itch.io, Discord invite). -->
                     <div class="card-links">
-                        <a class="card-link" href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
+                        <a class="card-link project-img-link" href="https://github.com/MiyaZaki1072/Series-Tracker" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
                     </div>
                 </div>
-            </div>
+            </article>
 
+        </div>
         </div>
         <!-- Hidden until data/contributions.json loads. That file is generated
              into the Pages artifact at build time and never committed, so it is
@@ -326,7 +338,11 @@
             </div>
         </div>
     </section>
-    <section class="organizing-section" id="organizing">
+        <!-- The rune lines above these three sections are short lines from the Loki
+         series (Disney+), spelled in Elder Futhark letter by letter. The English is
+         the aria-label, so screen readers get it and sighted visitors get runes. -->
+<section class="organizing-section" id="organizing">
+        <p class="rune-divider" role="img" aria-label="What kind of god I need to be">ᚹᚺᚨᛏ · ᚲᛁᚾᛞ · ᛟᚠ · ᚷᛟᛞ · ᛁ · ᚾᛖᛖᛞ · ᛏᛟ · ᛒᛖ</p>
         <div class="section-header">
             <h2 class="section-title">Organizing</h2>
         </div>
@@ -399,6 +415,7 @@
         </div>
     </section>
     <section class="background-section" id="background">
+        <p class="rune-divider" role="img" aria-label="No one bad is ever truly bad">ᚾᛟ · ᛟᚾᛖ · ᛒᚨᛞ · ᛁᛊ · ᛖᚹᛖᚱ · ᛏᚱᚢᛚᛃ · ᛒᚨᛞ</p>
         <div class="section-header">
             <h2 class="section-title">Background</h2>
         </div>
@@ -413,46 +430,31 @@
                     <div class="timeline-track">
                         <div class="timeline-item is-current">
                             <span class="timeline-dot" aria-hidden="true"></span>
-                            <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/cpcu.webp"
-                                 data-me="chula"
-                                 data-me-caption="Me at Chulalongkorn University"
-                                 data-caption="Computer Engineering - Chulalongkorn University"
-                                 data-fb="https://www.facebook.com/cpengchula">
+                            <div class="timeline-content">
                                 <p class="timeline-year">2026 - present</p>
                                 <p class="timeline-title">Computer Engineering</p>
                                 <p class="timeline-place">Chulalongkorn University</p>
-                                <span class="timeline-hint">View photo</span>
+                                <a class="timeline-link" href="https://www.cp.eng.chula.ac.th/future/bachelor" target="_blank" rel="noopener noreferrer">Curriculum</a>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
-                            <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/witcom.jpg"
-                                 data-me="witcom"
-                                 data-me-caption="Me at Rayongwittayakom School - Wit-Com Program"
-                                 data-caption="Wit-Com Program - Rayongwittayakom School"
-                                 data-fb="https://www.facebook.com/profile.php?id=100063568503408">
+                            <div class="timeline-content">
                                 <p class="timeline-year">2023 - 2026</p>
                                 <p class="timeline-title">Wit-Com Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 3.99</p>
-                                <span class="timeline-hint">View photo</span>
+                                <a class="timeline-link" href="https://rayongwit.ac.th/%e0%b8%ab%e0%b9%89%e0%b8%ad%e0%b8%87%e0%b9%80%e0%b8%a3%e0%b8%b5%e0%b8%a2%e0%b8%99%e0%b8%9e%e0%b8%b4%e0%b9%80%e0%b8%a8%e0%b8%a9-%e0%b8%a7%e0%b8%b4%e0%b8%97%e0%b8%a2%e0%b9%8c-%e0%b8%84%e0%b8%ad%e0%b8%a1/" target="_blank" rel="noopener noreferrer">Curriculum</a>
                             </div>
                         </div>
                         <div class="timeline-item">
                             <span class="timeline-dot" aria-hidden="true"></span>
-                            <div class="timeline-content" tabindex="0" role="button"
-                                 data-image="images/education/gifted.jpg"
-                                 data-me="gifted"
-                                 data-me-caption="Me at Rayongwittayakom School - Gifted Program"
-                                 data-caption="Gifted Program - Rayongwittayakom School"
-                                 data-fb="https://www.facebook.com/giftedrayongwit">
+                            <div class="timeline-content">
                                 <p class="timeline-year">2020 - 2023</p>
                                 <p class="timeline-title">Gifted Program</p>
                                 <p class="timeline-place">Rayongwittayakom School</p>
                                 <p class="timeline-award">GPAX 4.00</p>
-                                <span class="timeline-hint">View photo</span>
+                                <a class="timeline-link" href="https://www.facebook.com/giftedrayongwit" target="_blank" rel="noopener noreferrer">Curriculum</a>
                             </div>
                         </div>
                     </div>
@@ -482,37 +484,54 @@
         </div>
     </section>
     <section class="contact-section" id="contact">
+        <p class="rune-divider" role="img" aria-label="Thank you, my friend">ᚦᚨᚾᚲ · ᛃᛟᚢ · ᛗᛃ · ᚠᚱᛁᛖᚾᛞ</p>
         <div class="section-header">
             <h2 class="section-title">Contact</h2>
         </div>
         <!-- TODO(owner): say what you are looking for (role, season, place) here
              and in the hero's "Open to" line. -->
-        <p class="contact-lead">Open to new opportunities. Email is the quickest way to reach me.</p>
-        <div class="contact-row">
-            <a class="contact-btn" href="mailto:titiwutfay2550@gmail.com"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span><span class="contact-label">Email</span></a>
-            <a class="contact-btn" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></span><span class="contact-label">GitHub</span></a>
-            <a class="contact-btn" href="https://www.linkedin.com/in/thitiwut-sreewasut-5bb1aa428/" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></span><span class="contact-label">LinkedIn</span></a>
-            <a class="contact-btn" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><span class="contact-label">Codeforces</span><span class="cf-rating" id="cfRating" hidden></span></a>
+        <p class="contact-lead">Open to new opportunities. Instagram is the quickest way to reach me.</p>
+        <!-- A mead hall bar: one tankard per link, set out on the counter. The rune
+             line carved on the counter is alu, the word on many Elder Futhark
+             inscriptions that is usually read as ale. -->
+        <div class="tavern" role="group" aria-label="Ways to reach me">
+        <div class="tavern-row">
+            <a class="tankard" id="instagramLink" href="https://www.instagram.com/frey_thitiwutsree/" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span></span><span class="tankard-label">Instagram</span></a>
+            <a class="tankard" href="mailto:titiwutfay2550@gmail.com"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span></span><span class="tankard-label">Email</span></a>
+            <a class="tankard" href="https://discord.com/users/464781419907121152" data-handle="miyazaki1072" title="miyazaki1072 on Discord" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span></span><span class="tankard-label">Discord</span></a>
+            <a class="tankard" id="lineLink" href="https://line.me/ti/p/~freyrythefake" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span></span><span class="tankard-label">LINE</span></a>
         </div>
-        <div class="contact-row contact-row--social">
-            <a class="contact-btn" id="instagramLink" href="https://www.instagram.com/frey_thitiwutsree/" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></span><span class="contact-label">Instagram</span></a>
-            <a class="contact-btn" id="facebookLink" href="https://www.facebook.com/miya.zaki.3785/" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span><span class="contact-label">Facebook</span></a>
-            <a class="contact-btn" id="lineLink" href="https://line.me/ti/p/~freyrythefake" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span><span class="contact-label">LINE</span></a>
-            <a class="contact-btn" href="https://discord.com/users/464781419907121152" data-handle="miyazaki1072" title="miyazaki1072 on Discord" target="_blank" rel="noopener noreferrer"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span><span class="contact-label">Discord</span></a>
+        <div class="tavern-row">
+            <a class="tankard" id="facebookLink" href="https://www.facebook.com/miya.zaki.3785/" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span></span><span class="tankard-label">Facebook</span></a>
+            <a class="tankard" href="https://github.com/MiyaZaki1072" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg></span></span><span class="tankard-label">GitHub</span></a>
+            <a class="tankard" href="https://www.linkedin.com/in/thitiwut-sreewasut-5bb1aa428/" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></span></span><span class="tankard-label">LinkedIn</span></a>
+            <a class="tankard" id="codeforcesLink" href="https://codeforces.com/profile/MiyaZaki1072" target="_blank" rel="noopener noreferrer"><span class="mug"><span class="contact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span></span><span class="tankard-label">Codeforces</span><span class="cf-rating" id="cfRating" hidden></span></a>
+        </div>
         </div>
     </section>
     </main>
     <div class="timeline-lightbox" id="timelineLightbox" role="dialog" aria-modal="true" aria-label="Education photo">
         <div class="timeline-lightbox-frame">
             <button type="button" class="timeline-lightbox-close" id="timelineLightboxClose" aria-label="Close photo">×</button>
-            <a class="timeline-lightbox-img-link" id="timelineLightboxImgLink" target="_blank" rel="noopener noreferrer" aria-label="Visit Facebook page">
+            <div class="timeline-lightbox-img-link">
                 <img class="timeline-lightbox-img" id="timelineLightboxImg" alt="">
                 <p class="timeline-lightbox-empty">Photo unavailable</p>
-                <div class="timeline-lightbox-fb-overlay">
-                    <span class="timeline-lightbox-fb-label">Facebook page →</span>
-                </div>
-            </a>
+            </div>
             <p class="timeline-lightbox-caption" id="timelineLightboxCaption"></p>
+        </div>
+    </div>
+    <!-- The opened book. shelf.js copies a card's cover and .project-info in. -->
+    <div class="shelf-stage" id="bookStage" role="dialog" aria-modal="true" aria-label="Project" hidden>
+        <div class="stage-scrim"></div>
+        <button type="button" class="stage-close" id="bookClose" aria-label="Close project">×</button>
+        <div class="stage-scene">
+            <div class="stage-book" id="stageBook">
+                <div class="stage-page" id="stagePage"></div>
+                <div class="stage-cover">
+                    <div class="stage-front" id="stageFront" aria-hidden="true"></div>
+                    <div class="stage-back" aria-hidden="true">ᚠ</div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -546,6 +565,7 @@
         </div>
     </div>
     <footer class="footer">
+        <span class="footer-mark" aria-hidden="true">ᛜ</span>
         <span>&copy; 2026 Thitiwut Sreewasut</span>
     </footer>
     <!-- GSAP, vendored rather than pulled from a CDN. The two properties this
@@ -565,5 +585,6 @@
     <script src="js/index.js"></script>
     <script src="js/motion.js"></script>
     <script src="js/springs.js"></script>
+    <script src="js/shelf.js"></script>
 </body>
 </html>

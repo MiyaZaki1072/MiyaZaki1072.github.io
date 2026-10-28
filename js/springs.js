@@ -17,8 +17,10 @@
     //Every card that lifts on hover: the projects, the three highlights
     //and the two Background columns. The tag preview only ever touches the
     //projects.
-    const surfaces = Array.from(document.querySelectorAll('.project-card, .timeline-col'));
-    const cards = surfaces.filter(el => el.matches('.project-card[data-tags]'));
+    //The books are not lifted here: a card is the book plus its plank, so
+    //lifting it raised the whole shelf. The book lifts itself in CSS.
+    const surfaces = Array.from(document.querySelectorAll('.project-card:not(.book), .timeline-col'));
+    const cards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
     const grid = document.querySelector('.project-grid');
     if (!surfaces.length) return;
 
@@ -87,8 +89,9 @@
         const triggers = document.querySelectorAll('.skills-block button.skill-tag[data-tech]');
 
         const lift = (card, target, options) => {
-            if (calm() || gsapOwns(card) || card.classList.contains('is-lit')) return;
-            animate(rigs.get(card).lift, target, options);
+            const rig = rigs.get(card);
+            if (!rig || calm() || gsapOwns(card) || card.classList.contains('is-lit')) return;
+            animate(rig.lift, target, options);
         };
 
         const show = tech => {

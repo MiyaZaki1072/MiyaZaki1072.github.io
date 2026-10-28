@@ -1,15 +1,14 @@
 /* ---------------------------------------------------------------------------
    Design tokens
 
-   Apple-style: a grouped-background page, white cards on it, one accent
-   (systemBlue) and automatic dark mode. The system font stack does the typing;
-   nothing here is self-hosted. Token *names* from the terminal-era sheet are
-   kept (--green, --surface, --text-pri ...) because the terminal, the lightbox
-   and rune mode are built on them. "--green" is now simply "the accent", and
-   rune mode swaps it for gold the same way it always did.
+   Norse, kept readable: a near-black ground, green as the one accent, runes
+   as ornament only (section marks, dividers, the book covers). Body copy stays
+   on the system font stack; Almendra does the headings and nothing else.
+   Token *names* from the terminal-era sheet are kept (--green, --surface,
+   --text-pri ...) because the terminal, the lightbox and rune mode are built
+   on them. Rune mode swaps the accent for gold the same way it always did.
 
-   Light values are the default; dark follows the OS. Every text token clears
-   4.5:1 on its own ground.
+   Dark only. Every text token clears 4.5:1 on its own ground.
 --------------------------------------------------------------------------- */
 :root {
     color-scheme: dark;
@@ -28,7 +27,6 @@
     --glass:         rgba(var(--bg-rgb), 0.85);
     --glass-blur:    blur(20px) saturate(180%);
     --glass-rim:     rgba(255, 255, 255, 0.08);
-    --glass-panel:   var(--surface);
 
     --green-rgb:        34, 197, 94;
     --green-bright-rgb: 74, 222, 128;
@@ -40,7 +38,6 @@
     --on-green:      #06170c;
 
     --amber:         #ffb000;
-    --amber-dim:     rgba(255, 176, 0, 0.10);
 
     --contrib-0:     var(--surface-2);
     --contrib-1:     rgba(var(--green-rgb), 0.22);
@@ -56,7 +53,8 @@
        glyphs SF and Segoe do not carry. Noto Sans Runic is the one webfont,
        subset to the runes rune mode prints. */
     --font-body:    system-ui, -apple-system, "Segoe UI", "Inter", "Noto Sans Thai", "Leelawadee UI", Tahoma, "Noto Sans Runic", sans-serif;
-    --font-display: var(--font-body);
+    --font-display: "Almendra", "Noto Sans Thai", "Leelawadee UI", Georgia, serif;
+    --font-rune:    "Noto Sans Runic", "Segoe UI Historic", "Segoe UI Symbol", sans-serif;
     --font-mono:    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Noto Sans Thai", "Noto Sans Runic", monospace;
 
     /* iOS type scale: name 34+, section 28, card 22, body 17, meta 15, chip 13 */
@@ -77,7 +75,6 @@
     --sp-6: 32px;
     --sp-7: 48px;
     --sp-8: 64px;
-    --sp-9: 96px;
 
     /* Radius: chips 8, cards 20, sheets 28, buttons fully round. */
     --r-sm:    8px;
@@ -190,21 +187,21 @@ main { overflow-x: clip; }
 /* Hero --------------------------------------------------------------------- */
 .about-section {
     position: relative;
-    padding: calc(var(--sp-9) + var(--sp-4)) var(--gutter) var(--sp-6);
+    padding: calc(var(--sp-8) + var(--sp-4)) var(--gutter) var(--sp-7);
     /* The soft gradient the glass nav has something to pick up from. */
-    background:
-        radial-gradient(ellipse 70% 60% at 20% 0%, rgba(var(--green-rgb), 0.10), transparent 70%);
 }
 .about-inner {
     position: relative;
     display: flex;
+    flex-direction: row-reverse;
     align-items: center;
+    justify-content: space-between;
     gap: var(--sp-8);
     max-width: var(--content-max);
     margin: 0 auto;
 }
 .avatar-wrap {
-    --avatar-size: 240px;
+    --avatar-size: 260px;
     position: relative;
     flex-shrink: 0;
 }
@@ -235,8 +232,8 @@ main { overflow-x: clip; }
     position: absolute;
     inset: -8px;
     border-radius: 50%;
-    border: 2px solid var(--green);
-    opacity: 0.35;
+    border: 2px dashed var(--green);
+    opacity: 0.4;
     z-index: 0;
 }
 .text-section {
@@ -248,20 +245,27 @@ main { overflow-x: clip; }
 .name-txt {
     font-family: var(--font-display);
     font-size: var(--fs-name);
-    font-weight: 700;
+    font-weight: 400;
     color: var(--text-pri);
-    letter-spacing: -0.025em;
+    letter-spacing: 0;
     /* Not 1: the Thai name carries a tone mark that stacks above the consonant
        and a tight line box clips it. */
     line-height: 1.15;
 }
+/* Fehu, the rune Freyr is paired with. A pseudo-element, so whoami and the
+   EN/TH scramble still see only the nickname. */
 .name-nick {
     display: block;
-    font-size: 0.45em;
-    font-weight: 500;
-    letter-spacing: 0;
-    color: var(--text-sec);
+    font-size: 0.5em;
+    letter-spacing: 0.02em;
+    color: var(--green-bright);
     margin-top: var(--sp-1);
+}
+.name-nick::before {
+    content: 'ᚠ';
+    margin-right: 0.5em;
+    font-family: var(--font-rune);
+    color: var(--green);
 }
 .status-txt {
     font-size: var(--fs-lead);
@@ -280,14 +284,10 @@ main { overflow-x: clip; }
     color: var(--green-bright);
 }
 .availability-txt::before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
+    content: 'ᛟ';
     margin-right: var(--sp-2);
-    border-radius: 50%;
-    background: var(--green);
-    vertical-align: 1px;
+    font-family: var(--font-rune);
+    color: var(--green);
 }
 .resume-link {
     display: inline-flex;
@@ -347,9 +347,9 @@ main { overflow-x: clip; }
     font-size: var(--fs-micro);
     font-weight: 500;
     color: var(--text-sec);
-    background: var(--surface-2);
-    border: none;
-    border-radius: var(--r-sm);
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: 2px;
     padding: var(--sp-1) var(--sp-3);
 }
 button.skill-tag {
@@ -386,64 +386,43 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     transform: translateX(-50%) translateY(0);
 }
 
-/* Contact: four round 44px action buttons with a label underneath. The icon
-   is the link; the label is a span so the EN/TH scramble never touches the SVG. */
+/* Contact: plain words, each led by a rune, underlined on hover. No icons: the
+   label is the link, and it is a span so the EN/TH scramble can rewrite it. */
 .contact-row {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--sp-4);
+    gap: var(--sp-1) var(--sp-5);
     margin-top: var(--sp-2);
 }
 .contact-btn {
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
-    gap: var(--sp-1);
-    min-width: 64px;
+    gap: var(--sp-2);
+    min-height: var(--tap);
     text-decoration: none;
-    font-size: var(--fs-micro);
+    font-size: var(--fs-body);
     font-weight: 500;
-    color: var(--text-sec);
-    cursor: pointer;
-    transition: color 0.2s, transform 0.15s;
-}
-.contact-icon {
-    display: grid;
-    place-items: center;
-    width: var(--tap);
-    height: var(--tap);
-    border-radius: 50%;
-    background: var(--green-dim);
     color: var(--green-bright);
-    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+    transition: color 0.2s;
 }
-.contact-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+.contact-btn::before {
+    content: 'ᚨ';
+    font-family: var(--font-rune);
+    font-size: 0.9em;
+    color: var(--green);
+    transition: transform 0.25s;
+}
+.contact-label {
+    text-decoration: underline;
+    text-decoration-color: var(--green-line);
+    text-underline-offset: 0.3em;
+    transition: text-decoration-color 0.2s;
 }
 .contact-btn:hover { color: var(--text-pri); }
-.contact-btn:hover .contact-icon {
-    background: var(--green);
-    color: var(--on-green);
-}
-.contact-btn:active { transform: scale(0.97); }
-/* Text-only contact links (the organizing panel's). */
-.k2c-links .contact-btn {
-    flex-direction: row;
-    min-width: 0;
-    min-height: var(--tap);
-    padding: 0 var(--sp-4);
-    border-radius: var(--r-pill);
-    background: var(--green-dim);
-    color: var(--green-bright);
-    font-size: var(--fs-small);
-}
-.k2c-links .contact-btn:hover { background: var(--green); color: var(--on-green); }
+.contact-btn:hover .contact-label { text-decoration-color: var(--green); }
+.contact-btn:hover::before { transform: translateX(3px); }
+.contact-btn:active { opacity: 0.8; }
 
 .translate-btn {
     position: absolute;
@@ -472,23 +451,8 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 .translate-icon { color: var(--green); }
 
-/* Highlights: three widgets, the bronze tint only on the TOI one. */
-.highlights-section {
-    padding: 0 var(--gutter) var(--sp-6);
-}
-.highlight-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--sp-4);
-    max-width: var(--content-max);
-    margin: 0 auto;
-}
 .project-card {
     position: relative;
-    background: var(--surface);
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
     min-width: 0;
 }
 .project-info {
@@ -529,75 +493,284 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     margin-bottom: var(--sp-5);
 }
 .section-title {
+    font-family: var(--font-display);
     font-size: var(--fs-h2);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     line-height: 1.2;
 }
+/* A rune for each section, as ornament. Generated content, so the page's
+   text walk (rune mode, the terminal) never sees it. */
+.section-title::before {
+    content: 'ᚠ';
+    margin-right: 0.5em;
+    font-family: var(--font-rune);
+    font-size: 0.8em;
+    color: var(--green);
+}
+#organizing .section-title::before { content: 'ᛏ'; }
+#background .section-title::before { content: 'ᛒ'; }
+#contact .section-title::before { content: 'ᛗ'; }
 .split-char {
     display: inline-block;
     white-space: pre;
 }
 
-/* Project cards ------------------------------------------------------------ */
+/* Bookshelf ----------------------------------------------------------------
+   One book per project. Each .project-card keeps its .project-info (the
+   terminal reads it with textContent) but hides it on the shelf; shelf.js
+   copies it onto the page of the opened book. The plank is part of each
+   card, so the shelf stays whole at any column count. */
 .project-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--sp-5);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--sp-6) 0;
 }
-.project-img-link {
+.book {
+    --cover: color-mix(in srgb, rgb(var(--green-rgb)) 26%, #050805);
+    padding: var(--sp-5) var(--sp-4) 0;
+}
+.book:nth-child(2) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 20%, #04100c); }
+.book:nth-child(3) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 32%, #0a0c04); }
+.book:nth-child(4) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 16%, #060806); }
+.book > .project-info { display: none; }
+/* The plank. */
+.book::after {
+    content: '';
     display: block;
-    color: inherit;
-    text-decoration: none;
+    height: 18px;
+    margin: 0 calc(-1 * var(--sp-4));
+    background: linear-gradient(#4a3a2a, #2f2418 70%, #1a130c);
+    border-top: 1px solid #6a5540;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.55);
 }
-.project-img-wrap {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 16 / 10;
-    background: var(--surface-2);
-}
-.project-img {
+.book-pick {
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    perspective: 900px;
+    -webkit-tap-highlight-color: transparent;
 }
-.project-img-wrap:hover .project-img { transform: scale(1.03); }
-.project-img-overlay {
+.book-pick:focus-visible { outline-offset: 6px; border-radius: 6px; }
+.book-body {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    transform-style: preserve-3d;
+    transform-origin: 50% 100%;
+    transform: rotateY(-16deg);
+    /* A touch of overshoot, so it settles like it has weight. */
+    transition: transform 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+    will-change: transform;
+}
+.book-pick:hover .book-body,
+.book-pick:focus-visible .book-body,
+.project-card.is-linked .book-body {
+    transform: translateY(-14px) translateZ(24px) rotateY(-4deg);
+}
+.book.is-out .book-body { visibility: hidden; }
+/* The soft shadow it throws on the plank. */
+.book-body::before {
+    content: '';
+    position: absolute;
+    left: 6%;
+    right: -6%;
+    bottom: -10px;
+    height: 16px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6), transparent 70%);
+    transform: translateZ(-1px);
+    transition: opacity 0.45s;
+}
+.book-pick:hover .book-body::before { opacity: 0.45; }
+
+/* The cover is the template: leather, a hinge strip, a framed window for the
+   screenshot, and a plate with the rune and title. */
+.book-cover {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: flex-end;
-    justify-content: flex-end;
-    padding: var(--sp-4);
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent 50%);
-    opacity: 0;
-    transition: opacity 0.25s;
+    flex-direction: column;
+    gap: 6%;
+    padding: 9% 9% 8% 15%;
+    overflow: hidden;
+    text-align: left;
+    color: var(--text-pri);
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0, rgba(0, 0, 0, 0) 3%, rgba(255, 255, 255, 0.07) 5%, rgba(0, 0, 0, 0.28) 7%, rgba(0, 0, 0, 0) 14%),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 5px),
+        var(--cover);
+    border-radius: 3px 8px 8px 3px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    backface-visibility: hidden;
 }
-.project-img-wrap:hover .project-img-overlay,
-.project-img-link:focus-visible .project-img-overlay { opacity: 1; }
-.view-label {
-    font-size: var(--fs-small);
-    font-weight: 600;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.22);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    border-radius: var(--r-pill);
-    padding: var(--sp-2) var(--sp-4);
-}
-.ripple {
+.book-cover::before {
+    content: '';
     position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.12) 60%, transparent 70%);
-    transform: scale(0);
+    inset: 4% 4% 4% 11%;
+    border: 1px solid rgba(var(--green-bright-rgb), 0.35);
+    border-radius: 2px;
     pointer-events: none;
-    z-index: 3;
-    animation: rippleAnim 0.6s ease-out forwards;
 }
-@keyframes rippleAnim {
-    to { transform: scale(1); opacity: 0; }
+.book-shot {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    object-fit: cover;
+    object-position: top left;
+    border: 1px solid rgba(var(--green-bright-rgb), 0.5);
+    border-radius: 2px;
+    background: #000;
+}
+.book-plate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.book-rune {
+    flex: none;
+    font-family: var(--font-rune);
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    line-height: 1;
+    color: var(--green-bright);
+}
+.book-name {
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 1.9vw, 1.3rem);
+    line-height: 1.1;
+    color: var(--text-pri);
+}
+/* Page block on the right edge: a vertical plane at the cover's right side,
+   folded back 90deg so the book has thickness when it leans. */
+.book-edge {
+    position: absolute;
+    top: 1.5%;
+    bottom: 1.5%;
+    left: 100%;
+    width: 22px;
+    transform-origin: left center;
+    transform: rotateY(90deg);
+    background: repeating-linear-gradient(0deg, #d8d2bf 0 1px, #b9b39f 1px 2px);
+    box-shadow: inset 6px 0 8px rgba(0, 0, 0, 0.35);
+}
+
+/* The opened book ----------------------------------------------------------
+   shelf.js fills this. Closed it is the same book, scaled up; opening swings
+   the cover about its left edge to show the page behind it. */
+.shelf-stage {
+    --stage-w: min(380px, 78vw);
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+.shelf-stage[hidden] { display: none; }
+.stage-scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 5, 3, 0.82);
+    opacity: 0;
+    transition: opacity 0.35s;
+}
+.shelf-stage.is-on .stage-scrim { opacity: 1; }
+.stage-close {
+    position: absolute;
+    top: var(--sp-4);
+    right: var(--sp-4);
+    width: var(--tap);
+    height: var(--tap);
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--text-sec);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 2;
+}
+.stage-close:hover { color: var(--green-bright); border-color: var(--green); }
+.stage-scene {
+    position: relative;
+    perspective: 1800px;
+}
+.stage-book {
+    position: relative;
+    width: var(--stage-w);
+    aspect-ratio: 3 / 4;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.shelf-stage.is-open .stage-book { transform: translateX(calc(var(--stage-w) / 2)); }
+.stage-page {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 9% 8% 8% 10%;
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 8%),
+        var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 2px 8px 8px 2px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+.stage-page .project-info { padding: 0; gap: var(--sp-2); }
+.stage-page .project-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 400;
+    color: var(--text-pri);
+}
+.stage-page .project-title::before {
+    content: 'ᚠ';
+    margin-right: 0.4em;
+    font-family: var(--font-rune);
+    font-size: 0.8em;
+    color: var(--green);
+}
+.stage-page .project-sub { font-size: var(--fs-small); line-height: 1.5; }
+.stage-cover {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.6, 0, 0.2, 1);
+}
+.shelf-stage.is-open .stage-cover { transform: rotateY(-172deg); }
+.stage-front,
+.stage-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+}
+.stage-front .book-cover { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 60px rgba(0, 0, 0, 0.6); }
+/* Inside of the cover: the same leather, a rune in the middle. */
+.stage-back {
+    transform: rotateY(180deg);
+    display: grid;
+    place-items: center;
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 5px),
+        var(--cover);
+    border-radius: 8px 3px 3px 8px;
+    font-family: var(--font-rune);
+    font-size: 4rem;
+    color: rgba(var(--green-bright-rgb), 0.5);
+}
+.stage-back::before {
+    content: '';
+    position: absolute;
+    inset: 4%;
+    border: 1px solid rgba(var(--green-bright-rgb), 0.3);
+}
+html.stage-open { overflow: hidden; }
+
+.project-img-link {
+    color: inherit;
+    text-decoration: none;
 }
 
 .card-links {
@@ -615,20 +788,36 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     font-weight: 600;
     color: var(--green-bright);
     background: var(--green-dim);
-    border-radius: var(--r-pill);
+    border: 1px solid var(--green-line);
+    border-radius: 2px;
     text-decoration: none;
     transition: background 0.2s, color 0.2s, transform 0.15s;
 }
 .card-link:hover { background: var(--green); color: var(--on-green); }
 .card-link:active { transform: scale(0.97); }
 
-/* Case-study pages -------------------------------------------------------- */
-.case {
+@media (max-width: 900px) {
+    .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* One page wide: no room for a spread, so the cover swings away instead. */
+@media (max-width: 760px) {
+    .shelf-stage { --stage-w: min(340px, 86vw); }
+    .shelf-stage.is-open .stage-book { transform: none; }
+    .shelf-stage.is-open .stage-cover { opacity: 0; transition: transform 0.9s cubic-bezier(0.6, 0, 0.2, 1), opacity 0.4s 0.4s; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .book-body,
+    .stage-book,
+    .stage-cover { transition: none; }
+}
+
+/* Notes pages (projects/*.html): a devlog entry, one column. */
+.note {
     max-width: 720px;
     margin: 0 auto;
     padding: var(--sp-7) var(--gutter) var(--sp-8);
 }
-.case-back {
+.note-back {
     display: inline-flex;
     align-items: center;
     min-height: var(--tap);
@@ -636,33 +825,41 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     color: var(--green-bright);
     text-decoration: none;
 }
-.case-back:hover { text-decoration: underline; }
-.case-kicker {
+.note-back:hover { text-decoration: underline; }
+.note-kicker {
     margin-top: var(--sp-4);
     font-size: var(--fs-micro);
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    color: var(--green);
 }
-.case-title {
+.note-kicker::before {
+    content: 'ᚠ';
+    margin-right: var(--sp-2);
+    font-family: var(--font-rune);
+}
+.note-title {
+    font-family: var(--font-display);
     font-size: var(--fs-name);
-    font-weight: 700;
-    letter-spacing: -0.025em;
+    font-weight: 400;
     line-height: 1.15;
     margin: var(--sp-2) 0 var(--sp-3);
 }
-.case-lead { font-size: var(--fs-lead); color: var(--text-sec); }
-.case-links { margin-top: var(--sp-4); }
-.case h2 {
+.note-lead { font-size: var(--fs-lead); color: var(--text-sec); }
+.note-links { margin-top: var(--sp-4); }
+.note h2 {
+    font-family: var(--font-display);
     font-size: var(--fs-card);
-    font-weight: 700;
+    font-weight: 400;
     margin: var(--sp-6) 0 var(--sp-2);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--green-line);
 }
-.case p,
-.case li { color: var(--text-sec); }
-.case strong { color: var(--text-pri); }
-.case ul { padding-left: var(--sp-5); display: grid; gap: var(--sp-2); }
+.note p,
+.note li { color: var(--text-sec); }
+.note strong { color: var(--text-pri); }
+.note ul { padding-left: var(--sp-5); display: grid; gap: var(--sp-2); }
 
 /* Toast */
 .toast {
@@ -856,12 +1053,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .timeline-item.is-current .timeline-dot {
     background: var(--green);
     border-color: var(--green);
-    animation: pulseRing 2.4s ease-out infinite;
-}
-@keyframes pulseRing {
-    0%   { box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0.45); }
-    80%  { box-shadow: 0 0 0 10px rgba(var(--green-rgb), 0); }
-    100% { box-shadow: 0 0 0 0 rgba(var(--green-rgb), 0); }
 }
 .timeline-content[role="button"] {
     cursor: pointer;
@@ -881,6 +1072,16 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     color: var(--green-bright);
 }
 .timeline-hint::after { content: ' ›'; }
+.timeline-link {
+    display: inline-block;
+    margin-top: var(--sp-1);
+    font-size: var(--fs-micro);
+    font-weight: 500;
+    color: var(--green-bright);
+    text-decoration: none;
+}
+.timeline-link::after { content: ' ↗'; }
+.timeline-link:hover { text-decoration: underline; }
 .project-info .timeline-year { margin-bottom: var(--sp-1); }
 
 /* Contact ------------------------------------------------------------------ */
@@ -891,8 +1092,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     margin-bottom: var(--sp-4);
     max-width: 52ch;
 }
-.contact-section .contact-row { margin-top: 0; }
-.contact-section .contact-row--social { margin-top: var(--sp-4); }
 
 /* Footer ------------------------------------------------------------------- */
 .footer {
@@ -1180,7 +1379,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .timeline-lightbox-img-link {
     position: relative;
     display: block;
-    text-decoration: none;
 }
 .timeline-lightbox-img {
     display: block;
@@ -1188,37 +1386,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     max-height: 65vh;
     object-fit: contain;
     background: var(--bg);
-}
-.timeline-lightbox-fb-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(var(--green-rgb), 0.14);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-}
-.timeline-lightbox-img-link:hover .timeline-lightbox-fb-overlay,
-.timeline-lightbox-img-link:focus-visible .timeline-lightbox-fb-overlay {
-    opacity: 1;
-}
-.timeline-lightbox-img-link.is-disabled {
-    cursor: default;
-}
-.timeline-lightbox-img-link.is-disabled .timeline-lightbox-fb-overlay {
-    display: none;
-}
-.timeline-lightbox-fb-label {
-    font-family: var(--font-mono);
-    font-size: var(--fs-small);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--green-bright);
-    background: rgba(var(--bg-rgb), 0.6);
-    padding: var(--sp-2) var(--sp-4);
-    border-radius: var(--r-sm);
-    border: 1px solid var(--green);
 }
 .timeline-lightbox-caption {
     padding: var(--sp-3) var(--sp-4) var(--sp-4);
@@ -1686,8 +1853,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .nav-indicator { border-radius: var(--r-pill); }
 
 @media (prefers-reduced-transparency: reduce) {
-    .navbar,
-    .view-label {
+    .navbar {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
     }
@@ -1720,7 +1886,6 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
 }
 @media (max-width: 900px) {
-    .project-grid,
     .k2c-panel,
     .timeline-columns {
         grid-template-columns: minmax(0, 1fr);
@@ -1737,7 +1902,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     .skills-block,
     .contact-row { justify-content: center; }
     .skill-group { align-items: center; }
-    .highlight-grid { grid-template-columns: minmax(0, 1fr); }
+    .about-inner { flex-direction: column; }
 }
 @media (max-width: 640px) {
     :root {
@@ -1936,28 +2101,11 @@ button.skill-tag[data-tooltip]:focus-visible::after {
     }
     .timeline-content:hover { background: rgba(var(--green-rgb), 0.06); }
 }
-/* Scroll progress, drawn by motion.js along the bottom of the nav. */
-.nav-progress {
-    position: absolute;
-    left: var(--sp-5);
-    right: var(--sp-5);
-    bottom: 1px;
-    height: 2px;
-    border-radius: var(--r-pill);
-    background: var(--green);
-    transform: scaleX(0);
-    transform-origin: left center;
-    pointer-events: none;
-}
-@media (max-width: 640px) {
-    .nav-progress { left: 0; right: 0; top: 0; bottom: auto; border-radius: 0; }
-}
 /* Tag preview: the projects built with the tag under the pointer light up, and
    the rest dim. Dimmed with filter rather than opacity because the filter
    animation already owns the cards' opacity. */
-.project-card.is-linked {
-    border-color: var(--green);
-    box-shadow: 0 0 0 1px var(--green-line), 0 0 28px rgba(var(--green-rgb), 0.18);
+.project-card.is-linked .book-cover {
+    box-shadow: inset 0 0 0 2px var(--green);
 }
 .project-grid.is-previewing .project-card:not(.is-linked) {
     filter: brightness(0.5) saturate(0.4);
@@ -1976,4 +2124,486 @@ button.skill-tag[data-tooltip]:focus-visible::after {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* Norse layer ---------------------------------------------------------------
+   Ornament over the base sheet above: the quote band, banners,
+   stone panels, the carved shelf. Runes are generated content or aria-hidden
+   spans, so the terminal and screen readers never meet them. */
+
+/* Highlights: three carved plaques, compact so they sit in the first screen.
+   The bronze tint is only on the TOI one. */
+.highlights-section { margin: var(--sp-6) auto 0; max-width: var(--content-max); }
+.highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-4);
+}
+.highlight {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4);
+    background:
+        radial-gradient(120% 80% at 10% 0%, rgba(255, 255, 255, 0.045), transparent 60%),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.014) 0 3px, transparent 3px 7px),
+        #101510;
+    border: 1px solid #2c352c;
+    border-radius: 28px 6px 6px 28px;
+    box-shadow:
+        inset 0 0 0 3px #0b0f0b,
+        inset 0 0 0 4px rgba(var(--green-rgb), 0.22),
+        0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.hl-rune {
+    grid-row: 1 / span 4;
+    font-family: var(--font-rune);
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--green);
+}
+.hl-year {
+    font-size: var(--fs-micro);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+.hl-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-card);
+    line-height: 1.2;
+    color: var(--text-pri);
+}
+.hl-sub {
+    font-size: var(--fs-micro);
+    color: var(--text-sec);
+}
+.hl-award {
+    margin-top: var(--sp-1);
+    font-size: var(--fs-micro);
+    color: var(--text-pri);
+}
+.highlight--bronze { border-color: #5a4126; }
+.highlight--bronze .hl-rune { color: #cd7f32; }
+@media (max-width: 960px) {
+    .highlight-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The quote, between two lines of runes that spell something: the quote itself
+   above it, "Freyr" below. Still, because the lines used to slide and that was
+   too much moving at once. */
+.hero-quote {
+    display: grid;
+    gap: var(--sp-5);
+    max-width: var(--content-max);
+    margin: var(--sp-8) auto 0;
+    text-align: center;
+}
+.rune-run {
+    overflow: hidden;
+    font-family: var(--font-rune);
+    font-size: var(--fs-small);
+    letter-spacing: 0.9em;
+    /* letter-spacing trails the last glyph; this pulls the line back to centre. */
+    padding-left: 0.9em;
+    color: rgba(var(--green-rgb), 0.55);
+    white-space: nowrap;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.hero-quote-text p {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4.2vw, 2.6rem);
+    line-height: 1.25;
+    color: var(--text-pri);
+    text-wrap: balance;
+}
+
+/* Rune marks: the Ing rune, the one Freyr's name travels with. */
+.nav-mark,
+.footer-mark {
+    font-family: var(--font-rune);
+    color: var(--green);
+    text-decoration: none;
+}
+.nav-mark {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--sp-3) 0 var(--sp-4);
+    font-size: 1.6rem;
+}
+.footer-mark { font-size: 2.2rem; }
+
+/* Contact links: rune, icon, label. */
+.contact-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    color: var(--green-bright);
+}
+.contact-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Section banners: cloth hung from a wooden rod, notched at the bottom. */
+.section-header {
+    position: relative;
+    display: inline-block;
+    margin-bottom: var(--sp-6);
+    padding-top: 10px;
+}
+.section-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -12px;
+    right: -12px;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(#6a5540, #3a2c1e);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+.section-title {
+    display: inline-block;
+    padding: var(--sp-3) var(--sp-6) calc(var(--sp-3) + 16px);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%),
+        color-mix(in srgb, rgb(var(--green-rgb)) 24%, #050805);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), 50% 100%, 0 calc(100% - 16px));
+    box-shadow: inset 0 0 0 1px rgba(var(--green-bright-rgb), 0.35);
+}
+
+
+/* Carved stone panels. */
+.k2c-intro,
+.k2c-log,
+.timeline-col {
+    position: relative;
+    background:
+        radial-gradient(120% 80% at 10% 0%, rgba(255, 255, 255, 0.045), transparent 60%),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.014) 0 3px, transparent 3px 7px),
+        #101510;
+    border: 1px solid #2c352c;
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 4px #0b0f0b,
+        inset 0 0 0 5px rgba(var(--green-rgb), 0.22),
+        0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.k2c-intro::before,
+.k2c-log::before,
+.timeline-col::before {
+    content: 'ᛜ';
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: var(--font-rune);
+    font-size: 0.9rem;
+    color: rgba(var(--green-rgb), 0.5);
+}
+.k2c-intro::after,
+.k2c-log::after,
+.timeline-col::after {
+    content: 'ᚠ';
+    position: absolute;
+    bottom: 8px;
+    left: 12px;
+    font-family: var(--font-rune);
+    font-size: 0.9rem;
+    color: rgba(var(--green-rgb), 0.5);
+}
+
+/* The timeline as a path of rune stones. */
+.timeline-track::before,
+.timeline-rail {
+    background: repeating-linear-gradient(180deg, var(--green-line) 0 6px, transparent 6px 12px);
+}
+.timeline-dot {
+    left: calc(-1 * var(--sp-5) - 5px);
+    top: calc(var(--sp-3) + 1px);
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-strong);
+    border-radius: 42% 58% 52% 48% / 55% 45% 60% 40%;
+    background: radial-gradient(circle at 35% 30%, #2a332a, #141a14);
+    font-family: var(--font-rune);
+    font-size: 0.7rem;
+    line-height: 1;
+    color: var(--green);
+}
+.timeline-dot::after { content: 'ᚠ'; }
+.timeline-item:nth-child(3) .timeline-dot::after { content: 'ᚢ'; }
+.timeline-item:nth-child(4) .timeline-dot::after { content: 'ᚦ'; }
+.timeline-item:nth-child(5) .timeline-dot::after { content: 'ᚨ'; }
+.timeline-item.is-current .timeline-dot {
+    background: var(--green);
+    color: var(--on-green);
+}
+
+/* The carved shelf: a wooden frame, a rune line along the top rail, studs at
+   the corners, stone bookends, and thin boards standing between the books. */
+.shelf-frame {
+    position: relative;
+    padding: 30px 18px 0;
+    border: 14px solid;
+    border-color: #4a3a2a #2f2418 #1a130c #2f2418;
+    border-radius: 6px;
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 6px),
+        #090d09;
+    box-shadow: inset 0 14px 30px rgba(0, 0, 0, 0.65), 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+.shelf-frame::before {
+    content: 'ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ ᛇ ᛈ ᛉ ᛊ ᛏ ᛒ ᛖ ᛗ ᛚ ᛜ ᛞ ᛟ ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ';
+    position: absolute;
+    top: -14px;
+    left: 0;
+    right: 0;
+    height: 14px;
+    overflow: hidden;
+    font-family: var(--font-rune);
+    font-size: 10px;
+    line-height: 14px;
+    letter-spacing: 0.7em;
+    text-align: center;
+    white-space: nowrap;
+    color: #8a7355;
+    text-shadow: 0 1px 0 #1a130c;
+}
+.frame-knot {
+    position: absolute;
+    top: -22px;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-family: var(--font-rune);
+    font-size: 0.95rem;
+    color: #2a1d0e;
+    background: radial-gradient(circle at 35% 30%, #e2c28a, #a8864f 60%, #6d5230);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+.frame-knot--tl { left: -22px; }
+.frame-knot--tr { right: -22px; }
+.bookend {
+    position: absolute;
+    bottom: 18px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 86px;
+    font-family: var(--font-rune);
+    font-size: 0.9rem;
+    color: rgba(var(--green-bright-rgb), 0.75);
+    background: linear-gradient(90deg, #2b332b, #1a201a);
+    border: 1px solid #3a443a;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+.bookend--l { left: 2px; border-radius: 3px 8px 0 0; }
+.bookend--r { right: 2px; border-radius: 8px 3px 0 0; }
+.book::before {
+    content: '';
+    position: absolute;
+    right: -3px;
+    bottom: 18px;
+    z-index: 2;
+    width: 6px;
+    height: 80%;
+    background: linear-gradient(90deg, #4a3a2a, #2f2418);
+    box-shadow: 1px 0 0 #1a130c;
+    pointer-events: none;
+}
+.book:nth-child(4n)::before { display: none; }
+.prop {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+}
+/* A rolled scroll lying on the plank. */
+.prop-scroll {
+    right: 8px;
+    bottom: 19px;
+    width: 56px;
+    height: 14px;
+    border-radius: 7px;
+    background: linear-gradient(#e2dccb, #b9b39f);
+    box-shadow: inset -5px 0 0 rgba(0, 0, 0, 0.18), 0 2px 3px rgba(0, 0, 0, 0.5);
+    transform: rotate(-4deg);
+}
+/* Loose sheets stacked at the foot of a book. */
+.prop-papers {
+    right: 14px;
+    bottom: 19px;
+    width: 48px;
+    height: 4px;
+    background: #d8d2bf;
+    box-shadow: 0 -4px 0 #cfc9b6, 0 -8px 0 #d8d2bf, 0 3px 4px rgba(0, 0, 0, 0.5);
+    transform: rotate(3deg);
+}
+@media (max-width: 900px) {
+    .book:nth-child(4n)::before { display: block; }
+    .book:nth-child(2n)::before { display: none; }
+}
+@media (max-width: 640px) {
+    .nav-mark { display: none; }
+    .shelf-frame { padding: 26px 8px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+}
+
+/* A carved line of runes above a section. Each spells a short line of English
+   (its aria-label), so it is generated by letter, not an alphabet in order. */
+.rune-divider {
+    margin: 0 0 var(--sp-6);
+    padding: var(--sp-4) 0 0 0.6em;
+    font-family: var(--font-rune);
+    text-align: center;
+    letter-spacing: 0.6em;
+    color: rgba(var(--green-rgb), 0.6);
+    background: linear-gradient(90deg, transparent, var(--green-line), transparent) top / 100% 1px no-repeat;
+}
+
+/* No visible scrollbar. The page still scrolls by wheel, touch and keys. */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
+
+/* Contact: a mead hall bar. One wooden cup per link on a counter, all the same
+   size. Each row carries its own counter, so the bar holds together however
+   the row wraps. */
+.tavern {
+    position: relative;
+    max-width: 720px;
+    margin: var(--sp-5) auto 0;
+    padding: var(--sp-7) var(--sp-4) 0;
+    border-radius: 6px 6px 0 0;
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 45%),
+        repeating-linear-gradient(90deg, #17110b 0 62px, #0f0a06 62px 64px);
+    box-shadow: inset 0 0 0 1px #2a2016;
+}
+.tavern-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+}
+.tavern-row + .tavern-row { margin-top: var(--sp-7); }
+/* The counter: a lit lip on top, a front panel with ALU carved along it. */
+.tavern-row::after {
+    content: 'ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ ᚨᛚᚢ';
+    flex: 0 0 100%;
+    order: 99;
+    display: block;
+    box-sizing: border-box;
+    height: 64px;
+    padding-top: 40px;
+    margin: 0 calc(-1 * var(--sp-4));
+    overflow: hidden;
+    font-family: var(--font-rune);
+    font-size: 12px;
+    line-height: 18px;
+    letter-spacing: 0.5em;
+    text-align: center;
+    white-space: nowrap;
+    color: #8a7355;
+    text-shadow: 0 1px 0 #1a130c;
+    background: linear-gradient(#8a6e4c 0 8px, #5a432c 8px, #3a2c1e 60%, #271c12);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5);
+}
+.tankard {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+    color: var(--text-pri);
+    text-decoration: none;
+}
+/* A stave cup: grain, two bands, a handle, and the ale showing at the rim. */
+.mug {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 74px;
+    margin-top: 12px;
+    border-radius: 3px 3px 9px 9px;
+    color: #f3e3b8;
+    background:
+        linear-gradient(transparent 20%, #8a7355 20% 24%, transparent 24% 74%, #8a7355 74% 78%, transparent 78%),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.26) 0 2px, transparent 2px 10px),
+        linear-gradient(90deg, #4a331c, #7a5833 35%, #5b4025 65%, #33220f);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 10px rgba(0, 0, 0, 0.45);
+    transition: transform 0.25s;
+}
+.mug::before {
+    content: '';
+    position: absolute;
+    right: -19px;
+    top: 18%;
+    width: 21px;
+    height: 44%;
+    border: 6px solid #6a4b2b;
+    border-left: 0;
+    border-radius: 0 20px 20px 0;
+}
+.mug::after {
+    content: '';
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    top: -6px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 40%, #e8b24a, #b9791f 70%);
+    border: 1px solid #5b4025;
+    box-shadow: 0 -2px 0 #efe6cf, inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+}
+.tankard .contact-icon,
+.tankard .contact-icon svg { width: 26px; height: 26px; color: inherit; }
+/* The name sits on the counter front, under its cup. */
+.tankard-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 12px;
+    font-family: var(--font-display);
+    font-size: var(--fs-small);
+    line-height: 18px;
+    text-align: center;
+    color: #f3e3b8;
+    text-shadow: 0 1px 0 #1a130c;
+}
+/* The rating badge has no room on the counter front. */
+.tankard .cf-rating { display: none; }
+/* Cheers: the cup lifts a little. */
+.tankard:hover .mug,
+.tankard:focus-visible .mug { transform: translateY(-5px); }
+.tankard:focus-visible { outline-offset: 4px; }
+@media (max-width: 640px) {
+    .tavern { padding: var(--sp-7) var(--sp-3) 0; }
+    .tavern-row::after { margin: 0 calc(-1 * var(--sp-3)); }
+    .tankard { width: 25%; }
+    .mug { width: 52px; height: 62px; }
+    .mug::before { right: -16px; width: 18px; }
+    .tankard .contact-icon,
+    .tankard .contact-icon svg { width: 22px; height: 22px; }
 }

@@ -61,24 +61,17 @@
 
     //--- the moves ------------------------------------------------------------
 
-    //The hero prints itself the way a shell prints a banner: the card, then the
-    //portrait, then each line under it in the order you would read them.
+    //Only the portrait fades in. The text used to slide up line by line, and the
+    //portrait to pop in with an overshoot; both read as things jumping at the
+    //visitor. The text stays put because it is the page's largest paint, and a
+    //fade from opacity 0 would hold the first meaningful frame back.
     function heroBoot() {
-        const card = document.querySelector('.about-inner');
-        if (!card) return;
-
-        const avatar = card.querySelector('.avatar-wrap');
-        const lines = card.querySelectorAll('.text-section > *');
-
-        const tl = gsap.timeline({
-            defaults: { ease: 'power3.out' },
-            onComplete: () => gsap.set([card, avatar, ...lines], { clearProps: 'all' }),
+        const avatar = document.querySelector('.about-inner .avatar-wrap');
+        if (!avatar) return;
+        gsap.from(avatar, {
+            opacity: 0, duration: 0.6, ease: 'power1.out',
+            onComplete: () => gsap.set(avatar, { clearProps: 'all' }),
         });
-        //Text only slides: it is the page's largest paint, and a fade from
-        //opacity 0 holds the first meaningful frame back by the whole move.
-        tl.from(card, { y: 16, duration: 0.5 })
-            .from(avatar, { opacity: 0, scale: 0.88, duration: 0.6, ease: 'back.out(1.6)' }, 0)
-            .from(lines, { y: 10, duration: 0.45, stagger: 0.05 }, 0.05);
     }
 
     //The prompt above each section types itself out, then the heading arrives
@@ -99,33 +92,36 @@
                 });
             }
             if (title) {
-                tl.from(title, { opacity: 0, y: 18, duration: 0.55, ease: 'power3.out', clearProps: 'all' }, 0.15);
+                tl.from(title, { opacity: 0, duration: 0.5, ease: 'power1.out', clearProps: 'all' }, 0.15);
             }
         });
     }
 
-    //Staggered so the eye travels the grid in reading order as the section
-    //enters, and tilted a few degrees off the horizontal so they arrive as one
-    //group settling rather than four independent fades.
+    //A slow fade, staggered so the eye travels the shelf in reading order. No
+    //movement: the books used to rise and tilt in, which looked out of place.
     function projectCards(cleanups) {
         const cards = gsap.utils.toArray('.project-card[data-tags]');
         if (!cards.length) return;
 
-        gsap.set(cards, {
-            opacity: 0, y: 28, rotateX: 8,
-            transformPerspective: 800, transformOrigin: 'center top',
-        });
+        gsap.set(cards, { opacity: 0 });
         const settle = targets => gsap.set(targets, { clearProps: 'all' });
 
-        ScrollTrigger.batch(cards, {
-            start: 'top 92%',
-            once: true,
-            onEnter: group => gsap.to(group, {
-                opacity: 1, y: 0, rotateX: 0,
-                duration: 0.6, ease: 'power3.out', stagger: 0.09,
-                onComplete: () => settle(group),
-            }),
-        });
+        //Reloading part-way down the page has made ScrollTrigger throw while it
+        //builds this batch. The books were already hidden above, so without a
+        //fallback they would stay that way.
+        try {
+            ScrollTrigger.batch(cards, {
+                start: 'top 92%',
+                once: true,
+                onEnter: group => gsap.to(group, {
+                    opacity: 1,
+                    duration: 0.7, ease: 'power1.out', stagger: 0.09,
+                    onComplete: () => settle(group),
+                }),
+            });
+        } catch (err) {
+            settle(cards);
+        }
     }
 
 
@@ -158,10 +154,10 @@
                     scrollTrigger: { trigger: item, start: 'top 88%', once: true },
                 });
                 if (dot) {
-                    tl.from(dot, { scale: 0, duration: 0.4, ease: 'back.out(2.2)', clearProps: 'all' });
+                    tl.from(dot, { opacity: 0, duration: 0.4, ease: 'power1.out', clearProps: 'all' });
                 }
                 if (content) {
-                    tl.from(content, { opacity: 0, x: -14, duration: 0.45, ease: 'power3.out', clearProps: 'all' }, 0.05);
+                    tl.from(content, { opacity: 0, duration: 0.45, ease: 'power1.out', clearProps: 'all' }, 0.05);
                 }
             });
         });
@@ -185,10 +181,8 @@
             if (!cells.length) return;
             gsap.from(cells, {
                 opacity: 0,
-                scale: 0.35,
-                transformOrigin: 'center',
                 duration: 0.45,
-                ease: 'power2.out',
+                ease: 'power1.out',
                 stagger: { amount: 1.1, from: 'start' },
                 clearProps: 'all',
                 scrollTrigger: { trigger: block, start: 'top 85%', once: true },
@@ -291,23 +285,6 @@
 
     //--- driving it -----------------------------------------------------------
 
-    //A thin line along the nav that fills as you read down the page. Scrubbed
-    //straight off the scroll position, so it is never ahead of or behind it.
-    function scrollProgress(cleanups) {
-        const navbar = document.querySelector('.navbar');
-        if (!navbar) return;
-        const bar = document.createElement('span');
-        bar.className = 'nav-progress';
-        bar.setAttribute('aria-hidden', 'true');
-        navbar.appendChild(bar);
-        gsap.fromTo(bar, { scaleX: 0 }, {
-            scaleX: 1,
-            ease: 'none',
-            scrollTrigger: { start: 0, end: 'max', scrub: true },
-        });
-        cleanups.push(() => bar.remove());
-    }
-
     //One matchMedia for the whole file. Reduced motion is not a branch inside
     //each move here: the callback simply never builds them, and GSAP reverts
     //every tween and start state it did build if the preference changes later.
@@ -328,7 +305,6 @@
         //is worth having on a phone too. Only the hover half of it needs one, and
         //pointerenter simply never fires there.
         navHighlight(cleanups);
-        scrollProgress(cleanups);
 
         return () => cleanups.forEach(fn => fn());
     });

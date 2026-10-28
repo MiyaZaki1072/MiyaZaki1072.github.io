@@ -12,17 +12,6 @@ const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
 //button stays visibly disabled with no href, so it can never lead to a 404.
 const RESUME_READY = false;
 
-//Photos of me at each school, shown instead of the school's own photo. Flip an
-//entry to true once images/education/me-<key>.webp is committed; until then
-//the entry keeps the school photo, so nothing ever points at a missing file.
-//TODO(owner): the three me-*.webp files are placeholders ("Photo coming
-//soon"). Overwrite them with real photos, same names, before deploying.
-const MY_EDU_PHOTOS = {
-    chula: true,
-    witcom: true,
-    gifted: true,
-};
-
 //The cat that used to be the avatar. Recruiters get the face; anyone who opens
 //the terminal and types `cat` still gets the cat.
 const CAT_PHOTOS = [
@@ -768,25 +757,6 @@ window.runGullinbursti = function () {
         .catch(() => {});
 })();
 
-//Project card click ripple --------------------------------------------------
-(function () {
-    document.querySelectorAll('.project-img-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            if (reducedMotion.matches) return;
-            const wrap = link.querySelector('.project-img-wrap');
-            const rect = wrap.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height) * 1.8;
-            const ripple = document.createElement('span');
-            ripple.className = 'ripple';
-            ripple.style.width = ripple.style.height = `${size}px`;
-            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-            wrap.appendChild(ripple);
-            ripple.addEventListener('animationend', () => ripple.remove());
-        });
-    });
-})();
-
 //Hero skill tags -------------------------------------------------------------
 //With four projects there is nothing to filter, so a tag now scrolls to the
 //projects and lights the ones built with it for a moment. springs.js previews
@@ -891,20 +861,9 @@ window.runGullinbursti = function () {
     const lightboxImg = document.getElementById('timelineLightboxImg');
     const lightboxCaption = document.getElementById('timelineLightboxCaption');
     const lightboxClose = document.getElementById('timelineLightboxClose');
-    const lightboxImgLink = document.getElementById('timelineLightboxImgLink');
-    if (!items.length || !lightbox || !lightboxImg || !lightboxCaption || !lightboxClose || !lightboxImgLink) return;
+    if (!items.length || !lightbox || !lightboxImg || !lightboxCaption || !lightboxClose) return;
 
     let lastFocused = null;
-
-    //Swap in my own photo wherever one is ready (see MY_EDU_PHOTOS).
-    items.forEach(item => {
-        const key = item.dataset.me;
-        if (!key || !MY_EDU_PHOTOS[key]) return;
-        item.dataset.image = 'images/education/me-' + key + '.webp';
-        if (item.dataset.meCaption) item.dataset.caption = item.dataset.meCaption;
-        const hint = item.querySelector('.timeline-hint');
-        if (hint) hint.textContent = 'Me there';
-    });
 
     function openLightbox(item) {
         lastFocused = document.activeElement;
@@ -912,13 +871,6 @@ window.runGullinbursti = function () {
         lightboxImg.src = item.dataset.image;
         lightboxImg.alt = item.dataset.caption || '';
         lightboxCaption.textContent = item.dataset.caption || '';
-        if (item.dataset.fb) {
-            lightboxImgLink.href = item.dataset.fb;
-            lightboxImgLink.classList.remove('is-disabled');
-        } else {
-            lightboxImgLink.removeAttribute('href');
-            lightboxImgLink.classList.add('is-disabled');
-        }
         lightbox.classList.add('is-open');
         lightboxClose.focus();
     }
@@ -947,13 +899,10 @@ window.runGullinbursti = function () {
     document.addEventListener('keydown', (e) => {
         if (!lightbox.classList.contains('is-open')) return;
         if (e.key === 'Escape') closeLightbox();
-        //Keep Tab inside the dialog: the page behind it is not reachable.
+        //Keep Tab inside the dialog: the close button is its only stop.
         if (e.key === 'Tab') {
-            const stops = [lightboxClose, lightboxImgLink].filter(el => el.getAttribute('href') || el === lightboxClose);
-            const first = stops[0];
-            const last = stops[stops.length - 1];
-            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            e.preventDefault();
+            lightboxClose.focus();
         }
     });
 })();
@@ -2199,6 +2148,27 @@ window.runGullinbursti = function () {
           } },
         { name: 'education', args: '',      help: 'where i studied',     run: () => readEducation() },
         { name: 'contact',   args: '',      help: 'how to reach me',     run: () => readContact() },
+        //From the Freyr research in .claude/plans/freyr_reseach.md.
+        { name: 'sword',     args: '',      help: "freyr's sword",
+          run: () => [
+              'no name in any old source.',
+              'it fights the giants by itself, if he is wise who wields it.',
+              'he gave it to skirnir to win gerdr,',
+              'and met surtr at ragnarok without it.',
+          ] },
+        { name: 'boar',      args: '',      help: 'gullinbursti',
+          run: () => [
+              'gullinbursti, "golden-bristled".',
+              'made by the dwarves brokkr and eitri.',
+              'runs over air and sea faster than any horse.',
+              'its bristles light the dark.',
+          ] },
+        { name: 'alfheim',   args: '',      help: "freyr's realm",
+          run: () => [
+              'alfheimr, the world of the elves.',
+              'the gods gave it to freyr as a tooth-gift,',
+              'the present for a first tooth.',
+          ] },
         { name: 'contrib',   args: '',      help: 'activity heatmap',    run: () => cmdContrib() },
         { name: 'ls',        args: '[-a] [dir]', help: 'list files',
           run: (a) => cmdLs(a), complete: p => completePath(p, false),
