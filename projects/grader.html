@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kit2Code Grader devlog | Thitiwut Sreewasut (Freyr)</title>
+    <meta name="description" content="A devlog for the Kit2Code Grader, a self-hosted practice grader that judges old contest problems the way CMS v1.5 did, in the isolate sandbox, next to a live CMS on one home server.">
+    <meta name="theme-color" content="#080b08">
+    <link rel="canonical" href="https://miyazaki1072.github.io/projects/grader.html">
+    <link rel="icon" href="../images/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&text=%E1%9A%A0%E1%9A%A8%E1%9A%B2%E1%9B%8F%E1%9B%97%E1%9B%8A%E1%9A%B7&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Almendra:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <main class="note">
+        <a class="note-back" href="../#projects">‹ Projects</a>
+        <p class="note-kicker">Devlog · Kit2Code</p>
+        <h1 class="note-title">Kit2Code Grader</h1>
+        <p class="note-lead">A self-hosted practice grader for old competitive-programming contest problems: read the statement, submit, and get the score the original contest would have given.</p>
+        <div class="note-links">
+            <a class="card-link" href="https://github.com/Kit2Code/backend" target="_blank" rel="noopener noreferrer">Code<span aria-hidden="true"> ›</span></a>
+        </div>
+
+        <h2>Why I built it</h2>
+        <p>Kit2Code's contests are judged on our own CMS, the contest system the IOI runs on. The grader gives those problems, and other old contest problems, a place to be practised: anyone can open one, submit C, C++ or Python, and see per-test and per-subtask results scored exactly the way CMS v1.5 scored the original contest. It runs on the same small home server as our CMS.</p>
+
+        <h2>What it had to do</h2>
+        <ul>
+            <li><strong>Score like CMS.</strong> Old problems must get the same score they got in the contest, subtasks included.</li>
+            <li><strong>Take CMS tasks as they are.</strong> Problems already packaged for CMS have to import without being rewritten by hand.</li>
+            <li><strong>Run untrusted code safely</strong>, on a server that is also running a live CMS with a sandbox of its own.</li>
+            <li><strong>Thai first.</strong> Thai is the default language, with English one click away.</li>
+            <li><strong>Fit a small machine.</strong> One home server, little memory, no cloud bill.</li>
+        </ul>
+
+        <h2>What I chose</h2>
+        <ul>
+            <li><strong>Python only.</strong> Django 5.2 with server-rendered pages and htmx, and a Python judge worker. One language, no Node build step, less memory on a shared server.</li>
+            <li><strong>One web image, two roles.</strong> The same Django image runs as the public practice site and as the admin site. The public role's URL configuration doesn't contain the admin pages or the judge's internal API at all, so a bug on the public site can't reach them. The edge (Caddy) adds a zone header on top, and a session made in one role is thrown away in the other.</li>
+            <li><strong>CMS's scoring, re-implemented.</strong> Sum and GroupMin follow CMS v1.5.1, tests in the same order. Where CMS would crash or quietly mis-score (an empty subtask, an outcome outside 0–1), the grader refuses the problem at import with a clear message instead.</li>
+            <li><strong>An importer for CMS's Italian task format</strong>: names, limits, statements, subtasks, graders, checkers and file input/output. A checker has to come as source, not as a binary built for some other machine.</li>
+            <li><strong>Two sandboxes that never collide.</strong> isolate 2.7 is built from a pinned commit and given its own cgroup root, user ids and box ids, apart from CMS's. The worker container drops every capability and adds back only the eight isolate needs, and every program starts through a small launcher that installs a seccomp filter of its own. The worker has no internet, no route to the database and no database password.</li>
+            <li><strong>Postgres as the queue.</strong> No Redis. The worker asks the admin site for jobs and holds each one on a 60-second lease, so if it dies its jobs simply come back; two workers can never take the same job.</li>
+            <li><strong>Sign-in with Google only</strong>, through one locked-down exit on the edge. The grader never asks for an email, and secrets live in files, never in environment variables or in git.</li>
+            <li><strong>Docker Compose</strong>, installed as one app on the home server and reached through a Cloudflare tunnel, so the router has no open ports.</li>
+        </ul>
+
+        <h2>Where it is</h2>
+        <p>Early development. Students can sign in, read problems, submit and watch their results arrive live, with problem lists, a ranking and profiles. Admins set the site up from a one-time link and import, validate and publish problems, pause grading, check the judge and request backups from the admin site.</p>
+
+        <h2>Next</h2>
+        <p>Split the public site into a JSON API and a separate React front end, then run monthly rated contests on CMS 1.5.1, with a live public scoreboard and Codeforces-style ratings.</p>
+    </main>
+</body>
+</html>

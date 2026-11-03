@@ -186,8 +186,10 @@ main { overflow-x: clip; }
 
 /* Hero --------------------------------------------------------------------- */
 .about-section {
+    /* Named so the grove can pull itself back out to the edges of the page. */
+    --about-pad-top: calc(var(--sp-8) + var(--sp-4));
     position: relative;
-    padding: calc(var(--sp-8) + var(--sp-4)) var(--gutter) var(--sp-7);
+    padding: var(--about-pad-top) var(--gutter) var(--sp-7);
     /* The soft gradient the glass nav has something to pick up from. */
 }
 .about-inner {
@@ -308,6 +310,8 @@ main { overflow-x: clip; }
 }
 .resume-link:hover { filter: brightness(1.08); }
 .resume-link:active { transform: scale(0.97); }
+/* The display above outranks the UA's [hidden] rule. */
+.resume-link[hidden] { display: none; }
 .resume-link[aria-disabled="true"] {
     color: var(--text-muted);
     background: var(--surface-2);
@@ -451,6 +455,324 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 }
 .translate-icon { color: var(--green); }
 
+/* Grove ---------------------------------------------------------------------
+   The opening scene: FREYR on its own layer, a tree grown behind it in SVG, and
+   the bio and links hung on the branch tips (index.html, js/grove.js).
+
+   This sheet draws the finished tree and nothing else. Every hidden start
+   state is written by grove.js, and only once GSAP is known to be there, so
+   without it — no JS, reduced motion, a blocked script — the scene is simply
+   complete. Same contract as the Motion layer below.
+
+   To recolour: the --grove-* tokens. To change how much scrolling the growth
+   takes: --grove-length here (wide screens) and in the tall query below
+   (phones). The stage windows themselves live in scripts/grove-svg.mjs. */
+:root {
+    --grove-bg:     #06120c;
+    --grove-hint:   #1f3d2a;
+    --grove-root:   #1c3524;
+    --grove-trunk:  #2b4a32;
+    --grove-branch: #35593b;
+    --grove-twig:   #457347;
+    --grove-shoot:  #4f9a5c;
+    --grove-vein:   rgba(var(--green-bright-rgb), 0.5);
+    --grove-leaf:   #2f7d4a;
+    --grove-leaf-2: #5cb36e;
+    --grove-ink:    #e3f0e3;
+    --grove-panel:  #0b1d13;
+    --grove-cord:   #4f7a4c;
+    --grove-length: 250svh;
+}
+.grove {
+    position: relative;
+    /* Full bleed: back out through the section's own padding. */
+    margin: calc(-1 * var(--about-pad-top)) calc(-1 * var(--gutter)) var(--sp-7);
+    background: var(--grove-bg);
+}
+.grove.grove-live { height: var(--grove-length); }
+.grove-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    padding: var(--sp-8) 0 var(--sp-6);
+    overflow: hidden;
+    background:
+        linear-gradient(to bottom, transparent 84%, var(--bg)),
+        radial-gradient(120% 80% at 50% 62%, #0a1f14 0%, var(--grove-bg) 62%);
+}
+/* Native scrolling, a sticky stage: nothing intercepts the wheel or a swipe,
+   the track below simply gives the scroll somewhere to go. */
+.grove-live .grove-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    padding: 0;
+}
+/* One box with the viewBox's aspect ratio holds the drawing and every HTML
+   layer, so a slot at --x/--y percent is always on its branch tip. */
+.grove-canvas {
+    position: relative;
+    width: min(100%, 1500px, max(640px, calc((100svh - 96px) * 1.6)));
+    aspect-ratio: 16 / 10;
+    container-type: inline-size;
+}
+.grove-live .grove-canvas { width: min(100%, 160svh); }
+
+.grove-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+.grove-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.grove-art--tall { display: none; }
+.grove-art path {
+    fill: none;
+    stroke-linecap: round;
+}
+.grove-hints path {
+    stroke: var(--grove-hint);
+    stroke-width: 1.5;
+}
+.grove-roots path    { stroke: var(--grove-root); }
+.grove-veins path    { stroke: var(--grove-vein); }
+.grove-shoots path   { stroke: var(--grove-shoot); }
+.grove-trunks path   { stroke: var(--grove-trunk); }
+.grove-branchs path  { stroke: var(--grove-branch); }
+.grove-twigs path    { stroke: var(--grove-twig); }
+.grove-cords path    { stroke: var(--grove-cord); }
+.grove-leaf--a { fill: var(--grove-leaf); }
+.grove-leaf--b { fill: var(--grove-leaf-2); }
+
+/* Real text, above every stroke, and never moved: the tree grows around it.
+   The clearing behind it keeps the trunk from crossing the letters. */
+.grove-name {
+    position: absolute;
+    left: 50%;
+    top: 61%;
+    translate: -50% -50%;
+    z-index: 2;
+    isolation: isolate;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12cqw;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    color: var(--grove-ink);
+    white-space: nowrap;
+    pointer-events: none;
+    text-shadow: 0 0 0.12em var(--grove-bg), 0 0 0.3em var(--grove-bg);
+}
+.grove-name::before {
+    content: '';
+    position: absolute;
+    inset: -35% -10%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(6, 18, 12, 0.92), rgba(6, 18, 12, 0.6) 60%, rgba(6, 18, 12, 0));
+}
+
+/* The panels carry a solid ground, so their contrast never depends on what
+   happens to have grown behind them. */
+.grove-face,
+.grove-bio,
+.grove-skills,
+.grove-slot {
+    position: absolute;
+    z-index: 3;
+    left: calc(var(--x) * 1%);
+    top: calc(var(--y) * 1%);
+    translate: -50% -50%;
+}
+/* The bio and the tech stack are plaques hung in the tree: each hangs from its
+   top edge by two vines (drawn in the SVG, 30% of the width either side of
+   the centre), with a carved border inside the edge like the book covers on
+   the shelf. No percentage in the y of `translate`: GSAP folds `translate`
+   into its own transform when it moves a plaque, and a vertical percentage
+   does not survive that. */
+.grove-bio,
+.grove-skills {
+    width: 27%;
+    translate: -50% 0;
+    padding: var(--sp-4) var(--sp-5);
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 7px),
+        var(--grove-panel);
+    border: 1px solid var(--green-line);
+    border-radius: var(--r-sm);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.grove-bio::before,
+.grove-skills::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgba(var(--green-bright-rgb), 0.16);
+    border-radius: 3px;
+    pointer-events: none;
+}
+.grove-bio {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+/* The photo crowns the trunk, sized with the drawing so it stays on it. */
+.grove-face .avatar-wrap { --avatar-size: 11cqw; }
+.grove-skills .skills-block {
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+/* Each group headed by its rune, like the section titles: L for languages,
+   T for tools. A pseudo-element, so the EN/TH scramble only sees the words. */
+.grove-skills .skill-group-label::before {
+    margin-right: var(--sp-2);
+    font-family: var(--font-rune);
+    color: var(--green);
+}
+.grove-skills .skill-group:nth-child(1) .skill-group-label::before { content: 'ᛚ'; }
+.grove-skills .skill-group:nth-child(2) .skill-group-label::before { content: 'ᛏ'; }
+/* The tags as small leaves: one rounded corner pair, a green-tinted ground. */
+.grove-skills .skill-tag {
+    color: var(--text-pri);
+    background: rgba(var(--green-rgb), 0.07);
+    border-color: rgba(var(--green-rgb), 0.32);
+    border-radius: 10px 2px;
+    padding: 3px var(--sp-2);
+}
+.grove-bio .name-txt { font-size: clamp(1.25rem, 2.6cqw, 2.25rem); }
+/* Half the name's size, but never under a readable floor on small panels. */
+.grove-bio .name-nick { font-size: max(0.5em, 0.875rem); }
+.grove-bio .status-txt { font-size: clamp(0.875rem, 1.1cqw, 1.0625rem); }
+.grove-links {
+    list-style: none;
+}
+.grove-slot .contact-btn {
+    padding: 0 var(--sp-4);
+    white-space: nowrap;
+    background: var(--grove-panel);
+    border: 1px solid var(--green-line);
+    border-radius: var(--r-pill);
+}
+.grove-slot .contact-btn:hover { border-color: var(--green); }
+.grove-slot .resume-link { min-height: var(--tap); }
+
+/* While the content is still unseen it is also out of reach: grove.js takes
+   the links out of the tab order, and this takes them away from the pointer. */
+.grove-live:not(.is-grown) .grove-bio,
+.grove-live:not(.is-grown) .grove-skills,
+.grove-live:not(.is-grown) .grove-links { pointer-events: none; }
+
+.grove-skip { display: none; }
+/* Bottom left: the terminal button owns the bottom right corner. */
+.grove-live .grove-skip {
+    position: absolute;
+    left: var(--gutter);
+    bottom: var(--sp-5);
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--sp-4);
+    font-size: var(--fs-small);
+    color: var(--text-sec);
+    text-decoration: none;
+    background: rgba(6, 18, 12, 0.75);
+    border: 1px solid var(--border);
+    border-radius: var(--r-pill);
+}
+.grove-skip:hover {
+    color: var(--green-bright);
+    border-color: var(--green-line);
+}
+/* Nothing left to skip once the tree is grown. */
+.grove-live.is-grown .grove-skip { visibility: hidden; }
+.grove-end {
+    position: absolute;
+    left: 0;
+    top: calc(100% - 100svh);
+    width: 1px;
+    height: 1px;
+}
+
+/* Tall: phones, portrait screens and anything under 900px wide get their own
+   narrower tree, not the wide one shrunk: below that width the wide canopy
+   squeezes the bio panel into its neighbours. The query is repeated as TALL in
+   js/grove.js; keep the two the same. */
+@media (max-width: 900px), (max-aspect-ratio: 4/5) {
+    :root { --grove-length: 180svh; }
+    .grove-art--wide { display: none; }
+    .grove-art--tall { display: block; }
+    .grove-canvas {
+        width: min(100%, 560px);
+        aspect-ratio: 600 / 1100;
+    }
+    .grove-live .grove-canvas { width: min(100%, calc(100svh * 600 / 1100)); }
+    .grove-name {
+        top: 38.2%;
+        font-size: 19cqw;
+    }
+    .grove-face,
+    .grove-bio,
+    .grove-skills,
+    .grove-slot {
+        left: calc(var(--tx) * 1%);
+        top: calc(var(--ty) * 1%);
+    }
+    /* Hangs down from the trunk's base rather than centring on it, so a long
+       status line grows into the roots and never up into the name. */
+    .grove-bio {
+        width: 88%;
+        translate: -50% 0;
+        align-items: center;
+        text-align: center;
+        padding: var(--sp-3) var(--sp-4);
+    }
+    .grove-bio .name-txt { font-size: 1.375rem; }
+    .grove-bio .status-txt { font-size: 0.875rem; }
+    .grove-face .avatar-wrap { --avatar-size: 18cqw; }
+    /* Hangs up from its point by the bottom edge, so it stays clear of the
+       bottom tab bar whatever the bio above it does. Compact: no group
+       labels, smaller chips, centred like the bio. */
+    .grove-skills {
+        width: 88%;
+        top: auto;
+        bottom: calc(100% - var(--ty) * 1%);
+        translate: -50% 0;
+        padding: var(--sp-3) var(--sp-4);
+    }
+    /* One flowing list: two groups wrapped separately leave two short rows. */
+    .grove-skills .skills-block {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+    .grove-skills .skill-group,
+    .grove-skills .skill-grid { display: contents; }
+    .grove-skills .skill-group-label { display: none; }
+    .grove-skills .skill-tag {
+        padding: 2px var(--sp-2);
+        font-size: 0.75rem;
+    }
+    .grove-slot .contact-btn {
+        padding: 0 var(--sp-3);
+        font-size: var(--fs-small);
+    }
+    .grove-slot .contact-btn::before { display: none; }
+    /* The nav is the bottom bar here, so the skip link moves to the top. */
+    .grove-live .grove-skip {
+        top: var(--sp-3);
+        right: var(--sp-3);
+        bottom: auto;
+        left: auto;
+    }
+}
+
 .project-card {
     position: relative;
     min-width: 0;
@@ -520,11 +842,23 @@ button.skill-tag[data-tooltip]:focus-visible::after {
    One book per project. Each .project-card keeps its .project-info (the
    terminal reads it with textContent) but hides it on the shelf; shelf.js
    copies it onto the page of the opened book. The plank is part of each
-   card, so the shelf stays whole at any column count. */
+   card, so the shelf stays whole at any column count.
+
+   A bookcase, not a carousel: each row is a shelf of as many books as the
+   screen holds (five, three on tablets, two on phones), and the next books
+   go on the shelf below. Nothing scrolls sideways and nothing holds the page
+   still; every book is reached by scrolling down. */
 .project-grid {
+    --shelf-cols: 5;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--shelf-cols), minmax(0, 1fr));
     gap: var(--sp-6) 0;
+    /* The plank again, painted under the whole bottom row: each book carries
+       its own, so a last shelf that isn't full would otherwise have a bare
+       floor past its last book. Same wood and top edge, at the same height. */
+    background:
+        linear-gradient(#6a5540, #6a5540) 0 calc(100% - 17px) / 100% 1px no-repeat,
+        linear-gradient(#4a3a2a, #2f2418 70%, #1a130c) 0 100% / 100% 18px no-repeat;
 }
 .book {
     --cover: color-mix(in srgb, rgb(var(--green-rgb)) 26%, #050805);
@@ -533,6 +867,7 @@ button.skill-tag[data-tooltip]:focus-visible::after {
 .book:nth-child(2) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 20%, #04100c); }
 .book:nth-child(3) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 32%, #0a0c04); }
 .book:nth-child(4) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 16%, #060806); }
+.book:nth-child(5) { --cover: color-mix(in srgb, rgb(var(--green-rgb)) 24%, #0c0a04); }
 .book > .project-info { display: none; }
 /* The plank. */
 .book::after {
@@ -797,7 +1132,7 @@ html.stage-open { overflow: hidden; }
 .card-link:active { transform: scale(0.97); }
 
 @media (max-width: 900px) {
-    .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .project-grid { --shelf-cols: 3; }
 }
 /* One page wide: no room for a spread, so the cover swings away instead. */
 @media (max-width: 760px) {
@@ -1932,7 +2267,8 @@ html.stage-open { overflow: hidden; }
         font-size: clamp(0.6875rem, 3.4vw, 0.8125rem);
     }
     .about-section {
-        padding: var(--sp-5) var(--gutter) var(--sp-5);
+        --about-pad-top: var(--sp-5);
+        padding: var(--about-pad-top) var(--gutter) var(--sp-5);
     }
     .avatar-wrap { --avatar-size: 112px; }
     .about-inner { gap: var(--sp-4); }
@@ -2428,7 +2764,10 @@ html.stage-open { overflow: hidden; }
     box-shadow: 1px 0 0 #1a130c;
     pointer-events: none;
 }
-.book:nth-child(4n)::before { display: none; }
+/* A board between books on a shelf: none after the last book in each row,
+   or after the very last book. */
+.book:nth-child(5n)::before,
+.book:last-child::before { display: none; }
 .prop {
     position: absolute;
     z-index: 3;
@@ -2456,15 +2795,19 @@ html.stage-open { overflow: hidden; }
     transform: rotate(3deg);
 }
 @media (max-width: 900px) {
-    .book:nth-child(4n)::before { display: block; }
-    .book:nth-child(2n)::before { display: none; }
+    .book:nth-child(5n)::before { display: block; }
+    .book:nth-child(3n)::before,
+    .book:last-child::before { display: none; }
 }
 @media (max-width: 640px) {
+    .project-grid { --shelf-cols: 2; }
+    .book:nth-child(3n)::before { display: block; }
+    .book:nth-child(2n)::before,
+    .book:last-child::before { display: none; }
     .nav-mark { display: none; }
     .shelf-frame { padding: 26px 8px 0; }
 }
-@media (prefers-reduced-motion: reduce) {
-}
+
 
 /* A carved line of runes above a section. Each spells a short line of English
    (its aria-label), so it is generated by letter, not an alphabet in order. */

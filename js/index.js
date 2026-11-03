@@ -41,7 +41,7 @@ const i18n = (function () {
             skillGroups: ['languages', 'tools & frameworks'],
             tooltipHas: '→ see projects',
             tooltipNone: '→ no projects yet',
-            //Same order as the .contact-row buttons in index.html.
+            //Same order as the .grove-links buttons in index.html.
             btns: ['Email', 'GitHub', 'LinkedIn', 'Discord'],
             resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
         },

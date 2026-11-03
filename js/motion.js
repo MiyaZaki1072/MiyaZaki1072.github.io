@@ -2,9 +2,11 @@
 //
 //GSAP owns the entrances and the scroll-driven moves. Every other file keeps the
 //behaviour it already had: index.js
-//still owns the language scramble and the Education/Experience cascade, and the
-//scroll rail still measures a page whose height nothing here changes — no
-//pinning, so scrollHeight is exactly what it was.
+//still owns the language scramble and the Education/Experience cascade. Nothing
+//here pins, so nothing here changes the page's height. The one thing that does
+//is the grove (js/grove.js): its scroll track only gets its height once that
+//file runs, and it refreshes ScrollTrigger when it does, so the triggers below
+//are measured against the page as it really is.
 //
 //The library is vendored under js/vendor/ rather than pulled from a CDN, which
 //keeps the two properties this project was built with: no build step, and it
@@ -60,19 +62,6 @@
     }
 
     //--- the moves ------------------------------------------------------------
-
-    //Only the portrait fades in. The text used to slide up line by line, and the
-    //portrait to pop in with an overshoot; both read as things jumping at the
-    //visitor. The text stays put because it is the page's largest paint, and a
-    //fade from opacity 0 would hold the first meaningful frame back.
-    function heroBoot() {
-        const avatar = document.querySelector('.about-inner .avatar-wrap');
-        if (!avatar) return;
-        gsap.from(avatar, {
-            opacity: 0, duration: 0.6, ease: 'power1.out',
-            onComplete: () => gsap.set(avatar, { clearProps: 'all' }),
-        });
-    }
 
     //The prompt above each section types itself out, then the heading arrives
     //under it — the same two-beat the hero opens with, one step quieter.
@@ -296,7 +285,6 @@
         if (!context.conditions.motion) return;
 
         const cleanups = [];
-        heroBoot();
         sectionHeaders();
         projectCards(cleanups);
         timelineRails(cleanups);
