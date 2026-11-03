@@ -11,10 +11,9 @@ Plain HTML, CSS and JavaScript. No framework, no build step.
 ## What is on it
 
 - **Grove:** the opening. Scroll and a tree grows up behind FREYR, roots first and
-  leaves last; my photo crowns the trunk, then my bio, links and tech stack appear on
-  its branches. Scroll back up and it ungrows. "Skip animation" jumps to the finished
-  tree.
-- **Highlights:** three cards under the tree (TOI, NSC2024, Kit2Code).
+  leaves last, then my bio, links and tech stack appear on its branches. Scroll back
+  up and it ungrows. "Skip animation" jumps to the finished tree.
+- **Highlights:** under the tree, my photo, then three cards (TOI, NSC2024, Kit2Code).
 - **Quote:** one line from me, between two rows of runes that spell it out.
 - **Projects:** a bookshelf. Click a book and it lifts off the shelf and opens to the details.
   Each project can link to a short devlog page in `projects/`.

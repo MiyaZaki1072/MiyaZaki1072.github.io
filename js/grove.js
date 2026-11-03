@@ -27,9 +27,9 @@
 
     const skip = grove.querySelector('.grove-skip');
     const bio = grove.querySelector('.grove-bio');
-    //Everything that arrives in the scene as a whole: the photo, the two panels
-    //and the link cards. Each carries its own data-grow window.
-    const panels = [...grove.querySelectorAll('.grove-face, .grove-bio, .grove-skills, .grove-slot')];
+    //Everything that arrives in the scene as a whole: the two panels and the
+    //link cards. Each carries its own data-grow window.
+    const panels = [...grove.querySelectorAll('.grove-bio, .grove-skills, .grove-slot')];
     //What can take focus in them: the links, the skill tags, and the résumé
     //link once it has an href.
     const controls = [...grove.querySelectorAll('.grove-bio a, .grove-links a, .grove-skills button')];
@@ -76,9 +76,9 @@
                 start);
         });
 
-        //The photo arrives as the trunk reaches it; the rest of the content
-        //last, each card after its branch tip is drawn. style.css places these
-        //with `translate`, a property of its own, so the y here never fights it.
+        //The content arrives last, each card after its branch tip is drawn.
+        //style.css places these with `translate`, a property of its own, so the
+        //y here never fights it.
         panels.forEach(el => {
             const [start, end] = windowOf(el);
             tl.fromTo(el,

@@ -209,14 +209,10 @@ function compose(spec) {
     //The top of the trunk sprouts too, so the crown is not a bare pole.
     twigs(trunk[trunk.length - 1], spec.twigsPerSeg + 1, spec.twig);
 
-    //Every branch tip has to be drawn before the card that hangs on it shows,
-    //and the trunk has to reach the photo before the photo shows.
+    //Every branch tip has to be drawn before the card that hangs on it shows.
     const lastWood = Math.max(...paths.filter(p => p.cls === 'grove-branch').map(p => p.q.end));
-    const cards = Object.entries(SLOT_WINDOWS).filter(([key]) => key !== 'face');
-    const firstCard = Math.min(...cards.map(([, w]) => w.start));
+    const firstCard = Math.min(...Object.values(SLOT_WINDOWS).map(w => w.start));
     if (lastWood >= firstCard) throw new Error(`branches finish at ${r3(lastWood)}, after the first card at ${firstCard}`);
-    const crown = trunk[trunk.length - 1].end;
-    if (crown >= SLOT_WINDOWS.face.start) throw new Error(`the trunk reaches the photo at ${r3(crown)}, after it shows at ${SLOT_WINDOWS.face.start}`);
 
     return { hints, paths, leaves };
 }
@@ -254,9 +250,7 @@ function svgOf(name, spec, art) {
 
 //When each content panel fades in. Shared by both drawings: the story's last
 //beat is the same on a phone as on a desk.
-//The photo comes first, as the crown, once the trunk has grown up to it.
 const SLOT_WINDOWS = {
-    face:     { start: 0.6, end: 0.7 },
     bio:      { start: 0.85, end: 0.95 },
     email:    { start: 0.86, end: 0.94 },
     github:   { start: 0.875, end: 0.955 },
@@ -265,9 +259,8 @@ const SLOT_WINDOWS = {
     skills:   { start: 0.88, end: 0.96 },
 };
 
-//Wide: a broad canopy. The name sits low on the trunk, the photo crowns it,
-//the bio and the tech stack hang off low branches either side, and the links
-//ride the canopy tips.
+//Wide: a broad canopy. The name sits low on the trunk, the bio and the tech
+//stack hang off low branches either side, and the links ride the canopy tips.
 const NAME_WIDE = [480, 540, 1120, 680];
 const WIDE = {
     seed: 1072, w: 1600, h: 1000, leafSize: 1.15, leavesBy: 0.88, branchDur: 0.12,
@@ -276,12 +269,10 @@ const WIDE = {
         [NAME_WIDE[0] - 20, NAME_WIDE[1] - 30, NAME_WIDE[2] + 20, NAME_WIDE[3] + 20],
         [30, 415, 470, 1000],         //bio plaque
         [1130, 415, 1570, 1000],      //skills plaque
-        [690, 105, 910, 325],         //photo
     ],
     slots: {
-        //Low enough that the floating nav never covers the photo or the two
-        //top cards, down to a 500px-tall window.
-        face:     [800, 215],
+        //The two top cards sit low enough that the floating nav never covers
+        //them, down to a 500px-tall window.
         //The plaques' top edges (style.css hangs them from there).
         bio:      [250, 418],
         email:    [290, 280],
@@ -313,8 +304,7 @@ const WIDE = {
         [[796, 500], 22, 0.35, 0.42],
         [[806, 390], 16, 0.42, 0.47],
         [[800, 290], 12, 0.47, 0.52],
-        //Ends behind the photo, which shows once the trunk is there.
-        [[800, 240], 9, 0.52, 0.57],
+        [[796, 150], 8, 0.52, 0.58],
     ],
     //[junction, tip, options]. Each tip is the slot position above.
     branches: [
@@ -327,10 +317,9 @@ const WIDE = {
         [2, [520, 165], { w0: 6, w1: 2.2 }],               //github
         [2, [1080, 165], { w0: 6, w1: 2.2, bend: -0.12 }], //linkedin
     ],
-    //Out from behind the photo, so it sits in the canopy, not on a pole.
     crown: [
-        [3, [655, 115], { w0: 5, w1: 1.8 }],
-        [3, [945, 115], { w0: 5, w1: 1.8, bend: -0.12 }],
+        [3, [690, 70], { w0: 5, w1: 1.8 }],
+        [3, [910, 70], { w0: 5, w1: 1.8, bend: -0.12 }],
     ],
     twigsPerSeg: 2,
     twig: { len: 120, w: 2, latest: 0.82 },
@@ -342,9 +331,9 @@ const WIDE = {
     ],
 };
 
-//Tall: a narrow tree for phones and portrait screens. The photo crowns the
-//trunk, the links sit two by two on the branches below it, the name rests on
-//the trunk's base, and the bio and the tech stack fill the roots' ground.
+//Tall: a narrow tree for phones and portrait screens. The links sit two by
+//two on the branches under the crown, the name rests on the trunk's base, and
+//the bio and the tech stack fill the roots' ground.
 const NAME_TALL = [110, 380, 490, 460];
 const TALL = {
     seed: 2550, w: 600, h: 1100, leafSize: 0.95, leavesBy: 0.88, branchDur: 0.1,
@@ -352,10 +341,8 @@ const TALL = {
     keepClear: [
         [NAME_TALL[0] - 10, NAME_TALL[1] - 20, NAME_TALL[2] + 10, NAME_TALL[3] + 20],
         [20, 480, 580, 1100],        //bio and skills panels
-        [225, 30, 375, 175],         //photo
     ],
     slots: {
-        face:     [300, 100],
         email:    [140, 225],
         github:   [460, 225],
         linkedin: [140, 315],
@@ -386,8 +373,8 @@ const TALL = {
     trunk: [
         [[296, 345], 14, 0.35, 0.42],
         [[304, 250], 11, 0.42, 0.48],
-        //Ends behind the photo.
         [[300, 160], 8, 0.48, 0.54],
+        [[298, 60], 5, 0.54, 0.59],
     ],
     branches: [
         [0, [140, 315], { w0: 6, w1: 2.2 }],               //linkedin
@@ -396,8 +383,8 @@ const TALL = {
         [1, [460, 225], { w0: 5, w1: 2, bend: -0.12 }],    //github
     ],
     crown: [
-        [2, [185, 70], { w0: 4, w1: 1.6 }],
-        [2, [415, 70], { w0: 4, w1: 1.6, bend: -0.12 }],
+        [2, [185, 90], { w0: 4, w1: 1.6 }],
+        [2, [415, 90], { w0: 4, w1: 1.6, bend: -0.12 }],
     ],
     twigsPerSeg: 1,
     twig: { len: 80, w: 1.6, latest: 0.82 },
