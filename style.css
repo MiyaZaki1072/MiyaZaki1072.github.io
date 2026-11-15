@@ -793,38 +793,7 @@ img {
     color: var(--ink-muted);
 }
 
-.stamp-round {
-    width: 108px;
-    height: 108px;
-    border-radius: 50%;
-    border: 2px solid var(--brass);
-    color: var(--brass);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    transform: rotate(-12deg);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    flex-shrink: 0;
-    user-select: none;
-}
-
-.stamp-round-title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.08em;
-}
-
-.stamp-round-runes {
-    font-family: var(--font-rune), var(--font-mono);
-}
-
 .stamp-rect {
-    transform: rotate(-8deg);
     border: 2.5px solid var(--brass);
     color: var(--brass);
     padding: 6px 14px;
@@ -1928,6 +1897,15 @@ img {
     opacity: 0.9;
 }
 
+/* For a made graphic (chart, card) that must show whole, not cropped. */
+.case-exhibit-hero--fit {
+    aspect-ratio: 16 / 9;
+}
+
+.case-exhibit-hero--fit img {
+    opacity: 1;
+}
+
 .case-columns {
     display: flex;
     flex-wrap: wrap;
@@ -2682,15 +2660,9 @@ body.freyr-mode {
         transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
     }
 
-    .stamp-round.will-thump,
     .stamp-rect.will-thump,
     .case-stamp.will-thump {
         opacity: 0;
-    }
-
-    .stamp-round.is-thumped {
-        opacity: 1;
-        animation: stampThumpRound 220ms var(--ease-out) 1 both;
     }
 
     .stamp-rect.is-thumped {
@@ -2703,14 +2675,9 @@ body.freyr-mode {
         animation: stampThumpCase 220ms var(--ease-out) 1 both;
     }
 
-    @keyframes stampThumpRound {
-        0%   { opacity: 0; transform: rotate(-12deg) scale(1.08); }
-        100% { opacity: 1; transform: rotate(-12deg) scale(1); }
-    }
-
     @keyframes stampThumpRect {
-        0%   { opacity: 0; transform: rotate(-8deg) scale(1.08); }
-        100% { opacity: 1; transform: rotate(-8deg) scale(1); }
+        0%   { opacity: 0; transform: scale(1.08); }
+        100% { opacity: 1; transform: scale(1); }
     }
 
     @keyframes stampThumpCase {
@@ -2805,16 +2772,6 @@ body.freyr-mode {
     .overview-signoff {
         width: 100%;
         justify-content: space-between;
-    }
-
-    .stamp-round {
-        width: 76px;
-        height: 76px;
-        font-size: 8px;
-    }
-
-    .stamp-round-title {
-        font-size: 12px;
     }
 
     /* Mobile "SHOW ALL 6 EXHIBITS ↓" progressive disclosure */

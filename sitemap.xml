@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://miyazaki1072.github.io/</loc>
-        <lastmod>2026-10-19</lastmod>
+        <lastmod>2026-11-15</lastmod>
         <changefreq>monthly</changefreq>
         <priority>1.0</priority>
     </url>
@@ -21,6 +21,12 @@
     <url>
         <loc>https://miyazaki1072.github.io/projects/grader.html</loc>
         <lastmod>2026-11-03</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://miyazaki1072.github.io/projects/aihack-2026.html</loc>
+        <lastmod>2026-11-15</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>

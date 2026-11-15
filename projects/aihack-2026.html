@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Default Prediction Models (Aihack Thailand 2026) — Case File | Thitiwut Sreewasut (Freyr)</title>
+    <meta name="description" content="Finalist (14th of 103 teams) in Aihack Thailand 2026, a credit-default prediction hackathon by AIFUL and Chulalongkorn Business School, using an ensemble of pretrained tabular foundation models.">
+    <meta name="theme-color" content="#0A110E">
+    <link rel="canonical" href="https://miyazaki1072.github.io/projects/aihack-2026.html">
+    <link rel="icon" href="../images/icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Runic&text=%E1%9A%A0%E1%9A%A8%E1%9A%B2%E1%9B%8F%E1%9B%97%E1%9B%8A%E1%9A%B7&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../#overview" class="brand-link">
+                <svg class="brand-emblem" width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="#C9A86A" stroke-width="1.8" aria-hidden="true">
+                    <circle cx="20" cy="20" r="17"></circle>
+                    <path d="M11 20h18M20 11v18"></path>
+                    <circle cx="20" cy="20" r="5"></circle>
+                </svg>
+                <span class="brand-text">
+                    <span class="brand-name">THITIWUT SREEWASUT</span>
+                    <span class="brand-sub">PERSONNEL MANAGEMENT SYSTEM</span>
+                    <span class="brand-sub-mobile">● ALIVE &amp; WELL</span>
+                </span>
+            </a>
+
+            <nav class="primary-nav" aria-label="Primary">
+                <a href="../#overview" class="nav-link">OVERVIEW</a>
+                <a href="../#personnel" class="nav-link">PERSONNEL</a>
+                <a href="../#archives" class="nav-link active">PROJECT ARCHIVES</a>
+                <a href="../#timeline" class="nav-link">TIMELINE</a>
+                <a href="../#contact" class="nav-link">CONTACT</a>
+                <span class="sys-status" aria-label="Vital Status Alive and Well">
+                    <span class="sys-dot" aria-hidden="true"></span>
+                    <span class="sys-text">
+                        <span class="sys-text-label">VITAL STATUS</span>
+                        <span class="sys-text-val">ALIVE &amp; WELL</span>
+                    </span>
+                </span>
+            </nav>
+        </div>
+    </header>
+
+    <main class="case-main">
+        <a href="../#archives" class="case-back">← RETURN TO PROJECT ARCHIVES</a>
+
+        <article class="case-sheet sheet">
+            <div class="sheet-header">
+                <div class="sheet-title-group">
+                    <span class="sheet-kicker">SCHEDULE A · EXHIBIT ARC-01 · CASE FILE</span>
+                    <h1 class="case-title">Credit Default Prediction Models</h1>
+                </div>
+                <div class="sheet-meta">
+                    <div class="sheet-meta-code">FORM AR-01</div>
+                    <div class="sheet-meta-page">PROJECT RECORD</div>
+                </div>
+            </div>
+
+            <div class="ruled-grid">
+                <div class="case-meta-cell">
+                    <span class="field-label">SOURCE</span>
+                    <span class="case-meta-val">Aihack Thailand 2026 · AIFUL × Chulalongkorn Business School</span>
+                </div>
+                <div class="case-meta-cell">
+                    <span class="field-label">RESULT</span>
+                    <span class="case-meta-val">Finalist · 14th of 103 teams</span>
+                </div>
+                <div class="case-meta-cell">
+                    <span class="field-label">TEAM</span>
+                    <span class="case-meta-val">Rot_Khon_Fan</span>
+                </div>
+                <div class="case-meta-cell case-meta-cell--wide">
+                    <span class="field-label">STACK</span>
+                    <span class="case-meta-val">Python · pandas · scikit-learn · LightGBM · CatBoost · XGBoost · AutoGluon · PyTorch · TabPFN-3.5 · NVIDIA Kumo Tabular · LimiX-2 · Google Colab (A100 / L4 GPUs)</span>
+                </div>
+            </div>
+
+            <div class="case-exhibit-hero case-exhibit-hero--fit" role="img" aria-label="Private ROC-AUC by model stage">
+                <img src="../images/CreditDefault.webp" alt="Credit default prediction pipeline: application features, four models (TabPFN-3.5, NVIDIA Kumo Tabular, LimiX-2, denoising autoencoder), rank average, probability of default; private ROC-AUC 0.6628, 14th of 103" loading="eager" decoding="async">
+                <span class="exhibit-label">EXHIBIT · images/CreditDefault.webp</span>
+            </div>
+
+            <div class="case-columns">
+                <div class="case-body-col">
+                    <section class="case-section">
+                        <h2>1. SUMMARY</h2>
+                        <p>Models built for Aihack Thailand 2026, an AI hackathon on finance data run by AIFUL, a Japanese consumer lender, with Chulalongkorn Business School. The selection round asked teams to predict the probability that a loan applicant defaults within 12 months, using only what is known at application time. Scoring was ROC-AUC on a hidden private test set, and the top 30 teams advanced to the on-site final.</p>
+                    </section>
+
+                    <section class="case-section">
+                        <h2>2. RESULT</h2>
+                        <p>14th of 103 teams on the private leaderboard, ROC-AUC 0.6628 (0.66275). Qualified for the final, held on site at Chulalongkorn Business School on December 8–10, 2026.</p>
+                    </section>
+
+                    <section class="case-section">
+                        <h2>3. FULL NOTES</h2>
+                        <div class="case-notes-box">
+                            <h3>Where we started</h3>
+                            <p>I was new to machine learning when the competition started. We began with gradient-boosted trees (LightGBM, CatBoost and XGBoost) on engineered features, then moved to AutoGluon. Two days before the deadline we were 46th on the leaderboard.</p>
+
+                            <h3>What changed</h3>
+                            <p>Instead of tuning more, we tested new model types one at a time and kept only what clearly improved the score. The breakthrough was pretrained tabular foundation models on the raw columns. TabPFN-3.5 became our strongest single model, and adding NVIDIA Kumo Tabular and then LimiX-2 each lifted the score further. The final submission was a rank-averaged ensemble of the three plus a small denoising-autoencoder neural network.</p>
+                            <p>I led the model experiments and built the final ensemble. My teammate Kongpop Ariyapattanaporn built the LimiX-2 model.</p>
+
+                            <h3>Score progression</h3>
+                            <p>Private-leaderboard ROC-AUC, revealed after the deadline:</p>
+                            <ul>
+                                <li>LightGBM baseline: 0.6546</li>
+                                <li>Best gradient-boosting / neural-net blend: 0.6558</li>
+                                <li>AutoGluon ensemble: 0.6578</li>
+                                <li>TabPFN-3.5 alone: 0.6611</li>
+                                <li>+ NVIDIA Kumo Tabular: 0.6620</li>
+                                <li>+ LimiX-2 (final ensemble): 0.6628</li>
+                            </ul>
+
+                            <h3>What I learned</h3>
+                            <ul>
+                                <li><strong>Change the model, not the weights.</strong> Changing the model family moved the score far more than tuning ensemble weights: about 30 weight variants of the same models all landed within 0.001 AUC.</li>
+                                <li><strong>Trust honest cross-validation.</strong> Small public-leaderboard differences are noise.</li>
+                                <li><strong>Data privacy is a hard rule.</strong> No competition data was ever shared with AI tools, models ran in private sessions, and all data was deleted after the round as required.</li>
+                            </ul>
+
+                            <h3>Next</h3>
+                            <p>The on-site final at Chulalongkorn Business School, December 8–10, 2026.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="case-aside">
+                    <div class="case-aside-box">
+                        <span class="field-label">4. RECORD</span>
+                        <ul class="case-checklist">
+                            <li>☒ Selection round · Nov 7–14, 2026</li>
+                            <li>☒ 14th of 103 · ROC-AUC 0.6628</li>
+                            <li>☒ Qualified for the final (top 30)</li>
+                            <li>☐ Final · Dec 8–10, 2026</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-aside-box">
+                        <span class="field-label">5. ORGANISERS</span>
+                        <ul class="case-checklist">
+                            <li>AIFUL</li>
+                            <li>Chulalongkorn Business School, Chulalongkorn University</li>
+                            <li>Leaderboard · ProbSpace</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-stamp" aria-hidden="true">FINALIST</div>
+                </aside>
+            </div>
+
+            <nav aria-label="Other exhibits" class="ruled-grid">
+                <a href="../#archives" class="case-nav-link">
+                    <span class="field-label">← ALL EXHIBITS</span>
+                    <span class="case-nav-name">Project Archives</span>
+                </a>
+                <a href="cms-admin-helper.html" class="case-nav-link case-nav-link--next">
+                    <span class="field-label">NEXT EXHIBIT · ARC-02 →</span>
+                    <span class="case-nav-name">CMS Admin Helper</span>
+                </a>
+            </nav>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>© 2026 THITIWUT SREEWASUT · FILED UNDER <span class="footer-rune">ᚠ</span></span>
+            <span>FORM AR-01 · END OF CASE FILE</span>
+        </div>
+    </footer>
+
+    <script src="../js/motion.js"></script>
+</body>
+</html>

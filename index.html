@@ -63,7 +63,8 @@
       "award": [
         "Bronze Medal, 22nd Thailand Olympiad in Informatics (TOI22)",
         "Bronze Medal, 21st Thailand Olympiad in Informatics (TOI21)",
-        "Finalist, National Software Contest 2024 (NSC2024)"
+        "Finalist, National Software Contest 2024 (NSC2024)",
+        "Finalist, Aihack Thailand 2026 (14th of 103 teams, selection round)"
       ],
       "knowsAbout": [
         "Competitive Programming",
@@ -219,6 +220,7 @@
                         <span>(a) 2× TOI Bronze — TOI21, TOI22</span>
                         <span>(b) NSC2024 Finalist — Mesosuem</span>
                         <span>(c) Founder, Kit2Code</span>
+                        <span>(d) Aihack Thailand 2026 Finalist</span>
                     </div>
                 </div>
             </div>
@@ -232,11 +234,6 @@
                     <div class="signature-block">
                         <span class="signature-hand">Freyr</span>
                         <span class="signature-label">SIGNATURE OF PERSONNEL</span>
-                    </div>
-                    <div class="stamp-round" aria-hidden="true">
-                        <span>THITIWUT</span>
-                        <span class="stamp-round-title">APPROVED</span>
-                        <span class="stamp-round-runes">ᚠ ᚠ ᚠ</span>
                     </div>
                 </div>
             </div>
@@ -341,6 +338,7 @@
                                 <span class="spec-check skill-tag" data-skill="Competitive Programming" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Competitive Programming</span>
                                 <span class="spec-check skill-tag" data-skill="Software Development" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Software Development</span>
                                 <span class="spec-check skill-tag" data-skill="Contest Infrastructure" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Contest Infrastructure</span>
+                                <span class="spec-check skill-tag" data-skill="Machine Learning" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Machine Learning</span>
                             </div>
                         </div>
                     </div>
@@ -363,7 +361,7 @@
                     <h2 id="h-archives" class="sheet-title">Project Archives</h2>
                 </div>
                 <div class="sheet-meta">
-                    <div class="sheet-meta-code">6 EXHIBITS ON FILE</div>
+                    <div class="sheet-meta-code">8 EXHIBITS ON FILE</div>
                     <div class="sheet-meta-page">PAGE 3 OF 5</div>
                 </div>
             </div>
@@ -374,59 +372,34 @@
             </div>
 
             <div class="ruled-grid projects-grid" id="projectsGrid">
-                <!-- ARC-01 · Imtan -->
-                <article class="project-card" data-tags="TypeScript,Next.js,Supabase,PostgreSQL,Backend Engineering,Software Development">
+                <!-- ARC-01 · Credit Default Prediction Models -->
+                <article class="project-card" data-tags="Python,Machine Learning,Hackathon,Credit Risk,Tabular Data">
                     <div class="project-card-top">
-                        <span>ARC-01 · WEB APP</span>
-                        <span class="status-tag">WORKING PROTOTYPE</span>
+                        <span>ARC-01 · MACHINE LEARNING</span>
+                        <span class="status-tag">FINALIST · 14TH</span>
                     </div>
                     <div class="exhibit-media">
-                        <img src="images/Imtan.webp" alt="Imtan screenshot" loading="lazy" decoding="async" data-lightbox>
-                        <span class="exhibit-label">EXHIBIT · Imtan.webp</span>
+                        <img src="images/CreditDefault.webp" alt="Credit default prediction pipeline: application features, four models (TabPFN-3.5, NVIDIA Kumo Tabular, LimiX-2, denoising autoencoder), rank average, probability of default; private ROC-AUC 0.6628, 14th of 103" loading="lazy" decoding="async" data-lightbox>
+                        <span class="exhibit-label">EXHIBIT · CreditDefault.webp</span>
                     </div>
                     <div class="project-head">
-                        <h3 class="project-name">Imtan (<span lang="th">อิ่มทัน</span>)</h3>
-                        <span class="project-context">Exploring Engineering World · Chulalongkorn University</span>
+                        <h3 class="project-name">Credit Default Prediction Models</h3>
+                        <span class="project-context">Aihack Thailand 2026 · AIFUL × Chulalongkorn Business School</span>
                     </div>
-                    <p class="project-desc">Canteen queue app for the Engineering canteen: live queues for every shop, order ahead, a queue number with a live wait estimate, and an alert when food is ready. Vendors run a live order board on a tablet.</p>
+                    <p class="project-desc">Finalist (14th) in Aihack Thailand 2026, a credit-default prediction hackathon by AIFUL and Chulalongkorn Business School. Climbed from 46th to 14th in two days by ensembling pretrained tabular foundation models (TabPFN-3.5, NVIDIA Kumo, LimiX-2).</p>
+                    <p class="project-note">Private leaderboard: 14th of 103 teams, ROC-AUC 0.6628. On-site final Dec 8–10, 2026.</p>
                     <div class="project-foot">
-                        <span class="project-stack">STACK · TypeScript · Next.js · Supabase · PostgreSQL</span>
+                        <span class="project-stack">STACK · Python · TabPFN-3.5 · NVIDIA Kumo Tabular · LimiX-2 · AutoGluon · PyTorch</span>
                         <div class="project-links">
-                            <a href="https://imtan-xlbs.vercel.app" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">DEMO →</a>
-                            <a href="https://github.com/MiyaZaki1072/Imtan" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">CODE →</a>
+                            <a href="projects/aihack-2026.html" class="btn-secondary btn-sm">NOTES →</a>
                         </div>
                     </div>
                 </article>
 
-                <!-- ARC-02 · Kit2Code Grader -->
-                <article class="project-card" data-tags="Python,Django,PostgreSQL,Docker,Backend Engineering,Competitive Programming,Software Development,Contest Infrastructure">
-                    <div class="project-card-top">
-                        <span>ARC-02 · BACKEND</span>
-                        <span class="status-tag">EARLY DEVELOPMENT</span>
-                    </div>
-                    <div class="exhibit-media">
-                        <img src="images/Grader.webp" alt="Kit2Code Grader screenshot" loading="lazy" decoding="async" data-lightbox>
-                        <span class="exhibit-label">EXHIBIT · Grader.webp</span>
-                    </div>
-                    <div class="project-head">
-                        <h3 class="project-name">Kit2Code Grader</h3>
-                        <span class="project-context">Practice grader for old contest problems · Kit2Code</span>
-                    </div>
-                    <p class="project-desc">Read a problem in Thai or English, submit C, C++ or Python, and watch results arrive per test and per subtask, scored the way CMS v1.5 scored the original contest. Runs in the isolate sandbox beside our CMS.</p>
-                    <p class="project-note">Sign-in, problems, live results, ranking and the admin site work today.</p>
-                    <div class="project-foot">
-                        <span class="project-stack">STACK · Python · Django · PostgreSQL · Docker</span>
-                        <div class="project-links">
-                            <a href="projects/grader.html" class="btn-secondary btn-sm">NOTES →</a>
-                            <a href="https://github.com/Kit2Code/backend" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">CODE →</a>
-                        </div>
-                    </div>
-                </article>
-
-                <!-- ARC-03 · CMS Admin Helper -->
+                <!-- ARC-02 · CMS Admin Helper -->
                 <article class="project-card" data-tags="TypeScript,JavaScript,Software Development,Competitive Programming,Contest Infrastructure">
                     <div class="project-card-top">
-                        <span>ARC-03 · BROWSER EXTENSION</span>
+                        <span>ARC-02 · BROWSER EXTENSION</span>
                         <span class="status-tag">LOAD-TESTED</span>
                     </div>
                     <div class="exhibit-media">
@@ -448,10 +421,10 @@
                     </div>
                 </article>
 
-                <!-- ARC-04 · TaskMaker -->
+                <!-- ARC-03 · TaskMaker -->
                 <article class="project-card" data-tags="TypeScript,Docker,PostgreSQL,Backend Engineering,Competitive Programming,Software Development,Contest Infrastructure">
                     <div class="project-card-top">
-                        <span>ARC-04 · TOOLING</span>
+                        <span>ARC-03 · TOOLING</span>
                     </div>
                     <div class="exhibit-media">
                         <img src="images/TaskMaker.webp" alt="TaskMaker screenshot" loading="lazy" decoding="async" data-lightbox>
@@ -471,10 +444,58 @@
                     </div>
                 </article>
 
-                <!-- ARC-05 · Mesosuem -->
+                <!-- ARC-04 · University OS -->
+                <article class="project-card" data-tags="TypeScript,React,Python,Django,PostgreSQL,Docker,Backend Engineering,Software Development">
+                    <div class="project-card-top">
+                        <span>ARC-04 · WEB APP</span>
+                        <span class="status-tag">SELF-HOSTED</span>
+                    </div>
+                    <div class="exhibit-media">
+                        <img src="images/UniversityOS.webp" alt="University OS dashboard screenshot" loading="lazy" decoding="async" data-lightbox>
+                        <span class="exhibit-label">EXHIBIT · UniversityOS.webp</span>
+                    </div>
+                    <div class="project-head">
+                        <h3 class="project-name">University OS</h3>
+                        <span class="project-context">Personal planner for university</span>
+                    </div>
+                    <p class="project-desc">Courses, weekly timetable, exams, tasks, habits and grades in one place, on phone or desktop. Import with AI turns a syllabus or timetable into a full semester, checked before anything is saved.</p>
+                    <div class="project-foot">
+                        <span class="project-stack">STACK · TypeScript · React · Django · PostgreSQL · Docker</span>
+                        <div class="project-links">
+                            <a href="https://github.com/MiyaZaki1072/UniversityOS" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">CODE →</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ARC-05 · Kit2Code Grader -->
+                <article class="project-card" data-tags="Python,Django,PostgreSQL,Docker,Backend Engineering,Competitive Programming,Software Development,Contest Infrastructure">
+                    <div class="project-card-top">
+                        <span>ARC-05 · BACKEND</span>
+                        <span class="status-tag">EARLY DEVELOPMENT</span>
+                    </div>
+                    <div class="exhibit-media">
+                        <img src="images/Grader.webp" alt="Kit2Code Grader screenshot" loading="lazy" decoding="async" data-lightbox>
+                        <span class="exhibit-label">EXHIBIT · Grader.webp</span>
+                    </div>
+                    <div class="project-head">
+                        <h3 class="project-name">Kit2Code Grader</h3>
+                        <span class="project-context">Practice grader for old contest problems · Kit2Code</span>
+                    </div>
+                    <p class="project-desc">Read a problem in Thai or English, submit C, C++ or Python, and watch results arrive per test and per subtask, scored the way CMS v1.5 scored the original contest. Runs in the isolate sandbox beside our CMS.</p>
+                    <p class="project-note">Sign-in, problems, live results, ranking and the admin site work today.</p>
+                    <div class="project-foot">
+                        <span class="project-stack">STACK · Python · Django · PostgreSQL · Docker</span>
+                        <div class="project-links">
+                            <a href="projects/grader.html" class="btn-secondary btn-sm">NOTES →</a>
+                            <a href="https://github.com/Kit2Code/backend" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">CODE →</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ARC-06 · Mesosuem -->
                 <article class="project-card" data-tags="C#,Unity Engine,Software Development">
                     <div class="project-card-top">
-                        <span>ARC-05 · GAME</span>
+                        <span>ARC-06 · GAME</span>
                         <span class="status-tag">NSC2024 FINALIST</span>
                     </div>
                     <div class="exhibit-media">
@@ -494,10 +515,34 @@
                     </div>
                 </article>
 
-                <!-- ARC-06 · Series Tracker -->
+                <!-- ARC-07 · Imtan -->
+                <article class="project-card" data-tags="TypeScript,Next.js,Supabase,PostgreSQL,Backend Engineering,Software Development">
+                    <div class="project-card-top">
+                        <span>ARC-07 · WEB APP</span>
+                        <span class="status-tag">WORKING PROTOTYPE</span>
+                    </div>
+                    <div class="exhibit-media">
+                        <img src="images/Imtan.webp" alt="Imtan screenshot" loading="lazy" decoding="async" data-lightbox>
+                        <span class="exhibit-label">EXHIBIT · Imtan.webp</span>
+                    </div>
+                    <div class="project-head">
+                        <h3 class="project-name">Imtan (<span lang="th">อิ่มทัน</span>)</h3>
+                        <span class="project-context">Exploring Engineering World · Chulalongkorn University</span>
+                    </div>
+                    <p class="project-desc">Canteen queue app for the Engineering canteen: live queues for every shop, order ahead, a queue number with a live wait estimate, and an alert when food is ready. Vendors run a live order board on a tablet.</p>
+                    <div class="project-foot">
+                        <span class="project-stack">STACK · TypeScript · Next.js · Supabase · PostgreSQL</span>
+                        <div class="project-links">
+                            <a href="https://imtan-xlbs.vercel.app" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">DEMO →</a>
+                            <a href="https://github.com/MiyaZaki1072/Imtan" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-sm">CODE →</a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- ARC-08 · Series Tracker -->
                 <article class="project-card" data-tags="JavaScript,Node.js,Backend Engineering,Software Development">
                     <div class="project-card-top">
-                        <span>ARC-06 · DISCORD BOT</span>
+                        <span>ARC-08 · DISCORD BOT</span>
                     </div>
                     <div class="exhibit-media">
                         <img src="images/SeriesTracker.webp" alt="Series Tracker screenshot" loading="lazy" decoding="async" data-lightbox>
@@ -517,7 +562,7 @@
                 </article>
             </div>
 
-            <button type="button" class="mobile-exhibits-toggle" id="showAllExhibitsBtn">SHOW ALL 6 EXHIBITS ↓</button>
+            <button type="button" class="mobile-exhibits-toggle" id="showAllExhibitsBtn">SHOW ALL 8 EXHIBITS ↓</button>
 
             <!-- ── SCHEDULE B · ORGANIZING RECORD (Kit2Code) ─────────── -->
             <div class="schedule-block" id="organizing">
@@ -670,10 +715,19 @@
                             <span class="period-school">Chulalongkorn University</span>
                         </span>
                         <span class="period-badges">
-                            <span class="period-count">2 RECORDS</span>
+                            <span class="period-count">3 RECORDS</span>
                         </span>
                     </div>
                     <ol class="period-list">
+                        <li class="period-item">
+                            <span class="period-rail" aria-hidden="true"><span class="period-rail-line"></span><span class="period-rail-dot"></span></span>
+                            <span class="period-date">Nov 7–14, 2026</span>
+                            <span class="period-body">
+                                <span class="period-title">Aihack Thailand 2026 · Finalist</span>
+                                <span class="period-detail">AIFUL × Chulalongkorn Business School · 14th of 103 teams · final Dec 8–10, 2026</span>
+                            </span>
+                            <span class="period-cls">HACKATHON</span>
+                        </li>
                         <li class="period-item">
                             <span class="period-rail" aria-hidden="true"><span class="period-rail-line"></span><span class="period-rail-dot"></span></span>
                             <span class="period-date">Oct 15, 2026</span>

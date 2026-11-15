@@ -41,7 +41,7 @@
     });
 
     // 2. Brass stamps: one-time "thump" (scale 1.08 -> 1) on first view
-    const stamps = document.querySelectorAll('.stamp-round, .stamp-rect, .case-stamp');
+    const stamps = document.querySelectorAll('.stamp-rect, .case-stamp');
     const stampObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
             if (!entry.isIntersecting) return;
