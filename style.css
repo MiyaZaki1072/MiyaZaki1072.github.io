@@ -1436,14 +1436,19 @@ img {
 
 .contrib-months {
     display: flex;
+    gap: 4px;
+    min-height: 1.4em;
     padding-left: 40px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--ink-muted);
 }
 
+/* One span per week column; a label overflows into the empty spans after it. */
 .contrib-months span {
     flex: 1;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .contrib-body {
@@ -1451,15 +1456,17 @@ img {
     gap: 8px;
 }
 
+/* Seven rows with the grid's gap, so Mon/Wed/Fri sit on their cell rows. */
 .contrib-days-axis {
     width: 32px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    gap: 4px;
+    align-items: center;
     font-family: var(--font-mono);
     font-size: 10px;
+    line-height: 1;
     color: var(--ink-muted);
-    padding: 2px 0;
 }
 
 .contrib-grid {
@@ -1486,6 +1493,7 @@ img {
 .contrib-day[data-level="2"] { background: #3F7D5C; }
 .contrib-day[data-level="3"] { background: #5FA57E; }
 .contrib-day[data-level="4"] { background: #8FD1AB; }
+.contrib-day.is-empty { background: transparent; }
 
 .contrib-footer {
     display: flex;

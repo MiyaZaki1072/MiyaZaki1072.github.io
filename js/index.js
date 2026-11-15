@@ -308,6 +308,13 @@ async function fetchCfUser() {
 })();
 
 // ── GitHub Contribution Calendar (PD-07 Attachment C) ────────
+// data/contributions.json is written at deploy time by
+// scripts/fetch-contributions.mjs. Its shape:
+//   { generated: 'YYYY-MM-DD', total, streak: { current, longest },
+//     busiestWeekday: 'Mon', weeks: [[level|null x7], ...] }
+// Each week is one Sun..Sat column of GitHub levels (0-4); null pads the
+// partial first and last weeks. The last week holds `generated`, so every
+// column's date can be worked back from it.
 let contribCache = null;
 
 (function initContributions() {
@@ -316,86 +323,91 @@ let contribCache = null;
     if (!grid) return;
 
     const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const DAY_MS = 86400000;
 
-    // 1. Render deterministic 53x7 PD-07 layout preview first (Board 1)
-    function renderPreviewGrid() {
-        grid.innerHTML = '';
-        for (let w = 0; w < 53; w++) {
+    const setText = (id, v) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = v;
+    };
+
+    const fmtDate = (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+
+    function render(data) {
+        const weeks = data.weeks;
+        const [y, m, d] = String(data.generated || '').split('-').map(Number);
+        const generated = y ? new Date(Date.UTC(y, m - 1, d)) : null;
+        // Sunday that opens the final column.
+        const lastSunday = generated ? new Date(generated - generated.getUTCDay() * DAY_MS) : null;
+        const weekStart = (i) => new Date(lastSunday - (weeks.length - 1 - i) * 7 * DAY_MS);
+
+        const frag = document.createDocumentFragment();
+        weeks.forEach((week) => {
             const col = document.createElement('div');
             col.className = 'contrib-week';
-            for (let d = 0; d < 7; d++) {
-                const v = (w * 37 + d * 11 + ((w * d) % 7) * 5) % 13;
-                const lvl = v < 5 ? 0 : v < 8 ? 1 : v < 10 ? 2 : v < 12 ? 3 : 4;
+            for (let day = 0; day < 7; day++) {
+                const level = Array.isArray(week) ? week[day] : null;
                 const cell = document.createElement('span');
                 cell.className = 'contrib-day';
-                cell.dataset.level = String(lvl);
+                if (level === null || level === undefined) {
+                    cell.classList.add('is-empty');
+                } else {
+                    cell.dataset.level = String(level);
+                }
                 col.appendChild(cell);
             }
-            grid.appendChild(col);
+            frag.appendChild(col);
+        });
+        grid.replaceChildren(frag);
+
+        if (monthsEl) {
+            const labels = document.createDocumentFragment();
+            let lastMonth = -1;
+            weeks.forEach((_, i) => {
+                const span = document.createElement('span');
+                if (lastSunday) {
+                    // Label the first column that starts in a new month, but
+                    // skip the very first column when it would crowd the next.
+                    const month = weekStart(i).getUTCMonth();
+                    if (month !== lastMonth) {
+                        if (i > 0 || weekStart(i).getUTCDate() <= 21) span.textContent = MONTHS[month];
+                        lastMonth = month;
+                    }
+                }
+                labels.appendChild(span);
+            });
+            monthsEl.replaceChildren(labels);
         }
+
+        const total = Number(data.total) || 0;
+        const streak = data.streak || {};
+        const plural = (n) => `${n} ${n === 1 ? 'day' : 'days'}`;
+        setText('contribTotal', total.toLocaleString());
+        setText('contribCurrent', plural(Number(streak.current) || 0));
+        setText('contribLongest', plural(Number(streak.longest) || 0));
+        setText('contribBusiest', data.busiestWeekday || '—');
+        grid.setAttribute('aria-label', `${total.toLocaleString()} GitHub contributions in the last year`);
+
+        if (generated) {
+            const firstWeek = weeks[0] || [];
+            const firstDay = Math.max(0, firstWeek.findIndex((v) => v !== null && v !== undefined));
+            const from = new Date(weekStart(0).getTime() + firstDay * DAY_MS);
+            setText('contribRange', `${fmtDate(from)} – ${fmtDate(generated)}`);
+        }
+
+        // Newest weeks sit at the right edge, so a narrow screen should open
+        // on them rather than on last year.
+        const scroller = grid.closest('.contrib-box');
+        if (scroller) scroller.scrollLeft = scroller.scrollWidth;
     }
 
-    renderPreviewGrid();
-
-    function fmtDate(iso) {
-        const [y, m, d] = iso.split('-').map(Number);
-        return `${MONTHS[m - 1]} ${d}, ${y}`;
-    }
-
-    // 2. Fetch live data from data/contributions.json when available
     fetch('data/contributions.json')
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
-            if (!data || !Array.isArray(data.weeks) || !data.weeks.length) {
-                return;
-            }
+            if (!data || !Array.isArray(data.weeks) || !data.weeks.length) return;
             contribCache = data;
-            grid.innerHTML = '';
-
-            if (monthsEl) {
-                monthsEl.innerHTML = '';
-                let lastMonth = -1;
-                data.weeks.forEach((w) => {
-                    const first = w.days[0];
-                    const span = document.createElement('span');
-                    if (first) {
-                        const m = Number(first.date.slice(5, 7)) - 1;
-                        if (m !== lastMonth) {
-                            span.textContent = MONTHS[m];
-                            lastMonth = m;
-                        }
-                    }
-                    monthsEl.appendChild(span);
-                });
-            }
-
-            data.weeks.forEach((w) => {
-                const col = document.createElement('div');
-                col.className = 'contrib-week';
-                w.days.forEach((d) => {
-                    const cell = document.createElement('span');
-                    cell.className = 'contrib-day';
-                    cell.dataset.level = String(d.level || 0);
-                    const word = d.count === 1 ? 'contribution' : 'contributions';
-                    cell.title = `${d.count} ${word} on ${fmtDate(d.date)}`;
-                    col.appendChild(cell);
-                });
-                grid.appendChild(col);
-            });
-
-            const setText = (id, v) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = v;
-            };
-            setText('contribTotal', (data.total || 0).toLocaleString());
-            setText('contribCurrent', `${data.currentStreak || 0}d`);
-            setText('contribLongest', `${data.longestStreak || 0}d`);
-            setText('contribBusiest', data.busiest && data.busiest.count ? `${data.busiest.count}` : '—');
-            if (data.range && data.range.from && data.range.to) {
-                setText('contribRange', `${fmtDate(data.range.from)} – ${fmtDate(data.range.to)}`);
-            }
+            render(data);
         })
-        .catch(() => {});
+        .catch((err) => console.warn('contributions: could not render calendar', err));
 })();
 
 // ── Freyr Rune Mode (Hold Portrait or `freyr` Command) ───────
