@@ -384,7 +384,6 @@ let contribCache = null;
         setText('contribTotal', total.toLocaleString());
         setText('contribCurrent', plural(Number(streak.current) || 0));
         setText('contribLongest', plural(Number(streak.longest) || 0));
-        setText('contribBusiest', data.busiestWeekday || '—');
         grid.setAttribute('aria-label', `${total.toLocaleString()} GitHub contributions in the last year`);
 
         if (generated) {
