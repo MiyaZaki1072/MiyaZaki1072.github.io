@@ -1,943 +1,448 @@
-//Shared ---------------------------------------------------------------------
+/* ============================================================
+   Form PD-07 Interactive Controller & Terminal (js/index.js)
+   ============================================================ */
 
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
+// ── Boot Sequence (Board 4 · Once per session) ──────────────
+(function initBootSequence() {
+    const overlay = document.getElementById('bootOverlay');
+    if (!overlay) return;
 
-//Project cards carry their stack as a comma-separated attribute. The hero tags
-//and the terminal's `projects` command both read it, so the parse lives here
-//rather than once in each.
-const tagsOf = card => card.dataset.tags.split(',').map(t => t.trim());
+    const skipBtn = document.getElementById('bootSkipBtn');
+    const bar = document.getElementById('bootBar');
+    const cells = bar ? Array.from(bar.querySelectorAll('.boot-cell')) : [];
+    const STORAGE_KEY = 'pd07_boot_shown';
 
-//Flip to true once resume.pdf is committed at the site root. Until then the
-//button stays visibly disabled with no href, so it can never lead to a 404.
-const RESUME_READY = false;
+    const reducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-//The cat that used to be the avatar. Recruiters get the face; anyone who opens
-//the terminal and types `cat` still gets the cat.
-const CAT_PHOTOS = [
-    { src: 'images/cat/cat-sleeping.webp', alt: 'A black cat asleep on a leather seat' },
-    { src: 'images/cat/cat-nightcap.webp', alt: 'The same cat in a cartoon nightcap' },
-];
+    let alreadyShown = false;
+    try {
+        alreadyShown = sessionStorage.getItem(STORAGE_KEY) === '1';
+    } catch (_) {}
 
-const CHARS = {
-    en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
-    th: 'กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ',
-    //The 24 runes of the Elder Futhark, for rune mode's scramble.
-    runes: 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
-};
-
-//Language state. The translate button owns it and everything else subscribes,
-//so no block has to reach across for a mutable global.
-const i18n = (function () {
-    const content = {
-        en: {
-            //Split three ways so the legal name carries the display size and
-            //the nickname sits small on a line under it.
-            nameGiven: 'Thitiwut',
-            nameNick: '"Freyr"',
-            nameFamily: 'Sreewasut',
-            status: 'Computer Engineering @\u00a0Chulalongkorn\u00a0University\n2× TOI Bronze · NSC2024 Finalist',
-            availability: 'Open to new opportunities',
-            skillGroups: ['languages', 'tools & frameworks'],
-            tooltipHas: '→ see projects',
-            tooltipNone: '→ no projects yet',
-            //Same order as the .grove-links buttons in index.html.
-            btns: ['Email', 'GitHub', 'LinkedIn', 'Discord'],
-            resume: RESUME_READY ? 'Résumé' : 'Résumé · coming soon',
-        },
-        th: {
-            nameGiven: 'ธิติวุฒิ',
-            nameNick: '"เฟรย์"',
-            nameFamily: 'ศรีวะสุทธิ์',
-            status: 'วิศวกรรมคอมพิวเตอร์ @\u00a0จุฬาลงกรณ์มหาวิทยาลัย\nเหรียญทองแดง TOI 2 ปี · ผ่านเข้ารอบสุดท้าย NSC2024',
-            availability: 'เปิดรับโอกาสใหม่ๆ',
-            skillGroups: ['ภาษา', 'เครื่องมือและเฟรมเวิร์ก'],
-            tooltipHas: '→ ดูโปรเจกต์',
-            tooltipNone: '→ ยังไม่มีโปรเจกต์',
-            btns: ['อีเมล', 'GitHub', 'LinkedIn', 'Discord'],
-            resume: RESUME_READY ? 'เรซูเม่' : 'เรซูเม่ · เร็วๆ นี้',
-        },
-    };
-    let lang = 'en';
-    const listeners = [];
-
-    return {
-        get lang() { return lang; },
-        get strings() { return content[lang]; },
-        get chars() { return CHARS[lang]; },
-        onChange(fn) { listeners.push(fn); },
-        toggle() {
-            lang = lang === 'en' ? 'th' : 'en';
-            document.documentElement.lang = lang;
-            listeners.forEach(fn => fn(lang));
-            return content[lang];
-        },
-    };
-})();
-
-//One scramble for the whole site. The call sites only ever differed in which
-//alphabet the noise came from, whether a blinking cursor trailed the text, and
-//whether the result was written as markup or as plain text.
-const scrambleFrames = new WeakMap();
-
-function scrambleText(el, target, options) {
-    const { duration = 600, pool = null, suffix = '', asText = false } = options || {};
-    const chars = pool || i18n.chars;
-    const plain = target.replace(/\n/g, ' ');
-
-    //Two loops writing to the same element would fight over its text.
-    const running = scrambleFrames.get(el);
-    if (running !== undefined) cancelAnimationFrame(running);
-
-    const settle = () => {
-        scrambleFrames.delete(el);
-        if (asText) el.textContent = target;
-        else el.innerHTML = target.replace(/\n/g, '<br>') + suffix;
-    };
-
-    //Nothing to watch if the visitor asked for less motion — show the answer.
-    if (reducedMotion.matches) {
-        settle();
+    if (reducedMotion || alreadyShown) {
+        overlay.classList.add('is-hidden');
+        overlay.hidden = true;
         return;
     }
 
-    //Split once and reuse: step runs ~60 times a second.
-    const letters = plain.split('');
-    const start = performance.now();
-    const step = (now) => {
-        const progress = Math.min(1, (now - start) / duration);
-        const scrambled = letters.map((char, i) => {
-            if (char === ' ') return char;
-            if (i / plain.length < progress) return char;
-            return chars[Math.floor(Math.random() * chars.length)];
-        }).join('');
+    let timerId = null;
+    let stepTimer = null;
 
-        if (suffix) el.innerHTML = scrambled + suffix;
-        else el.textContent = scrambled;
+    function dismissBoot() {
+        if (timerId) clearTimeout(timerId);
+        if (stepTimer) clearInterval(stepTimer);
+        try {
+            sessionStorage.setItem(STORAGE_KEY, '1');
+        } catch (_) {}
+        overlay.classList.add('is-hidden');
+        setTimeout(() => {
+            overlay.hidden = true;
+        }, 300);
+        window.removeEventListener('keydown', onBootKey);
+    }
 
-        if (progress < 1) scrambleFrames.set(el, requestAnimationFrame(step));
-        else settle();
-    };
-    scrambleFrames.set(el, requestAnimationFrame(step));
+    function onBootKey(e) {
+        if (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ') {
+            e.preventDefault();
+            dismissBoot();
+        }
+    }
+
+    if (skipBtn) {
+        skipBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dismissBoot();
+        });
+    }
+    window.addEventListener('keydown', onBootKey);
+
+    // Animate progress cells from 12 -> 20 over ~1.1s, then dismiss at 1.25s
+    if (cells.length === 20) {
+        let filled = 12;
+        cells.forEach((c, idx) => c.classList.toggle('is-on', idx < filled));
+        stepTimer = setInterval(() => {
+            if (filled < 20) {
+                cells[filled].classList.add('is-on');
+                filled++;
+            } else {
+                clearInterval(stepTimer);
+            }
+        }, 95);
+    }
+
+    timerId = setTimeout(dismissBoot, 1250);
+})();
+
+// ── Mobile Menu & Mobile Exhibits Progressive Disclosure ─────
+(function initMobileControls() {
+    const navToggle = document.getElementById('navToggle');
+    const primaryNav = document.getElementById('primaryNav');
+    if (navToggle && primaryNav) {
+        navToggle.addEventListener('click', () => {
+            const isOpen = primaryNav.classList.toggle('is-open');
+            navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+        primaryNav.querySelectorAll('.nav-link').forEach((link) => {
+            link.addEventListener('click', () => {
+                primaryNav.classList.remove('is-open');
+                navToggle.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+
+    const showAllBtn = document.getElementById('showAllExhibitsBtn');
+    const projectsGrid = document.getElementById('projectsGrid');
+    if (showAllBtn && projectsGrid) {
+        showAllBtn.addEventListener('click', () => {
+            projectsGrid.classList.add('is-expanded');
+            showAllBtn.hidden = true;
+        });
+    }
+})();
+
+// ── Active Nav Link on Scroll (Scroll-Spy) ──────────────────
+const sections = document.querySelectorAll('main > section[id]');
+const navLinks = document.querySelectorAll('.primary-nav .nav-link');
+
+const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            navLinks.forEach((link) => {
+                link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+            });
+        }
+    });
+}, { rootMargin: '-25% 0px -60% 0px', threshold: 0 });
+
+sections.forEach((s) => navObserver.observe(s));
+
+// ── Toast Helper ─────────────────────────────────────────────
+const toast = document.getElementById('toast');
+let toastTimer;
+
+function showToast(msg) {
+    if (!toast) return;
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add('show');
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-const showToast = (function () {
-    const toast = document.getElementById('toast');
-    let timer;
-    return function (message) {
-        if (!toast) return;
-        toast.textContent = message;
-        toast.classList.add('show');
-        clearTimeout(timer);
-        timer = setTimeout(() => toast.classList.remove('show'), 2200);
-    };
-})();
-
-//Nav scrollspy --------------------------------------------------------------
-(function () {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const sections = document.querySelectorAll('section[id]');
-    if (!navLinks.length || !sections.length) return;
-
-    const sectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-            navLinks.forEach(link => {
-                link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.id}`);
-            });
-        });
-    }, { rootMargin: '-40% 0px -55% 0px' });
-
-    sections.forEach(section => sectionObserver.observe(section));
-})();
-
-//Rune mode — hold the photo, or type `freyr` ---------------------------------
-//Freyr is a Norse god as well as my nickname. Holding the photo fills a ring;
-//when it closes, every word on the page turns to runes for ten seconds, the
-//page goes gold, and runes rise off the photo. Esc, or another hold, ends it.
-const runeMode = (function () {
-    const root = document.documentElement;
-    const avatar = document.querySelector('.avatar-wrap');
-    const ring = document.querySelector('.freyr-ring');
-
-    const HOLD_MS = 1800;
-    const LAST_MS = 10000;
-    const SWEEP_MS = 900;
-    //Younger Futhark, as Viking Age Swedish runestones spell the Frey- of names
-    //like fraistain (U 227). A letter-for-letter ᚠᚱᛖᛃᚱ would be a modern spelling.
-    const NAME_RUNES = 'ᚠᚱᛅᛁᛦ';
-    //The Th of Thitiwut is a Thai aspirated t, not the English sound ᚦ stands
-    //for, so the given name skips the digraph rule below.
-    const GIVEN_RUNES = 'ᛏᛁᛏᛁᚹᚢᛏ';
-    const EMBERS = 'ᚠᛃᛜᚱᛅᛁᛦᛉ';
-    //Latin letters to Elder Futhark by the usual modern convention (th → ᚦ,
-    //ng → ᛜ). A gimmick, not a historical spelling: only the nickname keeps
-    //the runestone form above.
-    const LATIN_RUNES = {
-        a: 'ᚨ', b: 'ᛒ', c: 'ᚲ', d: 'ᛞ', e: 'ᛖ', f: 'ᚠ', g: 'ᚷ', h: 'ᚺ', i: 'ᛁ',
-        j: 'ᛃ', k: 'ᚲ', l: 'ᛚ', m: 'ᛗ', n: 'ᚾ', o: 'ᛟ', p: 'ᛈ', q: 'ᚲ', r: 'ᚱ',
-        s: 'ᛊ', t: 'ᛏ', u: 'ᚢ', v: 'ᚹ', w: 'ᚹ', x: 'ᚲᛊ', y: 'ᛃ', z: 'ᛉ',
-    };
-    const toRunes = text => text
-        .replace(/th/gi, 'ᚦ')
-        .replace(/ng/gi, 'ᛜ')
-        .replace(/[a-z]/gi, ch => LATIN_RUNES[ch.toLowerCase()]);
-    //The terminal stays readable (it is how keyboard visitors get here), and
-    //the toasts are what explain the joke.
-    const SKIP = '#termWidget, .toast, script, style, noscript, .freyr-ember, .gullinbursti, .freyr-pop, .freyr-portal';
-
-    let active = false;
-    let frame = null;
-    let endTimer = null;
-    let emberTimer = null;
-    //Freyr as the Rällinge figure is often read: pointed cap and braided beard
-    //(no horns, which are nineteenth-century opera), holding the antler he
-    //fought Beli with once he had given his sword away, the sun behind him.
-    const FREYR_ART = String.raw`          \    |    /
-       '.  \   |   /  .'
-         '. \  |  / .'
-    ------    .^.    ------
-             /   \
-            /  .  \
-    Y      /_______\
-   \|/     | () () |
-    |  /   |   <   |
-    | /     \ '-' /
-    |/     _/|||||\_
-    |     / ||||||| \
-    |    /  |||||||  \
-    |   |   |||||||   |
-         '._'''''''_.'`;
-    const POP_MS = 4600;
-    //The door opens first; the page goes to runes once it is open, Freyr walks
-    //out a moment later, and the door closes behind him.
-    const EMERGE_AT = 0.75;
-    const RUNES_MS = 800;
-    const DOOR_CLOSE_MS = 2300;
-
-    //The art greets the change and then gets out of the way: it fades on its
-    //own, or on a click, while the page turns to runes behind it.
-    function showPortrait(emerge) {
-        const old = document.querySelector('.freyr-pop');
-        if (old) old.remove();
-        const pop = document.createElement('div');
-        pop.className = 'freyr-pop';
-        pop.setAttribute('aria-hidden', 'true');
-        const pre = document.createElement('pre');
-        pre.className = 'freyr-pop-art';
-        const lines = FREYR_ART.split('\n');
-        lines.forEach((text, i) => {
-            const row = document.createElement('span');
-            row.textContent = text;
-            row.style.setProperty('--i', String(lines.length - 1 - i));
-            pre.appendChild(row);
-        });
-        const name = document.createElement('p');
-        name.className = 'freyr-pop-name';
-        name.textContent = `${NAME_RUNES} · FREYR`;
-        const line = document.createElement('p');
-        line.className = 'freyr-pop-line';
-        //Snorri's three: rain, the shining of the sun, the fruit of the earth.
-        line.textContent = 'rain · sunshine · harvest';
-        pop.append(pre, name, line);
-        const close = () => {
-            if (!pop.isConnected || pop.classList.contains('is-leaving')) return;
-            pop.classList.add('is-leaving');
-            setTimeout(() => pop.remove(), reducedMotion.matches ? 0 : 400);
-        };
-        pop.addEventListener('click', close);
-        setTimeout(close, POP_MS);
-        document.body.appendChild(pop);
-        if (emerge) walkOut(pop, pre);
-    }
-
-    //Freyr steps out of the door toward you: small and bright inside it, then
-    //full size, while each line of the figure scrambles out of noise into its
-    //shape, bottom line first.
-    function walkOut(pop, pre) {
-        const rows = Array.from(pre.children);
-        rows.forEach(row => {
-            row.dataset.line = row.textContent;
-            row.textContent = '';
-        });
-        gsap.set(pop, { xPercent: -50, yPercent: -50, scale: 0.3, opacity: 0, filter: 'brightness(2.5) blur(3px)' });
-        const tl = gsap.timeline({ delay: EMERGE_AT });
-        tl.to(pop, { opacity: 1, scale: 0.55, filter: 'brightness(1.6) blur(0px)', duration: 0.35, ease: 'power2.out' })
-          .to(pop, { scale: 1, filter: 'brightness(1) blur(0px)', duration: 0.9, ease: 'power3.out', clearProps: 'filter' });
-        //ScrambleText trims and collapses runs of spaces, and the figure is
-        //made of them, so it scrambles toward a no-break-space copy and each
-        //line is set to the exact original once it lands.
-        rows.forEach((row, i) => {
-            tl.to(row, {
-                duration: 0.6,
-                scrambleText: {
-                    text: row.dataset.line.replace(/ /g, ' '),
-                    chars: '#%@*+=-:.',
-                    speed: 0.8,
-                    revealDelay: 0.15,
-                    trim: false,
-                },
-                onComplete: () => { row.textContent = row.dataset.line; },
-            }, 0.1 + (rows.length - 1 - i) * 0.03);
-        });
-    }
-
-    //A time door, drawn in characters. A rift opens down the middle of the
-    //screen and snaps wide into a doorway with crackling edges and a vortex of
-    //characters inside; it tears loose characters off the page around it, and
-    //Freyr walks out of it toward you. Then it closes behind him. GSAP drives
-    //it: CustomEase for the snap, CustomWiggle for the shake, Physics2D for the
-    //flying debris, ScrambleText for his figure resolving out of noise.
-    const DOOR_RAMP = ' .:-=+*#%@';
-    const DEBRIS = '#@%&*+=-:./\\|[]<>{}';
-    let portal = null;
-
-    //Any of the five missing (a deleted js/vendor/, a blocked script) and the
-    //portrait simply appears, as it does with motion reduced.
-    const canPortal = () => Boolean(window.gsap && window.Physics2DPlugin
-        && window.ScrambleTextPlugin && window.CustomEase && window.CustomWiggle);
-
-    if (canPortal()) {
-        gsap.registerPlugin(Physics2DPlugin, ScrambleTextPlugin, CustomEase, CustomWiggle);
-        //Overshoots past full width and settles back: a door snapping open.
-        CustomEase.create('doorSnap', 'M0,0 C0.18,0 0.24,1.18 0.52,1.08 0.72,1.01 0.84,1 1,1');
-        CustomWiggle.create('doorQuake', { wiggles: 9, type: 'easeOut' });
-    }
-
-    function quake() {
-        gsap.fromTo('body > section, .navbar, .footer', { x: 0 },
-            { x: 7, duration: 0.6, ease: 'doorQuake', clearProps: 'x' });
-    }
-
-    function openPortal() {
-        closePortal(true);
-        const canvas = document.createElement('canvas');
-        canvas.className = 'freyr-portal';
-        canvas.setAttribute('aria-hidden', 'true');
-        document.body.appendChild(canvas);
-
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const dpr = Math.min(2, window.devicePixelRatio || 1);
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
-        const ctx = canvas.getContext('2d');
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const fs = w < 640 ? 13 : 16;
-        ctx.font = `700 ${fs}px ui-monospace, Menlo, Consolas, monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const cw = ctx.measureText('M').width || fs * 0.6;
-        const chh = fs * 1.2;
-
-        //The doorway in cells: tall and narrow like a door, capped well inside
-        //the screen on both axes.
-        const doorCols = Math.max(9, Math.min(Math.floor((w * 0.34) / cw), 30));
-        const doorRows = Math.max(12, Math.min(Math.floor((h * 0.72) / chh), 40));
-        const cx = w / 2;
-        const cy = h / 2;
-        const at = (col, row) => [cx + col * cw, cy + row * chh];
-        const state = { h: 0, w: 0, glow: 0 };
-        const debris = [];
-        let frame = 0;
-
-        const flicker = base => (Math.random() < 0.12 ? '#%|=+*'[Math.floor(Math.random() * 6)] : base);
-
-        function draw(now) {
-            const t = now / 1000;
-            ctx.clearRect(0, 0, w, h);
-            const R = Math.round((doorRows * state.h) / 2);
-            const C = Math.round((doorCols * state.w) / 2);
-
-            if (R >= 1) {
-                //The room goes dark around the door, and the doorway is a real
-                //opening: nothing of the page shows through it.
-                if (C >= 1) {
-                    ctx.fillStyle = `rgba(8, 11, 8, ${(0.55 * state.glow).toFixed(3)})`;
-                    ctx.fillRect(0, 0, w, h);
-                    ctx.fillStyle = 'rgba(10, 7, 0, 0.94)';
-                    ctx.fillRect(cx - C * cw, cy - R * chh, 2 * C * cw, 2 * R * chh);
-                }
-                //The vortex: rings of ramp characters turning inward, hottest
-                //(whitest) at the centre of the door.
-                for (let r = -R + 1; C >= 2 && r < R; r++) {
-                    for (let c = -C + 1; c < C; c++) {
-                        const nx = c / C;
-                        const ny = r / R;
-                        const rad = Math.hypot(nx, ny);
-                        const v = 0.5 + 0.5 * Math.sin(rad * 10 - t * 7 + Math.atan2(ny, nx) * 3);
-                        const ch = DOOR_RAMP[Math.min(DOOR_RAMP.length - 1, Math.floor(v * DOOR_RAMP.length))];
-                        if (ch === ' ') continue;
-                        const core = Math.max(0, 1 - rad);
-                        ctx.fillStyle = `rgba(255, ${170 + Math.round(core * 70)}, ${40 + Math.round(core * 170)}, ${((0.25 + 0.65 * v) * (0.5 + 0.5 * core)).toFixed(3)})`;
-                        const [x, y] = at(c, r);
-                        ctx.fillText(ch, x, y);
-                    }
-                }
-
-                //The frame: box-drawing edges that crackle, glowing. Until the
-                //door widens it is a single rift line.
-                ctx.shadowColor = 'rgba(255, 190, 40, 0.95)';
-                ctx.shadowBlur = 10 + 8 * state.glow;
-                ctx.fillStyle = '#ffd34d';
-                for (let r = -R; r <= R; r++) {
-                    const [xl, y] = at(-C, r);
-                    if (C < 1) {
-                        ctx.fillText(flicker('│'), cx, y);
-                        continue;
-                    }
-                    const [xr] = at(C, r);
-                    const top = r === -R;
-                    const bottom = r === R;
-                    ctx.fillText(top ? '╔' : bottom ? '╚' : flicker('║'), xl, y);
-                    ctx.fillText(top ? '╗' : bottom ? '╝' : flicker('║'), xr, y);
-                }
-                for (let c = -C + 1; C >= 1 && c < C; c++) {
-                    const [x, yt] = at(c, -R);
-                    const [, yb] = at(c, R);
-                    ctx.fillText(flicker('═'), x, yt);
-                    ctx.fillText(flicker('═'), x, yb);
-                }
-                ctx.shadowBlur = 0;
-
-                //Sparks spitting off the sides.
-                const sparks = Math.round(30 * state.glow);
-                for (let s = 0; s < sparks; s++) {
-                    const side = Math.random() < 0.5 ? -1 : 1;
-                    const [x, y] = at(side * (C + 1 + Math.floor(Math.random() * 3)), Math.round((Math.random() * 2 - 1) * R));
-                    ctx.fillStyle = `rgba(255, 210, 90, ${(Math.random() * 0.8).toFixed(2)})`;
-                    ctx.fillText('.*+'[s % 3], x, y);
-                }
-            }
-
-            for (const p of debris) {
-                if (p.a <= 0) continue;
-                ctx.fillStyle = `rgba(255, 200, 80, ${p.a.toFixed(2)})`;
-                ctx.fillText(p.ch, p.x, p.y);
-            }
-            frame = requestAnimationFrame(draw);
-        }
-        frame = requestAnimationFrame(draw);
-
-        //The page tears: characters ripped off around the doorway fly outward
-        //and fall under gravity.
-        function burst() {
-            const n = w < 640 ? 70 : 140;
-            const halfW = (doorCols * cw) / 2;
-            const halfH = (doorRows * chh) / 2;
-            for (let i = 0; i < n; i++) {
-                const fromSide = Math.random() < 0.7;
-                const x = fromSide
-                    ? cx + (Math.random() < 0.5 ? -1 : 1) * (halfW + Math.random() * cw * 4)
-                    : cx + (Math.random() * 2 - 1) * halfW;
-                const y = fromSide
-                    ? cy + (Math.random() * 2 - 1) * halfH
-                    : cy + (Math.random() < 0.5 ? -1 : 1) * (halfH + Math.random() * chh * 3);
-                const p = { x, y, a: 1, ch: DEBRIS[Math.floor(Math.random() * DEBRIS.length)] };
-                debris.push(p);
-                const angle = (Math.atan2(y - cy, x - cx) * 180) / Math.PI + (Math.random() - 0.5) * 30;
-                gsap.to(p, {
-                    duration: 1.2 + Math.random() * 0.8,
-                    ease: 'none',
-                    physics2D: { velocity: 250 + Math.random() * 450, angle, gravity: 900 },
-                });
-                gsap.to(p, { a: 0, duration: 0.6, delay: 0.8 + Math.random() * 0.8 });
-            }
-        }
-
-        const tl = gsap.timeline();
-        tl.to(state, { h: 1, duration: 0.35, ease: 'power2.out' })
-          .to(state, { w: 1, glow: 1, duration: 0.45, ease: 'doorSnap' })
-          .call(burst, null, '<0.05')
-          .call(quake, null, '<');
-        portal = { canvas, tl, state, debris, stop: () => cancelAnimationFrame(frame) };
-    }
-
-    function closePortal(instant) {
-        if (!portal) return;
-        const p = portal;
-        portal = null;
-        p.tl.kill();
-        const done = () => {
-            p.stop();
-            gsap.killTweensOf(p.debris);
-            p.canvas.remove();
-        };
-        if (instant) {
-            done();
-            return;
-        }
-        gsap.timeline({ onComplete: done })
-            .to(p.state, { w: 0, glow: 0, duration: 0.3, ease: 'power3.in' })
-            .to(p.state, { h: 0, duration: 0.22, ease: 'power2.in' });
-    }
-
-    let swapped = [];
-    let sweepFrame = null;
-    let titleBefore = '';
-
-    const setProgress = p => ring && ring.style.setProperty('--progress', `${p * 360}deg`);
-
-    function spawnEmber() {
-        if (!avatar) return;
-        const ember = document.createElement('span');
-        ember.className = 'freyr-ember';
-        ember.setAttribute('aria-hidden', 'true');
-        ember.textContent = EMBERS[Math.floor(Math.random() * EMBERS.length)];
-        ember.style.left = `${10 + Math.random() * 80}%`;
-        ember.style.setProperty('--drift', `${Math.round((Math.random() - 0.5) * 60)}px`);
-        ember.addEventListener('animationend', () => ember.remove(), { once: true });
-        avatar.appendChild(ember);
-    }
-
-    //Every visible text node, with what it says now and what it says in runes.
-    function collect() {
-        const items = [];
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-            acceptNode: n => (!n.nodeValue.trim() || n.parentElement.closest(SKIP))
-                ? NodeFilter.FILTER_REJECT
-                : NodeFilter.FILTER_ACCEPT,
-        });
-        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-            const from = n.nodeValue;
-            const parent = n.parentElement;
-            const to = parent.closest('.name-nick') ? `"${NAME_RUNES}"`
-                : parent.closest('.name-given') && from === 'Thitiwut' ? GIVEN_RUNES
-                : toRunes(from);
-            if (to !== from) items.push({ node: n, from, to, last: from });
-        }
-        return items;
-    }
-
-    //One wave down the page in document order: each node turns over letter by
-    //letter, with a single flickering rune at the seam. Only nodes still holding
-    //what this wrote are touched, so text something else rewrote in the
-    //meantime is left alone rather than reverted.
-    function sweep(items, forward, done) {
-        if (sweepFrame !== null) cancelAnimationFrame(sweepFrame);
-        sweepFrame = null;
-        const live = items.filter(it => it.node.isConnected && it.node.nodeValue === it.last);
-        const write = (it, q) => {
-            const want = Array.from(forward ? it.to : it.from);
-            const have = Array.from(forward ? it.from : it.to);
-            const k = Math.round(q * Math.max(want.length, have.length));
-            let text = want.slice(0, k).join('') + have.slice(k).join('');
-            if (q > 0 && q < 1) {
-                const r = CHARS.runes[Math.floor(Math.random() * CHARS.runes.length)];
-                text = want.slice(0, k).join('') + r + have.slice(k + 1).join('');
-            }
-            if (it.node.nodeValue !== text) it.node.nodeValue = text;
-            it.last = text;
-        };
-        if (reducedMotion.matches) {
-            live.forEach(it => write(it, 1));
-            if (done) done();
-            return;
-        }
-        const t0 = performance.now();
-        const n = live.length || 1;
-        const step = now => {
-            const p = Math.min(1, (now - t0) / SWEEP_MS);
-            live.forEach((it, i) => write(it, Math.min(1, Math.max(0, (p - (i / n) * 0.5) / 0.5))));
-            if (p < 1) {
-                sweepFrame = requestAnimationFrame(step);
-                return;
-            }
-            sweepFrame = null;
-            if (done) done();
-        };
-        sweepFrame = requestAnimationFrame(step);
-    }
-
-    function begin() {
-        if (active) return false;
-        active = true;
-        root.classList.add('is-freyr');
-        const fancy = !reducedMotion.matches && canPortal();
-        if (fancy) {
-            openPortal();
-            setTimeout(() => { if (active) closePortal(); }, DOOR_CLOSE_MS);
-        }
-        showPortrait(fancy);
-        //The page turns to runes once the door is open, not before.
-        setTimeout(() => {
-            if (!active) return;
-            swapped = collect();
-            sweep(swapped, true);
-            titleBefore = document.title;
-            document.title = toRunes(titleBefore);
-        }, fancy ? RUNES_MS : 0);
-        if (!reducedMotion.matches) {
-            spawnEmber();
-            emberTimer = setInterval(spawnEmber, 450);
-        }
-        if (typeof window.runGullinbursti === 'function') window.runGullinbursti();
-        //Snorri, Gylfaginning 24 (Brodeur 1916): "he rules over the rain and the
-        //shining of the sun". It follows the portrait rather than landing on it.
-        setTimeout(() => {
-            if (active) showToast('ᚠ Freyr rules the rain and the shining of the sun');
-        }, POP_MS);
-        endTimer = setTimeout(end, LAST_MS);
-        return true;
-    }
-
-    function end() {
-        if (!active) return;
-        active = false;
-        clearTimeout(endTimer);
-        clearInterval(emberTimer);
-        const pop = document.querySelector('.freyr-pop');
-        if (pop) {
-            if (window.gsap) gsap.killTweensOf(pop);
-            pop.remove();
-        }
-        closePortal();
-        root.classList.remove('is-freyr');
-        sweep(swapped, false, () => { swapped = []; });
-        if (titleBefore) document.title = titleBefore;
-        showToast('ᛜ The runes fade');
-    }
-
-    function stopHold() {
-        if (frame !== null) cancelAnimationFrame(frame);
-        frame = null;
-        setProgress(0);
-        if (avatar) avatar.classList.remove('is-holding');
-    }
-
-    //Pointer events cover mouse, pen and touch alike. A touch that turns into a
-    //scroll fires pointercancel, so scrolling past the photo never triggers it.
-    function startHold(e) {
-        if (e.button > 0) return;
-        stopHold();
-        avatar.classList.add('is-holding');
-        const t0 = performance.now();
-        const step = now => {
-            const p = Math.min(1, (now - t0) / HOLD_MS);
-            setProgress(p);
-            if (p < 1) {
-                frame = requestAnimationFrame(step);
-                return;
-            }
-            stopHold();
-            if (active) end(); else begin();
-        };
-        frame = requestAnimationFrame(step);
-    }
-
-    if (avatar && ring) {
-        avatar.addEventListener('pointerdown', startHold);
-        ['pointerup', 'pointerleave', 'pointercancel'].forEach(type => avatar.addEventListener(type, stopHold));
-        avatar.addEventListener('contextmenu', e => e.preventDefault());
-        avatar.addEventListener('dragstart', e => e.preventDefault());
-    }
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && active) end();
-    });
-
-    return { begin, end, get active() { return active; } };
-})();
-
-//Gullinbursti — Freyr's golden boar runs past once each rune mode ------------
-//A pass is decoration only, so it is skipped when motion is reduced, and the
-//element removes itself when the run ends.
-window.runGullinbursti = function () {
-    if (reducedMotion.matches || document.querySelector('.gullinbursti')) return;
-    const boar = document.createElement('div');
-    boar.className = 'gullinbursti';
-    boar.setAttribute('aria-hidden', 'true');
-    boar.addEventListener('animationend', e => {
-        if (e.animationName === 'gullinRun') boar.remove();
-    });
-    document.body.appendChild(boar);
-};
-
-//EN / TH translate ----------------------------------------------------------
-(function () {
-    const translateBtn = document.getElementById('translateBtn');
-    const translateLabel = document.getElementById('translateLabel');
-    if (!translateBtn || !translateLabel) return;
-
-    let animating = false;
-
-    translateBtn.addEventListener('click', () => {
-        if (animating) return;
-        animating = true;
-
-        const d = i18n.toggle();
-        translateLabel.textContent = i18n.lang === 'en' ? 'EN / TH' : 'TH / EN';
-        translateBtn.classList.toggle('active', i18n.lang === 'th');
-
-        const targets = [
-            //Same delay for all three: the name is one word visually, so the
-            //parts have to resolve together rather than cascade.
-            { el: document.querySelector('.name-given'),     text: d.nameGiven,     delay: 80,  duration: 650 },
-            { el: document.querySelector('.name-nick'),      text: d.nameNick,      delay: 80,  duration: 650 },
-            { el: document.querySelector('.name-family'),    text: d.nameFamily,    delay: 80,  duration: 650 },
-            { el: document.querySelector('.status-txt'),     text: d.status,        delay: 160, duration: 600 },
-            { el: document.querySelector('.availability-txt'), text: d.availability, delay: 240, duration: 500 },
-            { el: document.getElementById('resumeLink'),      text: d.resume,       delay: 280, duration: 450 },
-        ];
-        targets.forEach(({ el, text, delay, duration }) => {
-            if (el) setTimeout(() => scrambleText(el, text, { duration }), delay);
-        });
-
-        //These three are matched to their dictionary entry by position, so an
-        //element added to the markup without a matching string would otherwise
-        //scramble to undefined — and only ever in Thai. Skip instead.
-        const scrambleList = (selector, strings, duration, base, step) => {
-            document.querySelectorAll(selector).forEach((el, i) => {
-                if (strings[i] === undefined) return;
-                setTimeout(() => scrambleText(el, strings[i], { duration }), base + i * step);
-            });
-        };
-
-        scrambleList('.skill-group-label',  d.skillGroups, 450, 320, 80);
-        scrambleList('.about-section .contact-label', d.btns, 450, 400, 60);
-
-        setTimeout(() => { animating = false; }, 1100);
-    });
-})();
-
-//Email: copy as well as open ------------------------------------------------
-//The button is a mailto: link, so it still opens a draft. The copy runs too,
-//because a visitor with no mail app set up gets nothing from mailto: at all.
-//No preventDefault — the link keeps doing its own job.
-(function () {
-    const emailBtn = document.getElementById('emailBtn');
-    if (!emailBtn) return;
-
-    emailBtn.addEventListener('click', async () => {
+// ── Email Copy ───────────────────────────────────────────────
+const emailBtn = document.getElementById('emailBtn');
+if (emailBtn) {
+    emailBtn.addEventListener('click', () => {
         const email = emailBtn.dataset.email;
-        try {
-            await navigator.clipboard.writeText(email);
-        } catch (err) {
-            const scratch = document.createElement('textarea');
-            scratch.value = email;
-            scratch.style.position = 'fixed';
-            scratch.style.opacity = '0';
-            document.body.appendChild(scratch);
-            scratch.select();
-            document.execCommand('copy');
-            document.body.removeChild(scratch);
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(email).then(() => {
+                showToast('COPIED TO CLIPBOARD · ' + email);
+            }).catch(() => fallbackCopy(email));
+        } else {
+            fallbackCopy(email);
         }
-        showToast('Email copied to clipboard');
+    });
+}
+
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        showToast('COPIED TO CLIPBOARD · ' + text);
+    } catch (_) {
+        showToast(text);
+    }
+    document.body.removeChild(ta);
+}
+
+// ── Skill Tag -> Project Filter ──────────────────────────────
+const skillTags = document.querySelectorAll('.skill-tag[data-skill]');
+const projectCards = document.querySelectorAll('.project-card[data-tags]');
+const filterBanner = document.getElementById('filterBanner');
+const filterName = document.getElementById('filterName');
+const filterClear = document.getElementById('filterClear');
+const projectsGridEl = document.getElementById('projectsGrid');
+let activeSkill = null;
+
+function applySkillFilter(skill) {
+    activeSkill = skill;
+    skillTags.forEach((t) => {
+        t.classList.toggle('active', t.dataset.skill === skill);
+    });
+
+    if (!skill) {
+        projectCards.forEach((c) => {
+            c.classList.remove('dimmed', 'highlighted');
+        });
+        if (filterBanner) filterBanner.hidden = true;
+        return;
+    }
+
+    if (projectsGridEl) {
+        projectsGridEl.classList.add('is-expanded');
+    }
+
+    let matchCount = 0;
+    projectCards.forEach((c) => {
+        const tags = (c.dataset.tags || '').split(',').map((s) => s.trim());
+        const match = tags.includes(skill);
+        c.classList.toggle('highlighted', match);
+        c.classList.toggle('dimmed', !match);
+        if (match) matchCount++;
+    });
+
+    if (filterBanner && filterName) {
+        filterName.textContent = `${skill} (${matchCount} exhibit${matchCount === 1 ? '' : 's'})`;
+        filterBanner.hidden = false;
+    }
+}
+
+skillTags.forEach((tag) => {
+    const toggle = () => {
+        const s = tag.dataset.skill;
+        if (activeSkill === s) {
+            applySkillFilter(null);
+        } else {
+            applySkillFilter(s);
+            const projSec = document.getElementById('archives');
+            if (projSec) {
+                const r = projSec.getBoundingClientRect();
+                if (r.top > window.innerHeight || r.bottom < 0) {
+                    projSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+    };
+    tag.addEventListener('click', toggle);
+    tag.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggle();
+        }
+    });
+});
+
+if (filterClear) {
+    filterClear.addEventListener('click', () => applySkillFilter(null));
+}
+
+// ── Image Lightbox ───────────────────────────────────────────
+(function initLightbox() {
+    const imgs = document.querySelectorAll('img[data-lightbox]');
+    if (!imgs.length) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    overlay.hidden = true;
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Image preview');
+    overlay.innerHTML =
+        '<button class="lightbox-close" type="button" aria-label="Close preview">×</button>' +
+        '<img class="lightbox-img" alt="">';
+    document.body.appendChild(overlay);
+
+    const lbImg = overlay.querySelector('.lightbox-img');
+    const lbClose = overlay.querySelector('.lightbox-close');
+
+    function open(src, alt) {
+        lbImg.src = src;
+        lbImg.alt = alt || '';
+        overlay.hidden = false;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+        if (overlay.hidden) return;
+        overlay.hidden = true;
+        lbImg.src = '';
+        document.body.style.overflow = '';
+    }
+
+    imgs.forEach((img) => {
+        const wrapper = img.closest('.exhibit-media') || img;
+        wrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+            open(img.currentSrc || img.src, img.alt);
+        });
+    });
+
+    lbClose.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) close();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.hidden) close();
     });
 })();
 
-//Résumé link ----------------------------------------------------------------
-(function () {
-    const link = document.getElementById('resumeLink');
-    if (!link || !RESUME_READY) return;
-    link.href = 'resume.pdf';
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.removeAttribute('aria-disabled');
-    link.hidden = false;
-    link.textContent = i18n.strings.resume;
+// ── Live Codeforces Rating ───────────────────────────────────
+const CF_HANDLE = 'MiyaZaki1072';
+let cfCache = null;
+
+async function fetchCfUser() {
+    if (cfCache) return cfCache;
+    try {
+        const res = await fetch(`https://codeforces.com/api/user.info?handles=${CF_HANDLE}`);
+        const data = await res.json();
+        if (data.status === 'OK' && data.result && data.result[0]) {
+            cfCache = data.result[0];
+            return cfCache;
+        }
+    } catch (_) { /* offline or blocked */ }
+    return null;
+}
+
+(async function populateCfBadge() {
+    const badge = document.getElementById('cfRating');
+    const u = await fetchCfUser();
+    if (!u || !badge) return;
+    if (u.rating) {
+        badge.textContent = `· ${u.rating} (${u.rank || 'rated'})`;
+    }
 })();
 
-//Codeforces rating -----------------------------------------------------------
-//Read from the public API on load and shown under the Codeforces button. Stays
-//hidden when the request fails or the account is unrated, so a visitor never
-//sees a placeholder.
-(function () {
-    const badge = document.getElementById('cfRating');
-    const link = document.getElementById('codeforcesLink');
-    if (!badge || !link) return;
-    const handle = link.getAttribute('href').split('/').pop();
-    fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(handle)}`)
-        .then(res => (res.ok ? res.json() : Promise.reject(new Error(res.status))))
-        .then(data => {
-            const user = data.status === 'OK' && data.result && data.result[0];
-            if (!user || typeof user.rating !== 'number') return;
-            badge.textContent = `${user.rating} · ${user.rank || 'rated'}`;
-            badge.hidden = false;
+// ── GitHub Contribution Calendar (PD-07 Attachment C) ────────
+let contribCache = null;
+
+(function initContributions() {
+    const grid = document.getElementById('contribGrid');
+    const monthsEl = document.getElementById('contribMonths');
+    if (!grid) return;
+
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // 1. Render deterministic 53x7 PD-07 layout preview first (Board 1)
+    function renderPreviewGrid() {
+        grid.innerHTML = '';
+        for (let w = 0; w < 53; w++) {
+            const col = document.createElement('div');
+            col.className = 'contrib-week';
+            for (let d = 0; d < 7; d++) {
+                const v = (w * 37 + d * 11 + ((w * d) % 7) * 5) % 13;
+                const lvl = v < 5 ? 0 : v < 8 ? 1 : v < 10 ? 2 : v < 12 ? 3 : 4;
+                const cell = document.createElement('span');
+                cell.className = 'contrib-day';
+                cell.dataset.level = String(lvl);
+                col.appendChild(cell);
+            }
+            grid.appendChild(col);
+        }
+    }
+
+    renderPreviewGrid();
+
+    function fmtDate(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        return `${MONTHS[m - 1]} ${d}, ${y}`;
+    }
+
+    // 2. Fetch live data from data/contributions.json when available
+    fetch('data/contributions.json')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+            if (!data || !Array.isArray(data.weeks) || !data.weeks.length) {
+                return;
+            }
+            contribCache = data;
+            grid.innerHTML = '';
+
+            if (monthsEl) {
+                monthsEl.innerHTML = '';
+                let lastMonth = -1;
+                data.weeks.forEach((w) => {
+                    const first = w.days[0];
+                    const span = document.createElement('span');
+                    if (first) {
+                        const m = Number(first.date.slice(5, 7)) - 1;
+                        if (m !== lastMonth) {
+                            span.textContent = MONTHS[m];
+                            lastMonth = m;
+                        }
+                    }
+                    monthsEl.appendChild(span);
+                });
+            }
+
+            data.weeks.forEach((w) => {
+                const col = document.createElement('div');
+                col.className = 'contrib-week';
+                w.days.forEach((d) => {
+                    const cell = document.createElement('span');
+                    cell.className = 'contrib-day';
+                    cell.dataset.level = String(d.level || 0);
+                    const word = d.count === 1 ? 'contribution' : 'contributions';
+                    cell.title = `${d.count} ${word} on ${fmtDate(d.date)}`;
+                    col.appendChild(cell);
+                });
+                grid.appendChild(col);
+            });
+
+            const setText = (id, v) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = v;
+            };
+            setText('contribTotal', (data.total || 0).toLocaleString());
+            setText('contribCurrent', `${data.currentStreak || 0}d`);
+            setText('contribLongest', `${data.longestStreak || 0}d`);
+            setText('contribBusiest', data.busiest && data.busiest.count ? `${data.busiest.count}` : '—');
+            if (data.range && data.range.from && data.range.to) {
+                setText('contribRange', `${fmtDate(data.range.from)} – ${fmtDate(data.range.to)}`);
+            }
         })
         .catch(() => {});
 })();
 
-//Hero skill tags -------------------------------------------------------------
-//With four projects there is nothing to filter, so a tag now scrolls to the
-//projects and lights the ones built with it for a moment. springs.js previews
-//the same thing on hover.
-(function () {
-    const projectCards = Array.from(document.querySelectorAll('.project-card[data-tags]'));
-    const heroTechBtns = document.querySelectorAll('.skills-block button.skill-tag[data-tech]');
-    if (!projectCards.length || !heroTechBtns.length) return;
+// ── Freyr Rune Mode (Hold Portrait or `freyr` Command) ───────
+const RUNES = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ', 'ᚺ', 'ᚾ', 'ᛁ', 'ᛃ', 'ᛇ', 'ᛈ', 'ᛉ', 'ᛊ', 'ᛏ', 'ᛒ', 'ᛖ', 'ᛗ', 'ᛚ', 'ᛜ', 'ᛞ', 'ᛟ'];
+let freyrInterval = null;
 
-    const uniqueTags = new Set(projectCards.flatMap(tagsOf));
-    let flashTimer;
+function toggleFreyrMode(force) {
+    const active = typeof force === 'boolean'
+        ? (document.body.classList.toggle('freyr-mode', force), force)
+        : document.body.classList.toggle('freyr-mode');
 
-    function updateTechTooltips() {
-        const d = i18n.strings;
-        heroTechBtns.forEach(btn => {
-            btn.dataset.tooltip = uniqueTags.has(btn.dataset.tech) ? d.tooltipHas : d.tooltipNone;
-        });
+    const flash = document.createElement('div');
+    flash.className = 'freyr-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 800);
+
+    if (active) {
+        spawnEmber();
+        freyrInterval = setInterval(spawnEmber, 550);
+        showToast('ᚠ FREYR MODE AWAKENED · GOLDEN BOAR OF ALFHEIM');
+    } else {
+        clearInterval(freyrInterval);
+        freyrInterval = null;
+        document.querySelectorAll('.freyr-ember').forEach((e) => e.remove());
+        showToast('RETURNED TO STANDARD TVA RECORD');
     }
+    return active;
+}
 
-    updateTechTooltips();
-    i18n.onChange(updateTechTooltips);
+function spawnEmber() {
+    if (!document.body.classList.contains('freyr-mode')) return;
+    const e = document.createElement('span');
+    e.className = 'freyr-ember';
+    e.textContent = RUNES[Math.floor(Math.random() * RUNES.length)];
+    e.style.left = Math.random() * 100 + 'vw';
+    e.style.fontSize = (11 + Math.random() * 10).toFixed(0) + 'px';
+    const dur = 5 + Math.random() * 5;
+    e.style.animationDuration = dur.toFixed(2) + 's';
+    e.style.setProperty('--drift', ((Math.random() - 0.5) * 80).toFixed(0) + 'px');
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), dur * 1000);
+}
 
-    heroTechBtns.forEach(btn => {
-        const tech = btn.dataset.tech;
-        btn.addEventListener('click', () => {
-            if (!uniqueTags.has(tech)) {
-                showToast(`No projects tagged ${tech} yet`);
-                return;
-            }
-            document.getElementById('projects').scrollIntoView({ behavior: scrollBehavior() });
-            projectCards.forEach(card => card.classList.toggle('is-linked', tagsOf(card).includes(tech)));
-            clearTimeout(flashTimer);
-            flashTimer = setTimeout(() => {
-                projectCards.forEach(card => card.classList.remove('is-linked'));
-            }, 2200);
-        });
-    });
-})();
-
-//GitHub contributions -------------------------------------------------------
-//The data is baked in at build time by scripts/fetch-contributions.mjs. The
-//calendar is GraphQL-only and GraphQL needs a token, which can never ship in a
-//page served publicly, so there is no client-side path to it.
-//
-//That file is generated into the Pages artifact and never committed, so it is
-//simply absent in local dev and on a first deploy. That is the ordinary case,
-//not a failure: the block stays hidden and nothing is logged.
-//real
-(function () {
-    const block = document.getElementById('contributions');
-    const grid = document.getElementById('contribGrid');
-    if (!block || !grid) return;
-
-    fetch('data/contributions.json')
-        .then(response => (response.ok ? response.json() : Promise.reject(response.status)))
-        .then(render)
-        .catch(() => { /* no data yet, leave the section hidden */ });
-
-    function render(data) {
-        if (!Array.isArray(data.weeks) || !data.weeks.length) return;
-
-        //One fragment, one append: 365 individual insertions would lay out the
-        //grid 365 times.
-        const fragment = document.createDocumentFragment();
-        data.weeks.forEach(week => {
-            week.forEach(level => {
-                const cell = document.createElement('span');
-                cell.className = 'contrib-cell';
-                if (level === null) cell.classList.add('is-empty');
-                else cell.dataset.level = level;
-                fragment.appendChild(cell);
-            });
-        });
-        grid.appendChild(fragment);
-
-        //The grid is one image to a screen reader, not 371 unlabelled cells.
-        grid.setAttribute('aria-label', `${data.total} GitHub contributions in the last year`);
-
-        setText('contribTotal', data.total.toLocaleString());
-        setText('contribCurrent', `${data.streak.current} days`);
-        setText('contribLongest', `${data.streak.longest} days`);
-        setText('contribBusiest', data.busiestWeekday);
-
-        block.hidden = false;
-
-        //Newest weeks sit at the right edge, so a narrow screen should open on
-        //them rather than on last year.
-        const scroller = block.querySelector('.contrib-scroll');
-        if (scroller) scroller.scrollLeft = scroller.scrollWidth;
-    }
-
-    function setText(id, value) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-    }
-})();
-
-//Education timeline — click lightbox
-(function () {
-    const items = Array.from(document.querySelectorAll('.timeline-content[data-image]'));
-    const lightbox = document.getElementById('timelineLightbox');
-    const lightboxImg = document.getElementById('timelineLightboxImg');
-    const lightboxCaption = document.getElementById('timelineLightboxCaption');
-    const lightboxClose = document.getElementById('timelineLightboxClose');
-    if (!items.length || !lightbox || !lightboxImg || !lightboxCaption || !lightboxClose) return;
-
-    let lastFocused = null;
-
-    function openLightbox(item) {
-        lastFocused = document.activeElement;
-        lightbox.classList.remove('is-missing');
-        lightboxImg.src = item.dataset.image;
-        lightboxImg.alt = item.dataset.caption || '';
-        lightboxCaption.textContent = item.dataset.caption || '';
-        lightbox.classList.add('is-open');
-        lightboxClose.focus();
-    }
-
-    function closeLightbox() {
-        lightbox.classList.remove('is-open');
-        if (lastFocused) lastFocused.focus();
-    }
-
-    lightboxImg.addEventListener('error', () => lightbox.classList.add('is-missing'));
-
-    items.forEach(item => {
-        item.addEventListener('click', () => openLightbox(item));
-        item.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                openLightbox(item);
-            }
-        });
-    });
-
-    lightboxClose.addEventListener('click', closeLightbox);
-    lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) closeLightbox();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (!lightbox.classList.contains('is-open')) return;
-        if (e.key === 'Escape') closeLightbox();
-        //Keep Tab inside the dialog: the close button is its only stop.
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            lightboxClose.focus();
-        }
-    });
-})();
-
-//Kit2Code numbers ------------------------------------------------------------
-//The three figures count up once, under a second, the first time they are on
-//screen. The final text is already in the markup, so without this (or with
-//reduced motion) nothing changes.
-(function () {
-    const stats = document.querySelector('.k2c-stats');
-    if (!stats || reducedMotion.matches || !('IntersectionObserver' in window)) return;
-    const finalText = stats.textContent;
-    const spans = [];
-    stats.innerHTML = stats.innerHTML.replace(/\d+/g, n => `<span data-count="${n}">${n}</span>`);
-    stats.querySelectorAll('[data-count]').forEach(el => spans.push(el));
-    const observer = new IntersectionObserver(entries => {
-        if (!entries[0].isIntersecting) return;
-        observer.disconnect();
-        const start = performance.now();
-        const DURATION = 800;
-        const tick = now => {
-            const t = Math.min(1, (now - start) / DURATION);
-            const eased = 1 - Math.pow(1 - t, 3);
-            spans.forEach(el => { el.textContent = Math.round(Number(el.dataset.count) * eased); });
-            if (t < 1) requestAnimationFrame(tick);
-            else stats.textContent = finalText;
-        };
-        spans.forEach(el => { el.textContent = '0'; });
-        requestAnimationFrame(tick);
-    }, { threshold: 0.6 });
-    observer.observe(stats);
-})();
-
-//Terminal widget
-(function () {
+/* ============================================================
+   Cat Terminal Widget (Cat sleeping on the terminal pill button)
+   ============================================================ */
+(function initTerminal() {
     const widget = document.getElementById('termWidget');
     const trigger = document.getElementById('termTrigger');
     const panel = document.getElementById('termPanel');
@@ -948,9 +453,59 @@ window.runGullinbursti = function () {
     if (!widget || !trigger || !panel || !closeBtn || !output || !input || !ghost) return;
 
     const titleEl = document.getElementById('termTitle');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const scrollBehavior = () => (reducedMotion.matches ? 'auto' : 'smooth');
+    const tagsOf = card => (card.dataset.tags || '').split(',').map(t => t.trim()).filter(Boolean);
 
-    //Storage can be blocked (private windows, site data off) and can throw on
-    //either end, so the terminal only ever treats it as a bonus.
+    const CAT_PHOTOS = [
+        { src: 'images/cat/cat-sleeping.webp', alt: 'A black cat asleep on a leather seat' },
+        { src: 'images/cat/cat-nightcap.webp', alt: 'The same cat in a cartoon nightcap' },
+    ];
+
+    const CHARS = {
+        en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234!@#$%&',
+        runes: 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
+    };
+
+    const scrambleFrames = new WeakMap();
+    function scrambleText(el, target, options) {
+        const { duration = 600, pool = null, suffix = '', asText = false } = options || {};
+        const chars = pool || CHARS.en;
+        const plain = target.replace(/\n/g, ' ');
+
+        const running = scrambleFrames.get(el);
+        if (running !== undefined) cancelAnimationFrame(running);
+
+        const settle = () => {
+            scrambleFrames.delete(el);
+            if (asText) el.textContent = target;
+            else el.innerHTML = target.replace(/\n/g, '<br>') + suffix;
+        };
+
+        if (reducedMotion.matches) {
+            settle();
+            return;
+        }
+
+        const letters = plain.split('');
+        const start = performance.now();
+        const step = (now) => {
+            const progress = Math.min(1, (now - start) / duration);
+            const scrambled = letters.map((char, i) => {
+                if (char === ' ') return char;
+                if (i / plain.length < progress) return char;
+                return chars[Math.floor(Math.random() * chars.length)];
+            }).join('');
+
+            if (suffix) el.innerHTML = scrambled + suffix;
+            else el.textContent = scrambled;
+
+            if (progress < 1) scrambleFrames.set(el, requestAnimationFrame(step));
+            else settle();
+        };
+        scrambleFrames.set(el, requestAnimationFrame(step));
+    }
+
     const HISTORY_KEY = 'freyr-term-history';
     const THEME_KEY = 'freyr-term-theme';
     const HISTORY_KEPT = 50;
@@ -965,18 +520,13 @@ window.runGullinbursti = function () {
             return [];
         }
     })();
-    //What came back from a past visit, so `neofetch` can count this session alone.
     const restoredCmds = cmdHistory.length;
 
     let hasBooted = false;
     let historyIndex = cmdHistory.length;
     let mode = 'command';
-    //The next line of `vim`'s joke: while set, only :q gets out.
     let trapped = false;
-    //While a piped command runs, appendBlock collects its lines here instead of
-    //printing them, so `| grep` can filter what the command would have shown.
     let capture = null;
-    //What the terminal says when an effect (matrix, sl) ends.
     let fxEndMsg = '';
     let menuIndex = 0;
     let controlsEl = null;
@@ -987,19 +537,9 @@ window.runGullinbursti = function () {
     let commitTimer = null;
     let lossTimer = null;
     let stopTimer = null;
-    //Any interactive mode can leave work in flight that a timer handle does not
-    //describe — a rAF loop, a listener, a node that has to go. Each one parks
-    //its own undo here so closing the panel stays a single call rather than a
-    //growing list of special cases.
     let activeCleanup = null;
     const BOOT_AT = Date.now();
 
-    //Three games, and freyr wins all three by construction — that is the joke,
-    //not a bug. 21 is the misère subtraction game where the multiples of four
-    //are the losing seats; rps answers second; guess never commits to a number.
-    //Two of the three admit it at the end, because a cheat nobody admits to is
-    //just a cheat. Labels are padded here so refreshMenuHighlight can keep
-    //prefixing them without knowing about alignment.
     const GAMES = [
         {
             id: '21',
@@ -1024,8 +564,6 @@ window.runGullinbursti = function () {
         },
     ];
 
-    //Freyr "deliberating" before moving. Randomised so it never reads as a
-    //fixed timer, and varied in wording so it never reads as one script.
     const THINK_MIN = 700;
     const THINK_MAX = 1400;
     const THINKING_LINES = [
@@ -1052,13 +590,9 @@ window.runGullinbursti = function () {
             capture.push(...list);
             return;
         }
-        //appendLine already scrolls, so the last line has done it.
         list.forEach(l => appendLine(l, className));
     }
 
-    //`ls` is the one output with colour in it: directories are green, files are
-    //not. Each entry is { name, dir }; when a pipe is collecting, they go out
-    //as plain lines, one per name, so grep can match them.
     function appendListing(entries) {
         if (capture) {
             capture.push(...entries.map(e => e.name + (e.dir ? '/' : '')));
@@ -1077,8 +611,6 @@ window.runGullinbursti = function () {
         scrollOut();
     }
 
-    //An image is a line too. Scroll again once it has decoded: before that it
-    //has no height, so scrolling on append would stop short of it.
     function appendImage(src, alt) {
         const line = document.createElement('div');
         line.className = 'term-line term-line-img';
@@ -1093,23 +625,26 @@ window.runGullinbursti = function () {
         return line;
     }
 
-    //Data readers — DOM is the source of truth, mirrors the tag-filter system's approach
+    // Data readers — Form PD-07 DOM is the source of truth
     function readAbout() {
-        const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
-        const status = document.querySelector('.status-txt')?.innerText.trim() || '';
-        const availability = document.querySelector('.availability-txt')?.textContent.trim() || '';
+        const name = (document.querySelector('.overview-name-cell .field-value')?.textContent || 'Thitiwut Sreewasut').trim();
+        const codename = (document.querySelector('.overview-codename')?.textContent || 'FREYR').trim();
+        const assign = (document.querySelector('.overview-assign-cell .field-value')?.textContent || '').replace(/\s+/g, ' ').trim();
+        const status = (document.querySelector('.overview-status-cell .field-value')?.textContent || '').replace(/\s+/g, ' ').trim();
+        const remarks = (document.querySelector('.overview-remarks-cell .field-prose')?.textContent || '').replace(/\s+/g, ' ').trim();
         return [
-            `name: ${name}`,
-            ...status.split(/\n| · /),
+            `name: ${name} ("${codename}")`,
+            ...(assign ? [assign] : []),
+            ...(status ? [status] : []),
             '',
-            availability,
+            remarks,
         ];
     }
 
     function readSkills() {
         return Array.from(document.querySelectorAll('.skill-group')).map(group => {
             const label = group.querySelector('.skill-group-label')?.textContent.trim();
-            const tags = Array.from(group.querySelectorAll('.skill-tag')).map(t => t.textContent.trim());
+            const tags = Array.from(group.querySelectorAll('.skill-tag')).map(t => t.dataset.skill || t.textContent.trim());
             return `${label}: ${tags.join(', ')}`;
         });
     }
@@ -1131,28 +666,32 @@ window.runGullinbursti = function () {
         return lines;
     }
 
-    //One card as terminal lines. `projects` prints several of these and a
-    //file under ~/projects prints exactly one.
     function projectLines(card) {
-        const title = card.querySelector('.project-title')?.textContent.trim();
-        const subs = Array.from(card.querySelectorAll('.project-sub')).map(p => p.textContent.trim());
-        const link = card.querySelector('.project-img-link')?.getAttribute('href');
-        return [title, ...subs.map(s => `  ${s}`), `  stack: ${card.dataset.tags}`, `  link: ${link}`];
+        const title = card.querySelector('.project-name')?.textContent.trim();
+        const context = card.querySelector('.project-context')?.textContent.replace(/\s+/g, ' ').trim();
+        const desc = card.querySelector('.project-desc')?.textContent.replace(/\s+/g, ' ').trim();
+        const link = card.querySelector('.project-links a')?.getAttribute('href');
+        return [
+            title,
+            ...(context ? [`  ${context}`] : []),
+            ...(desc ? [`  ${desc}`] : []),
+            `  stack: ${card.dataset.tags}`,
+            ...(link ? [`  link: ${link}`] : []),
+        ];
     }
 
     function readEducation() {
-        const items = Array.from(
-            document.querySelectorAll('.timeline-col[data-track="education"] .timeline-item')
-        );
-        if (!items.length) return ['no education entries found.'];
+        const groups = Array.from(document.querySelectorAll('#timeline .period-group'));
+        if (!groups.length) return ['no education entries found.'];
         const lines = [];
-        items.forEach((item, i) => {
-            const year = item.querySelector('.timeline-year')?.textContent.trim();
-            const title = item.querySelector('.timeline-title')?.textContent.trim();
-            const place = item.querySelector('.timeline-place')?.textContent.trim();
+        groups.forEach((g, i) => {
+            const year = g.querySelector('.period-years')?.textContent.trim();
+            const title = g.querySelector('.period-program')?.textContent.trim();
+            const place = g.querySelector('.period-school')?.textContent.trim();
+            const gpax = g.querySelector('.period-gpax')?.textContent.trim();
             if (i > 0) lines.push('');
             lines.push(year);
-            lines.push(`  ${title} - ${place}`);
+            lines.push(`  ${title} - ${place}${gpax ? ' (' + gpax + ')' : ''}`);
         });
         return lines;
     }
@@ -1181,7 +720,7 @@ window.runGullinbursti = function () {
         ];
     }
 
-    //Game: rigged 21 — computer always lands the total on a multiple of 4
+    // Game: rigged 21 — computer always lands the total on a multiple of 4
     function renderMenu() {
         appendLine("select a game (↑↓ + enter, or click):");
         GAMES.forEach((g, i) => {
@@ -1202,8 +741,6 @@ window.runGullinbursti = function () {
         });
     }
 
-    //The menu owns the mode switch and the input bookkeeping for every game, so
-    //a new game is a row in GAMES rather than another copy of these four lines.
     function confirmMenuSelection() {
         const game = GAMES[menuIndex];
         appendBlock(game.intro);
@@ -1223,15 +760,11 @@ window.runGullinbursti = function () {
             thinkingEl.remove();
             thinkingEl = null;
         }
-        //The row stays in the log as a record of where the game stopped, but its
-        //buttons must not stay clickable — their listeners would resume the game.
         if (controlsEl) {
             controlsEl.querySelectorAll('.term-game-btn').forEach(b => { b.disabled = true; });
             controlsEl.classList.remove('is-committing');
             controlsEl = null;
         }
-        //Whatever the effect parked here knows how to undo itself; this only has
-        //to make sure it runs exactly once.
         if (activeCleanup) {
             const undo = activeCleanup;
             activeCleanup = null;
@@ -1240,22 +773,18 @@ window.runGullinbursti = function () {
         panel.classList.remove('is-flash');
     }
 
-    //Every way out of a game or the menu has to put the same four pieces of
-    //state back. Four hand-written copies is four chances to forget one.
     function exitToCommandMode() {
         mode = 'command';
         controlsEl = null;
         input.disabled = false;
         input.placeholder = '';
-        //The hint is suppressed outside command mode, so coming back has to be
-        //the moment it is allowed to reappear.
         applyGhost();
     }
 
     function popButton(btn) {
         if (reducedMotion.matches) return;
         btn.classList.remove('is-hit');
-        void btn.offsetWidth;              //restart the animation on rapid clicks
+        void btn.offsetWidth;
         btn.classList.add('is-hit');
     }
 
@@ -1295,8 +824,6 @@ window.runGullinbursti = function () {
             doneBtn.disabled = true;
             const played = gamePending;
 
-            //As with the thinking pause, the total only advances once the result
-            //is on screen, so forfeiting mid-commit leaves the score consistent.
             const settle = () => {
                 commitTimer = null;
                 gameTotal += played;
@@ -1313,8 +840,6 @@ window.runGullinbursti = function () {
                 }
             };
 
-            //This hold exists only so the flash is visible, so it goes away with
-            //motion — unlike the thinking pause, which is game pacing and stays.
             if (reducedMotion.matches) {
                 settle();
                 return;
@@ -1360,8 +885,6 @@ window.runGullinbursti = function () {
         thinkingEl = appendLine('', 'term-thinking');
         thinkingEl.innerHTML = `${label}<span class="term-thinking-dots">...</span>`;
 
-        //The total only advances once the move is on screen, so forfeiting
-        //mid-think can never leave the state ahead of what the player saw.
         thinkTimer = setTimeout(() => {
             thinkTimer = null;
             const settled = thinkingEl;
@@ -1382,8 +905,6 @@ window.runGullinbursti = function () {
         }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
     }
 
-    //The closing copy belongs to whichever game just finished, so this only
-    //owns the part every ending shares: say the words, hand the prompt back.
     function endGame(lines) {
         appendBlock(lines);
         exitToCommandMode();
@@ -1391,7 +912,7 @@ window.runGullinbursti = function () {
         input.focus();
     }
 
-    //Game: rock paper scissors, rigged by answering second -------------------
+    // Game: rock paper scissors, rigged by answering second -------------------
     const RPS_BEATS = { rock: 'paper', paper: 'scissors', scissors: 'rock' };
     let rpsRound = 0;
 
@@ -1420,8 +941,6 @@ window.runGullinbursti = function () {
                 floatGain(btn, pick);
                 line.querySelectorAll('.term-game-btn').forEach(b => { b.disabled = true; });
 
-                //Same shape as 21's finishTurn: nothing advances until the result
-                //is on screen, so forfeiting mid-commit leaves the score honest.
                 const settle = () => {
                     commitTimer = null;
                     const summary = document.createElement('div');
@@ -1444,10 +963,6 @@ window.runGullinbursti = function () {
     }
 
     function rpsAnswer(pick) {
-        //The gimmick, and the whole joke: freyr said he locked his move in before
-        //you chose. He did not. He answers after, which is why the scoreline
-        //never moves. The thinking pause is what sells it — a real opponent
-        //would need a moment here too.
         const move = RPS_BEATS[pick];
         const label = THINKING_LINES[Math.floor(Math.random() * THINKING_LINES.length)];
 
@@ -1478,11 +993,7 @@ window.runGullinbursti = function () {
         }, THINK_MIN + Math.random() * (THINK_MAX - THINK_MIN));
     }
 
-    //Game: guess, rigged by never committing to a number ---------------------
-    //There is no number. The range is the whole game: every answer keeps the
-    //larger half of it alive, so seven guesses can never close it. Same trick as
-    //adversarial hangman, and the ending admits it — the joke only lands if it
-    //is owned up to.
+    // Game: guess, rigged by never committing to a number ---------------------
     let guessLo = 1;
     let guessHi = 100;
     let guessesLeft = 7;
@@ -1497,9 +1008,6 @@ window.runGullinbursti = function () {
     }
 
     function renderGuessTurn() {
-        //The pending value is clamped into the range that is still alive, so a
-        //guess can never fall outside it — an answer of "higher" to a guess of
-        //100 would show the seams immediately.
         guessPending = Math.min(guessHi, Math.max(guessLo, guessPending));
 
         const line = document.createElement('div');
@@ -1563,7 +1071,6 @@ window.runGullinbursti = function () {
             const settled = thinkingEl;
             thinkingEl = null;
 
-            //Keep whichever half is bigger. That is the entire cheat.
             const goLower = (played - guessLo) > (guessHi - played);
             if (goLower) guessHi = played - 1;
             else guessLo = played + 1;
@@ -1599,12 +1106,23 @@ window.runGullinbursti = function () {
         return null;
     }
 
-    //Commands that reach out of the widget and move the page ------------------
-
+    // Commands that reach out of the widget and move the page -----------------
     const SECTIONS = {
-        about: 'about', home: 'about', projects: 'projects',
-        organizing: 'organizing', contests: 'organizing', kit2code: 'organizing',
-        background: 'background',
+        overview: 'overview',
+        home: 'overview',
+        personnel: 'personnel',
+        about: 'personnel',
+        skills: 'personnel',
+        archives: 'archives',
+        projects: 'archives',
+        organizing: 'organizing',
+        contests: 'organizing',
+        kit2code: 'organizing',
+        contributions: 'contributions',
+        timeline: 'timeline',
+        background: 'timeline',
+        education: 'timeline',
+        contact: 'contact',
     };
     const narrow = window.matchMedia('(max-width: 768px)');
 
@@ -1612,27 +1130,13 @@ window.runGullinbursti = function () {
         const key = (args[0] || '').toLowerCase();
         const id = key === 'top' ? null : SECTIONS[key];
         if (key !== 'top' && !id) {
-            return `goto: no section "${args[0] || ''}". try: about, projects, organizing, background, top.`;
+            return `goto: no section "${args[0] || ''}". try: overview, personnel, archives, timeline, contact, top.`;
         }
-        //Below 768px the panel is fixed to the whole viewport, so scrolling
-        //behind it would look like nothing happened at all.
         const hidden = narrow.matches;
         if (hidden) closeTerminal();
         if (key === 'top') window.scrollTo({ top: 0, behavior: scrollBehavior() });
         else document.getElementById(id)?.scrollIntoView({ behavior: scrollBehavior() });
         return hidden ? null : `scrolling to ${key === 'top' ? 'the top' : '#' + id}...`;
-    }
-
-    //The translate button owns the language flip *and* the hero scramble that
-    //goes with it. Calling i18n.toggle() straight would move the state without
-    //ever running that animation, so this clicks the button a visitor would.
-    function cmdLang(args) {
-        const want = (args[0] || '').toLowerCase();
-        if (want && want !== 'en' && want !== 'th') return `lang: "${args[0]}"? i speak 'en' and 'th'.`;
-        if (want && want === i18n.lang) return `already ${want}.`;
-        const next = want || (i18n.lang === 'en' ? 'th' : 'en');
-        document.getElementById('translateBtn')?.click();
-        return `switched to ${next}.`;
     }
 
     function cmdOpen(args) {
@@ -1654,19 +1158,14 @@ window.runGullinbursti = function () {
         return `opening ${target}...`;
     }
 
-    //Reads the rendered grid rather than data/contributions.json: that file is
-    //generated into the Pages artifact by CI and is an empty calendar in the
-    //working tree, so the JSON would print a blank year everywhere but prod.
     function cmdContrib() {
-        const cells = Array.from(document.querySelectorAll('#contribGrid .contrib-cell'));
+        const cells = Array.from(document.querySelectorAll('#contribGrid .contrib-day, #contribGrid .contrib-cell'));
         if (!cells.length) return 'contrib: no calendar on the page yet.';
 
         const BLOCKS = ['·', '░', '▒', '▓', '█'];
         const weeks = [];
         for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
 
-        //Seven rows, one per weekday, weeks running left to right — the same
-        //shape as the grid on the page, just spelled out in characters.
         const rows = [];
         for (let day = 0; day < 7; day++) {
             rows.push('  ' + weeks.map(w => {
@@ -1675,8 +1174,6 @@ window.runGullinbursti = function () {
                 return BLOCKS[Number(cell.dataset.level) || 0];
             }).join(''));
         }
-        //springs.js may be mid-count on these, or parked at 0 until they scroll
-        //into view; it keeps the real figure in data-final while it does.
         const stat = id => {
             const el = document.getElementById(id);
             return (el && (el.dataset.final || el.textContent)) || '?';
@@ -1686,18 +1183,12 @@ window.runGullinbursti = function () {
         return [`${total} contributions in the last year`, '', ...rows, '', `current streak: ${streak}`];
     }
 
-    //Easter eggs -------------------------------------------------------------
-
-    //Reads the same DOM the hero does, so it can never disagree with the page.
+    // Easter eggs -------------------------------------------------------------
     function cmdNeofetch() {
-        const name = (document.querySelector('.name-txt')?.textContent || '').replace('_', '').trim();
-        //The status line is two lines of hero copy joined by a <br>, so it comes
-        //back as one long run. Everything here is cut to fit instead: the panel
-        //is 340px at its narrowest, which is about 35 characters, and a card you
-        //have to scroll sideways is not a card.
-        const status = (document.querySelector('.status-txt')?.textContent || '')
+        const name = (document.querySelector('.overview-name-cell .field-value')?.textContent || 'Thitiwut Sreewasut').trim();
+        const status = (document.querySelector('.overview-assign-cell .field-value')?.textContent || 'Computer Engineering')
             .replace(/\s+/g, ' ')
-            .split('@')[0]
+            .split('·')[0]
             .trim();
         const role = status.length > 16 ? status.slice(0, 15).trimEnd() + '…' : status;
         const info = [
@@ -1707,7 +1198,7 @@ window.runGullinbursti = function () {
             'shell:  term.js',
             `name:   ${name}`,
             `role:   ${role}`,
-            `lang:   ${i18n.lang}`,
+            `form:   PD-07 (REV. 2026)`,
             `uptime: ${sessionAge()}`,
             `cmds:   ${sessionCmds()}`,
             `theme:  ${widget.dataset.theme || 'green'} on black`,
@@ -1726,7 +1217,6 @@ window.runGullinbursti = function () {
         return out;
     }
 
-    //A cat, not a cow — the widget already has one perched on it.
     function cmdCowsay(args) {
         const text = args.join(' ').slice(0, 40) || 'say something.';
         const bar = '─'.repeat(text.length + 2);
@@ -1741,10 +1231,6 @@ window.runGullinbursti = function () {
         ];
     }
 
-    //The one command that animates instead of printing. It rewrites a node ~18
-    //times a second, so that node is kept out of the accessibility tree
-    //entirely — #termOutput is a polite live region and would otherwise try to
-    //announce every single frame.
     function cmdMatrix() {
         const COLS = 32;
         const ROWS = 12;
@@ -1771,7 +1257,6 @@ window.runGullinbursti = function () {
             rain.textContent = grid.join('\n');
         };
 
-        //Reduced motion still gets the joke, just as a still.
         if (reducedMotion.matches) {
             draw();
             return 'wake up, neo. (one frame - you asked for less motion.)';
@@ -1812,10 +1297,7 @@ window.runGullinbursti = function () {
         input.focus();
     }
 
-    //File system --------------------------------------------------------------
-    //A small pretend home directory. It is built from the page every time it is
-    //asked for, so a file can never disagree with the card or column it was
-    //read from, and nothing here is stored.
+    // File system -------------------------------------------------------------
     const slugOf = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     const cwdParts = [];
 
@@ -1825,15 +1307,15 @@ window.runGullinbursti = function () {
 
         const projects = {};
         document.querySelectorAll('.project-card[data-tags]').forEach(card => {
-            const title = card.querySelector('.project-title')?.textContent.trim();
+            const title = card.querySelector('.project-name')?.textContent.trim();
             if (title) projects[`${slugOf(title)}.md`] = file(() => projectLines(card));
         });
 
         const education = {};
-        document.querySelectorAll('.timeline-col[data-track="education"] .timeline-item').forEach(item => {
-            const year = item.querySelector('.timeline-year')?.textContent.trim();
-            const title = item.querySelector('.timeline-title')?.textContent.trim();
-            const place = item.querySelector('.timeline-place')?.textContent.trim();
+        document.querySelectorAll('#timeline .period-group').forEach(g => {
+            const year = g.querySelector('.period-years')?.textContent.trim();
+            const title = g.querySelector('.period-program')?.textContent.trim();
+            const place = g.querySelector('.period-school')?.textContent.trim();
             if (place) education[`${slugOf(place)}.txt`] = file(() => [year, `${title} - ${place}`].filter(Boolean));
         });
 
@@ -1847,8 +1329,6 @@ window.runGullinbursti = function () {
         });
     }
 
-    //Walks a path from the current folder. `~` and a leading `/` both mean the
-    //root, since there is nowhere else to stand. Returns null for a miss.
     function resolvePath(arg, root) {
         const text = arg || '';
         const absolute = text === '~' || text.startsWith('~/') || text.startsWith('/');
@@ -1871,7 +1351,6 @@ window.runGullinbursti = function () {
         if (titleEl) titleEl.textContent = `> guest@freyr:${homePath(cwdParts)}$`;
     };
 
-    //Folders first, then alphabetical; dotfiles only when asked for.
     function namesIn(node, all) {
         return Object.keys(node.children)
             .filter(n => all || !n.startsWith('.'))
@@ -1931,9 +1410,6 @@ window.runGullinbursti = function () {
         });
     }
 
-    //Candidates are whole words, because the completer swaps the word under the
-    //cursor for their common prefix. A folder keeps its trailing slash so the
-    //next Tab goes one level deeper.
     function completePath(partial, dirsOnly) {
         if (partial.startsWith('-')) return [];
         const slash = partial.lastIndexOf('/');
@@ -1946,7 +1422,6 @@ window.runGullinbursti = function () {
             .map(n => base + n + (hit.node.children[n].dir ? '/' : ''));
     }
 
-    //Every file under a node, as paths. `rm -rf /` reads its victims from here.
     function listPaths(node, base) {
         return Object.keys(node.children).flatMap(name => {
             const child = node.children[name];
@@ -1954,8 +1429,7 @@ window.runGullinbursti = function () {
         });
     }
 
-    //Shell basics -------------------------------------------------------------
-
+    // Shell basics ------------------------------------------------------------
     function sessionAge() {
         const elapsed = Date.now() - BOOT_AT;
         return `${Math.floor(elapsed / 60000)}m ${Math.floor(elapsed / 1000) % 60}s`;
@@ -1988,8 +1462,6 @@ window.runGullinbursti = function () {
         ];
     }
 
-    //Green is the default and has no attribute: the stylesheet only recolours
-    //when data-theme is set, which keeps rune mode working on the default.
     const THEMES = ['green', 'amber', 'blue', 'pink'];
     function applyTheme(name) {
         if (name === 'green') widget.removeAttribute('data-theme');
@@ -2007,10 +1479,7 @@ window.runGullinbursti = function () {
         return `theme: ${want}.`;
     }
 
-    //Fun ----------------------------------------------------------------------
-    //Everything from here down is hidden: out of help and out of Tab, so finding
-    //one is still finding something.
-
+    // Fun ---------------------------------------------------------------------
     const FORTUNES = [
         ['it works on my machine.', 'ship the machine.'],
         ['a bug is a feature', 'with no marketing.'],
@@ -2018,7 +1487,6 @@ window.runGullinbursti = function () {
         ['the cat reviewed your code.', 'it is unimpressed.'],
         ['git push --force is a', 'personality, not a plan.'],
         ['O(n) is fine', 'until n is the internet.'],
-        //Quoted from the same public-domain translations as `freyr`.
         ['"Of the heroes brave is Freyr', ' the best"', '  — Lokasenna 37'],
         ['"he rules over the rain and the', ' shining of the sun"', '  — Gylfaginning 24'],
     ];
@@ -2052,8 +1520,8 @@ window.runGullinbursti = function () {
     }
 
     function cmdHire() {
-        const availability = document.querySelector('.availability-txt')?.textContent.trim();
-        return ['good choice.', ...(availability ? [availability] : []), cmdOpen(['email'])];
+        const status = document.querySelector('.overview-status-cell .field-value')?.textContent.trim();
+        return ['good choice.', ...(status ? [status] : []), cmdOpen(['email'])];
     }
 
     const COFFEE = [
@@ -2067,7 +1535,6 @@ window.runGullinbursti = function () {
         "   `----'",
     ];
 
-    //Four rows, padded to one width so the slide can cut them all the same way.
     const TRAIN = [
         '   (@@)    ______________________',
         '  (    )  | [] [] [] [] [] [] [] |',
@@ -2075,8 +1542,6 @@ window.runGullinbursti = function () {
         '  O  O  O    O  O      O  O  O  O',
     ];
 
-    //An effect that animates instead of printing. It rewrites one node every
-    //frame, so that node stays out of the accessibility tree.
     function cmdSl() {
         const COLS = 34;
         const width = Math.max(...TRAIN.map(r => r.length));
@@ -2123,32 +1588,20 @@ window.runGullinbursti = function () {
         return null;
     }
 
-    //One table, three consumers. `help`, tab-completion and the did-you-mean
-    //suggestion each used to keep their own copy of this list, and the copies
-    //drifted — `about` and `sudo` were live commands that help never mentioned.
-    //Now they all read the same rows.
     const COMMANDS = [
-        //Help text is kept short on purpose: the panel is as narrow as 340px,
-        //and a description that wraps takes the aligned column with it.
         { name: 'help',      args: '',      help: 'show this list',      run: () => renderHelp() },
         { name: 'whoami',    args: '',      help: 'who am i',            run: () => readAbout(), alias: ['about'] },
         { name: 'skills',    args: '',      help: 'tech stack',          run: () => readSkills() },
-        //`complete` is the per-command half of Tab: given the word under the
-        //cursor, it returns whole candidate words. A command without one
-        //completes its name only.
         { name: 'projects',  args: '[tag]', help: "things i've built",   run: (a) => readProjects(a[0]),
           man: ['list projects. a tag shows', 'only those built with it.', '', 'try: projects | grep stack'],
-          //The tags the cards actually carry, so the shell can never offer a
-          //filter that would come back empty.
           complete: partial => {
               const tags = new Set();
               document.querySelectorAll('.project-card[data-tags]')
                   .forEach(card => tagsOf(card).forEach(t => tags.add(t)));
               return [...tags].filter(t => t.toLowerCase().startsWith(partial.toLowerCase())).sort();
           } },
-        { name: 'education', args: '',      help: 'where i studied',     run: () => readEducation() },
+        { name: 'education', args: '',      help: 'where i studied',     run: () => readEducation(), alias: ['timeline'] },
         { name: 'contact',   args: '',      help: 'how to reach me',     run: () => readContact() },
-        //From the Freyr research in .claude/plans/freyr_reseach.md.
         { name: 'sword',     args: '',      help: "freyr's sword",
           run: () => [
               'no name in any old source.',
@@ -2202,7 +1655,6 @@ window.runGullinbursti = function () {
           man: ['recolour the terminal.', 'green, amber, blue or pink.', 'remembered for next visit.'] },
         { name: 'game',      args: '',      help: 'play a game',        noPipe: true, run: () => cmdGame() },
         { name: 'goto',      args: '<where>',   help: 'jump to a section', run: (a) => cmdGoto(a) },
-        { name: 'lang',      args: '[en|th]',   help: 'switch language',   run: (a) => cmdLang(a) },
         { name: 'open',      args: '<link>',    help: 'open a link',       run: (a) => cmdOpen(a) },
         { name: 'matrix',    args: '',      help: 'follow the rabbit',   noPipe: true, run: () => cmdMatrix() },
         { name: 'neofetch',  args: '',      help: 'system info',
@@ -2211,38 +1663,29 @@ window.runGullinbursti = function () {
           run: (a) => { appendBlock(cmdCowsay(a), 'term-line-art'); return null; } },
         { name: 'clear',     args: '',      help: 'clear the screen',    noPipe: true, run: () => { output.innerHTML = ''; return null; } },
         { name: 'exit',      args: '',      help: 'close the panel',     noPipe: true, run: () => { closeTerminal(); return null; } },
-        //Hidden: kept out of help and out of tab-completion, so finding one is
-        //still finding something.
         { name: 'freyr', hidden: true, alias: ['yngvi'],
           run: () => {
-              //Short lines from public-domain translations: Snorri's Gylfaginning
-              //(Brodeur 1916) and the Poetic Edda (Bellows 1923).
-              //Wrapped to 34 columns: the panel is about 35 characters wide at its
-              //narrowest, and a quote that runs off the edge loses its citation.
-              //Gaps are a no-break space because an empty line collapses.
               appendBlock([
                   'ᚠᚱᛅᛁᛦ · Freyr of the Vanir,',
                   'son of Njörðr.',
-                  ' ',
+                  ' ',
                   '"he rules over the rain and the',
                   ' shining of the sun, and',
                   ' therewithal the fruit of the',
                   ' earth"  — Gylfaginning 24',
-                  ' ',
+                  ' ',
                   'his boar Gullinbursti lights',
                   'the dark; his ship Skíðblaðnir',
                   'folds away into a pouch.',
                   'he gave his sword for Gerðr,',
                   'and meets Surtr without it.',
-                  ' ',
+                  ' ',
                   '"Of the heroes brave is Freyr',
                   ' the best"  — Lokasenna 37',
               ], 'term-line-art');
-              return runeMode.begin() ? 'ᛜ the runes wake.' : 'ᛜ the runes are already awake.';
+              return toggleFreyrMode() ? 'ᛜ the runes wake.' : 'ᛜ the runes rest.';
           } },
         { name: 'rm', hidden: true, run: (a) => cmdRm(a) },
-        //The trap is a flag the next lines check: only :q gets out, and closing
-        //the panel lets go of it as well.
         { name: 'vim', hidden: true, noPipe: true, alias: ['vi', 'nvim'],
           run: () => {
               trapped = true;
@@ -2264,8 +1707,6 @@ window.runGullinbursti = function () {
         (c.alias || []).forEach(a => commandMap.set(a, c));
     });
 
-    //Column width is measured rather than hard-coded: a longer command added
-    //later should not silently un-align the list.
     function renderHelp() {
         const visible = COMMANDS.filter(c => !c.hidden);
         const width = Math.max(...visible.map(c => `${c.name} ${c.args}`.trim().length));
@@ -2281,9 +1722,6 @@ window.runGullinbursti = function () {
         ];
     }
 
-    //Levenshtein, two rows. A typo is worth catching; a different word is not,
-    //so the threshold stays at 2 and the suggestion is silent when nothing is
-    //close enough to be worth guessing at.
     function editDistance(a, b) {
         let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
         for (let i = 1; i <= a.length; i++) {
@@ -2307,11 +1745,6 @@ window.runGullinbursti = function () {
         return best && best.d <= 2 ? best.name : null;
     }
 
-    //Completion --------------------------------------------------------------
-
-    //The first word completes from the same table `help` reads. After that it
-    //is the command's own business: a row with a `complete` function decides
-    //what its arguments can be, and one without simply has no suggestions.
     function completionsFor(value) {
         const parts = value.split(/\s+/);
         if (parts.length <= 1) {
@@ -2322,8 +1755,6 @@ window.runGullinbursti = function () {
         return entry.complete(parts[parts.length - 1]);
     }
 
-    //The longest prefix every candidate agrees on. Two matches that share more
-    //letters should still advance the line rather than only listing themselves.
     function commonPrefix(list) {
         if (!list.length) return '';
         return list.reduce((acc, s) => {
@@ -2333,8 +1764,6 @@ window.runGullinbursti = function () {
         });
     }
 
-    //Called from every path that touches input.value — a hint left behind under
-    //an empty line is the most visible bug this feature can have.
     function applyGhost() {
         const value = input.value;
         if (mode !== 'command' || !value) {
@@ -2357,9 +1786,6 @@ window.runGullinbursti = function () {
         const prefix = commonPrefix(list);
         if (prefix.length > last.length) {
             input.value = value.slice(0, value.length - last.length) + prefix;
-            //A lone match is a finished word, so hand it the trailing space and
-            //the next tab starts on the argument. A folder is not finished: it
-            //ends in a slash and the next tab goes inside it.
             if (list.length === 1 && !list[0].endsWith('/')) input.value += ' ';
         } else if (list.length > 1) {
             appendLine(value, 'term-line-cmd');
@@ -2368,9 +1794,6 @@ window.runGullinbursti = function () {
         applyGhost();
     }
 
-    //^L and ^C have to work while a game holds the floor, and a disabled input
-    //fires no keydown of its own — so this lives in one place and both the
-    //input and the document listener call it.
     function handleControlKey(e) {
         if (!e.ctrlKey || e.altKey || e.metaKey) return false;
         const key = e.key.toLowerCase();
@@ -2380,8 +1803,6 @@ window.runGullinbursti = function () {
             return true;
         }
         if (key === 'c') {
-            //Copying output out of the terminal has to keep working, so a live
-            //selection wins over the cancel.
             if (window.getSelection()?.toString()) return false;
             e.preventDefault();
             appendLine('^C', 'term-line-cmd');
@@ -2408,8 +1829,6 @@ window.runGullinbursti = function () {
         let trimmed = raw.trim();
         if (!trimmed) return;
 
-        //`!!` and `!3` are replaced by the line they point at before anything
-        //else happens, and it is the replacement that lands in the history.
         const recall = trimmed.match(/^!(!|\d+)$/);
         if (recall) {
             const wanted = recall[1] === '!' ? cmdHistory.length - 1 : Number(recall[1]) - 1;
@@ -2433,8 +1852,6 @@ window.runGullinbursti = function () {
             return;
         }
 
-        //One pipe, and only into grep: `cmd | grep word` keeps the lines of the
-        //command's output that contain the word.
         let left = trimmed;
         let pattern = null;
         const pipeAt = trimmed.indexOf('|');
@@ -2474,8 +1891,6 @@ window.runGullinbursti = function () {
         try {
             result = entry.run(args);
         } finally {
-            //Released before anything is printed: appendBlock would otherwise
-            //collect its own output again.
             collected = capture;
             capture = null;
         }
@@ -2519,8 +1934,6 @@ window.runGullinbursti = function () {
         if (!widget.classList.contains('is-open')) return;
         if (handleControlKey(e)) return;
 
-        //The rain owns the whole panel while it runs, so any key ends it —
-        //there is nothing else to press.
         if (mode === 'fx') {
             e.preventDefault();
             stopFx();
@@ -2559,8 +1972,6 @@ window.runGullinbursti = function () {
     });
 
     input.addEventListener('keydown', (e) => {
-        //Line editing. These only make sense while there is a line to edit, and
-        //^A would otherwise select the whole field.
         if (e.ctrlKey && !e.altKey && !e.metaKey && mode === 'command') {
             const key = e.key.toLowerCase();
             if (key === 'u' || key === 'a' || key === 'e') {
@@ -2572,22 +1983,15 @@ window.runGullinbursti = function () {
                 return;
             }
         }
-        //^L and ^C run whatever mode the terminal is in, so they come first.
         if (e.ctrlKey) {
             if (handleControlKey(e)) e.stopPropagation();
             return;
         }
         if (mode !== 'command') return;
         if (e.key === 'Tab') {
-            //Without this the browser walks focus to the close button and the
-            //visitor carries on typing into nothing.
             e.preventDefault();
             completeInput();
         } else if (e.key === 'Enter') {
-            //A command is free to move focus — `exit` and a mobile `goto` both
-            //close the panel, which parks focus on the trigger. Enter's default
-            //action lands on whatever is focused by then, so without this the
-            //trigger gets clicked and the panel reopens on the way out.
             e.preventDefault();
             e.stopPropagation();
             runCommand(input.value);
@@ -2611,6 +2015,5 @@ window.runGullinbursti = function () {
     });
 
     input.addEventListener('input', applyGhost);
-
     output.addEventListener('click', () => input.focus());
 })();
