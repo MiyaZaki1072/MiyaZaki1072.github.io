@@ -281,32 +281,6 @@ if (filterClear) {
     });
 })();
 
-// ── Live Codeforces Rating ───────────────────────────────────
-const CF_HANDLE = 'MiyaZaki1072';
-let cfCache = null;
-
-async function fetchCfUser() {
-    if (cfCache) return cfCache;
-    try {
-        const res = await fetch(`https://codeforces.com/api/user.info?handles=${CF_HANDLE}`);
-        const data = await res.json();
-        if (data.status === 'OK' && data.result && data.result[0]) {
-            cfCache = data.result[0];
-            return cfCache;
-        }
-    } catch (_) { /* offline or blocked */ }
-    return null;
-}
-
-(async function populateCfBadge() {
-    const badge = document.getElementById('cfRating');
-    const u = await fetchCfUser();
-    if (!u || !badge) return;
-    if (u.rating) {
-        badge.textContent = `· ${u.rating} (${u.rank || 'rated'})`;
-    }
-})();
-
 // ── GitHub Contribution Calendar (PD-07 Attachment C) ────────
 // data/contributions.json is written at deploy time by
 // scripts/fetch-contributions.mjs. Its shape:

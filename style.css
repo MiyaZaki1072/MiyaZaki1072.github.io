@@ -597,27 +597,28 @@ img {
     flex: 3 1 520px;
 }
 
-.overview-codename-cell {
+/* The name leads the record. */
+.overview-name-cell {
     flex: 1 1 100%;
-    padding: 10px 16px 16px;
+    padding: 10px 16px 18px;
 }
 
-.overview-codename {
-    margin: 0;
+.overview-name {
+    margin: 2px 0 0;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(72px, 11vw, 132px);
-    line-height: 1;
-    letter-spacing: 0.02em;
+    font-size: clamp(34px, 5vw, 62px);
+    line-height: 1.02;
+    letter-spacing: -0.005em;
     color: var(--ink);
 }
 
-.overview-name-cell {
-    flex: 2 1 260px;
+.overview-codename-cell {
+    flex: 1 1 200px;
 }
 
 .overview-status-cell {
-    flex: 1 1 200px;
+    flex: 2 1 260px;
 }
 
 .overview-assign-cell,
@@ -1760,12 +1761,6 @@ img {
     white-space: nowrap;
 }
 
-.contact-rating {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--signal-light);
-}
-
 .contact-action {
     font-family: var(--font-mono);
     font-size: 12px;
@@ -2749,10 +2744,6 @@ body.freyr-mode {
 
     .sheet {
         padding: 18px 16px;
-    }
-
-    .overview-codename {
-        font-size: 72px;
     }
 
     .overview-photo-cell {
