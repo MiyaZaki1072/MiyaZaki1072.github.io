@@ -806,66 +806,6 @@ img {
     transition: stroke-dashoffset var(--d, 0.5s) cubic-bezier(0.55, 0.05, 0.45, 1) var(--delay, 0s);
 }
 
-/* ── Holographic foil seal (photo corner) ──────────────────── */
-.foil-seal {
-    --fx: 35%;
-    --fy: 30%;
-    --fa: 20deg;
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
-    pointer-events: none;
-    transform: rotate(-10deg);
-    background:
-        radial-gradient(circle at var(--fx) var(--fy), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 42%),
-        conic-gradient(from var(--fa), #C9A86A, #EADBA8, #8FD1AB, #8EC3D6, #B39BD8, #E3A9C6, #C9A86A);
-    box-shadow:
-        0 0 0 1px rgba(0, 0, 0, 0.4),
-        0 4px 12px rgba(0, 0, 0, 0.5),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-}
-
-/* Fine guilloche rings over the foil */
-.foil-seal::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: repeating-radial-gradient(circle at 50% 50%, rgba(10, 17, 14, 0.1) 0 1px, transparent 1px 3px);
-    mix-blend-mode: multiply;
-}
-
-.foil-seal svg {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.foil-seal-edge {
-    fill: none;
-    stroke: rgba(10, 17, 14, 0.45);
-    stroke-width: 1;
-}
-
-.foil-seal-ring {
-    font-family: var(--font-mono);
-    font-size: 8.4px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    fill: rgba(10, 17, 14, 0.78);
-}
-
-.foil-seal-rune {
-    font-family: var(--font-rune), var(--font-mono);
-    font-size: 30px;
-    fill: rgba(10, 17, 14, 0.72);
-}
-
 .signature-label {
     font-family: var(--font-mono);
     font-size: 10px;
@@ -2890,5 +2830,378 @@ body.freyr-mode {
     .boot-skip {
         right: 20px;
         bottom: 20px;
+    }
+}
+
+/* ── Resume printer (dialog) ───────────────────────────────── */
+.nav-resume {
+    color: var(--brass);
+    text-decoration: none;
+    border: 1px solid var(--brass);
+    padding: 7px 12px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-resume:hover {
+    background: var(--brass);
+    color: var(--signal-ink);
+}
+
+.resume-dialog {
+    width: min(380px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 18px 18px 16px;
+    background: var(--night);
+    color: var(--ink);
+    border: 1px solid var(--rule-dashed);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.resume-dialog::backdrop {
+    background: rgba(5, 9, 7, 0.78);
+    backdrop-filter: blur(3px);
+}
+
+.resume-dialog[open] {
+    animation: resumeDialogIn 0.22s var(--ease-out);
+}
+
+@keyframes resumeDialogIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.resume-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.resume-dialog-close {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink-muted);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.resume-dialog-close:hover {
+    color: var(--ink);
+    border-color: var(--rule-dashed);
+}
+
+.resume-dialog-note {
+    margin-top: 16px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+}
+
+.resume-dialog-note a {
+    color: var(--signal-light);
+}
+
+.slip-printer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.slip-device {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    background: var(--header);
+    border: 1px solid var(--rule);
+    padding: 12px 12px 14px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.slip-device-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.slip-device-brand {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+}
+
+.slip-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rule-dashed);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.slip-printer[data-stage="processing"] .slip-led,
+.slip-printer[data-stage="printing"] .slip-led {
+    background: var(--brass);
+    box-shadow: 0 0 8px rgba(201, 168, 106, 0.7);
+}
+
+.slip-printer[data-stage="complete"] .slip-led {
+    background: var(--signal-light);
+    box-shadow: 0 0 8px rgba(127, 184, 154, 0.6);
+}
+
+.slip-screen {
+    background: var(--sheet-2);
+    border: 1px solid var(--rule);
+    padding: 12px 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.slip-screen-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.slip-screen-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.slip-screen-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+}
+
+.slip-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-2);
+    min-width: 0;
+}
+
+.slip-status-icon {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-muted);
+}
+
+.slip-printer[data-stage="processing"] .slip-status-icon,
+.slip-printer[data-stage="printing"] .slip-status-icon {
+    border-color: var(--brass);
+    border-right-color: transparent;
+    animation: slipSpin 0.7s linear infinite;
+}
+
+.slip-printer[data-stage="complete"] .slip-status-icon {
+    border-color: var(--signal-light);
+    background:
+        linear-gradient(var(--signal-light), var(--signal-light)) 3px 6px / 2px 1.5px no-repeat,
+        linear-gradient(var(--signal-light), var(--signal-light)) 4px 3px / 1.5px 4.5px no-repeat;
+    transform: rotate(40deg);
+}
+
+@keyframes slipSpin {
+    to { transform: rotate(360deg); }
+}
+
+.slip-print-btn {
+    flex: none;
+    min-height: 36px;
+    padding: 0 14px;
+    background: var(--signal);
+    color: var(--signal-ink);
+    border: 1px solid var(--signal);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.slip-print-btn:hover {
+    background: var(--signal-light);
+    border-color: var(--signal-light);
+}
+
+.slip-print-btn:active {
+    transform: translateY(1px);
+}
+
+.slip-print-btn:disabled {
+    background: transparent;
+    color: var(--ink-muted);
+    border-color: var(--rule);
+    cursor: progress;
+}
+
+.slip-slot {
+    height: 6px;
+    margin: 12px 14px 0;
+    background: #050907;
+    border-radius: 3px;
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Window the paper feeds through; JS grows its height */
+.slip-feed {
+    position: relative;
+    z-index: 1;
+    width: 288px;
+    max-width: calc(100% - 36px);
+    height: 0;
+    margin-top: -10px;
+    overflow: hidden;
+}
+
+.slip-paper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px 18px 26px;
+    background: #EEE7D4;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0) 18px);
+    color: #1B211D;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    /* Torn zig-zag bottom edge */
+    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 10px 100%;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 10px 100%;
+}
+
+.slip-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+}
+
+.slip-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: 6px;
+    background: #1B211D;
+    color: #EEE7D4;
+    font-family: var(--font-rune), var(--font-mono);
+    font-size: 20px;
+}
+
+.slip-head-title {
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.slip-head-sub {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #59615B;
+}
+
+.slip-rule {
+    margin: 12px 0;
+    border-top: 1px dashed #A7A08E;
+}
+
+.slip-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.slip-name {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.slip-sub {
+    color: #59615B;
+}
+
+.slip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.slip-row span:last-child {
+    text-align: right;
+}
+
+.slip-row--total {
+    margin-top: 4px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.slip-barcode {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1.5px;
+    height: 38px;
+    margin: 16px 0 6px;
+}
+
+.slip-barcode i {
+    display: block;
+    background: #1B211D;
+}
+
+.slip-foot {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: #59615B;
+}
+
+/* Keep the header on one row once RESUME joins the nav */
+@media (min-width: 861px) and (max-width: 1180px) {
+    .primary-nav {
+        gap: 4px 16px;
+    }
+
+    .sys-status {
+        display: none;
+    }
+}
+
+@media (max-width: 860px) {
+    .nav-resume {
+        margin: 8px 4px 4px;
+        text-align: center;
+        padding: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slip-printer .slip-status-icon,
+    .resume-dialog[open] {
+        animation: none !important;
     }
 }

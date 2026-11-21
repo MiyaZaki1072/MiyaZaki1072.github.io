@@ -3,7 +3,6 @@
    - Sheets fade in and rise 8px as they enter view (200ms)
    - Stamps "thump" once on first view (scale 1.08 -> 1)
    - Signature strokes draw once on first view
-   - Foil seal sheen tracks pointer and scroll
    - Nothing loops. Disabled under prefers-reduced-motion.
    ============================================================ */
 
@@ -75,39 +74,5 @@
             });
         }, { threshold: 0.6 });
         signObserver.observe(signature);
-    }
-
-    // 4. Foil seal: sheen follows the pointer, hue turns with scroll
-    const seal = document.querySelector('.foil-seal');
-    if (seal) {
-        let px = null;
-        let py = null;
-        let queued = false;
-
-        const paint = () => {
-            queued = false;
-            const r = seal.getBoundingClientRect();
-            if (r.bottom < 0 || r.top > window.innerHeight) return;
-            if (px !== null) {
-                const fx = Math.max(-20, Math.min(120, ((px - r.left) / r.width) * 100));
-                const fy = Math.max(-20, Math.min(120, ((py - r.top) / r.height) * 100));
-                seal.style.setProperty('--fx', fx.toFixed(1) + '%');
-                seal.style.setProperty('--fy', fy.toFixed(1) + '%');
-            }
-            const angle = (window.scrollY * 0.35 + (px || 0) * 0.15) % 360;
-            seal.style.setProperty('--fa', angle.toFixed(1) + 'deg');
-        };
-        const queue = () => {
-            if (queued) return;
-            queued = true;
-            requestAnimationFrame(paint);
-        };
-
-        window.addEventListener('pointermove', (e) => {
-            px = e.clientX;
-            py = e.clientY;
-            queue();
-        }, { passive: true });
-        window.addEventListener('scroll', queue, { passive: true });
     }
 })();

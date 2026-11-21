@@ -155,6 +155,7 @@
                 <a href="#archives" class="nav-link">PROJECT ARCHIVES</a>
                 <a href="#timeline" class="nav-link">TIMELINE</a>
                 <a href="#contact" class="nav-link">CONTACT</a>
+                <a href="resume.pdf" class="nav-resume" data-resume download="Thitiwut-Sreewasut-Resume.pdf">RESUME ↓</a>
                 <span class="sys-status" aria-label="Status: open to work">
                     <span class="sys-dot" aria-hidden="true"></span>
                     <span class="sys-text">
@@ -211,17 +212,6 @@
                     <div class="photo-frame">
                         <img src="images/me.webp" alt="Portrait of Thitiwut Sreewasut (Freyr)" class="avatar" width="160" height="160" fetchpriority="high" decoding="async">
                         <span class="photo-caption">ON FILE · 2026</span>
-                        <span class="foil-seal" aria-hidden="true">
-                            <svg viewBox="0 0 100 100">
-                                <defs>
-                                    <path id="seal-ring" d="M50,50 m-35,0 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0"/>
-                                </defs>
-                                <circle cx="50" cy="50" r="44" class="foil-seal-edge"/>
-                                <circle cx="50" cy="50" r="26" class="foil-seal-edge"/>
-                                <text class="foil-seal-ring"><textPath href="#seal-ring" textLength="218">VERIFIED · FORM PD-07 · ON FILE ·</textPath></text>
-                                <text x="50" y="52" class="foil-seal-rune" text-anchor="middle" dominant-baseline="central">ᚠ</text>
-                            </svg>
-                        </span>
                     </div>
                 </div>
 
@@ -240,6 +230,7 @@
                 <div class="overview-actions">
                     <a href="#personnel" class="btn-primary">VIEW PERSONNEL FILE →</a>
                     <a href="#archives" class="btn-secondary">EXPLORE PROJECT ARCHIVES</a>
+                    <a href="resume.pdf" class="btn-secondary btn-resume" data-resume download="Thitiwut-Sreewasut-Resume.pdf">DOWNLOAD RESUME ↓</a>
                 </div>
                 <div class="overview-signoff">
                     <div class="signature-block">
@@ -923,6 +914,7 @@
                     <span class="contact-action" aria-hidden="true">OPEN →</span>
                 </a>
             </div>
+
         </section>
 
     </main>
@@ -966,7 +958,84 @@
         </div>
     </div>
 
+    <!-- ══ RESUME PRINTER (dialog) ════════════════════════════════════ -->
+    <dialog class="resume-dialog" id="resumeDialog" aria-labelledby="resumeDialogTitle">
+        <div class="resume-dialog-head">
+            <span class="field-label" id="resumeDialogTitle">RESUME REQUEST · DESK 07</span>
+            <button type="button" class="resume-dialog-close" aria-label="Close">✕</button>
+        </div>
+        <div class="slip-printer" data-stage="idle">
+            <div class="slip-device">
+                <div class="slip-device-top">
+                    <span class="slip-device-brand">PD-07 · RECORDS OFFICE</span>
+                    <span class="slip-led" aria-hidden="true"></span>
+                </div>
+                <div class="slip-screen">
+                    <div class="slip-screen-row">
+                        <span class="slip-screen-title">Resume · T. Sreewasut</span>
+                        <span class="slip-screen-meta">PDF · 1 COPY</span>
+                    </div>
+                    <div class="slip-screen-row">
+                        <span class="slip-status" role="status" aria-live="polite">
+                            <span class="slip-status-icon" aria-hidden="true"></span>
+                            <span class="slip-status-text">Ready to print</span>
+                        </span>
+                        <button type="button" class="slip-print-btn" id="slipPrintBtn">PRINT</button>
+                    </div>
+                </div>
+                <div class="slip-slot" aria-hidden="true"></div>
+            </div>
+
+            <div class="slip-feed">
+                <article class="slip-paper" aria-label="Resume slip">
+                    <header class="slip-head">
+                        <span class="slip-mark" aria-hidden="true">ᚠ</span>
+                        <span class="slip-head-title">PERSONNEL RECORD</span>
+                        <span class="slip-head-sub">RESUME · RECORD COPY</span>
+                    </header>
+
+                    <div class="slip-rule"></div>
+
+                    <div class="slip-block">
+                        <div class="slip-name">THITIWUT SREEWASUT</div>
+                        <div class="slip-sub">Codename Freyr</div>
+                        <div class="slip-sub">Computer Engineering · Chulalongkorn</div>
+                    </div>
+
+                    <div class="slip-rule"></div>
+
+                    <div class="slip-block">
+                        <div class="slip-row"><span>TOI BRONZE ×2</span><span>TOI21 · 22</span></div>
+                        <div class="slip-row"><span>AIHACK 2026</span><span>14 / 103</span></div>
+                        <div class="slip-row"><span>NSC 2024</span><span>FINALIST</span></div>
+                        <div class="slip-row"><span>KIT2CODE</span><span>FOUNDER · 37</span></div>
+                    </div>
+
+                    <div class="slip-rule"></div>
+
+                    <div class="slip-block">
+                        <div class="slip-row"><span>Exhibits on file</span><span data-slip="exhibits">8</span></div>
+                        <div class="slip-row slip-row--total"><span>STATUS</span><span>OPEN TO WORK</span></div>
+                    </div>
+
+                    <div class="slip-rule"></div>
+
+                    <div class="slip-block">
+                        <div class="slip-row"><span>Slip no.</span><span data-slip="number">PD07-0000</span></div>
+                        <div class="slip-row"><span>Issued</span><span data-slip="date">—</span></div>
+                        <div class="slip-row"><span>Reach</span><span>github/MiyaZaki1072</span></div>
+                    </div>
+
+                    <div class="slip-barcode" aria-hidden="true"></div>
+                    <div class="slip-foot">RESUME.PDF · DOWNLOADING</div>
+                </article>
+            </div>
+        </div>
+        <p class="resume-dialog-note">Download didn't start? <a href="resume.pdf" download="Thitiwut-Sreewasut-Resume.pdf">Get the PDF directly</a></p>
+    </dialog>
+
     <script src="js/motion.js"></script>
+    <script src="js/slip.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>
