@@ -1,0 +1,2 @@
+# Never convert line endings in binary files (keeps PDFs byte-exact)
+*.pdf binary
