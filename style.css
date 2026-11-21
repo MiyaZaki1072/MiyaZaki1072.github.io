@@ -779,12 +779,91 @@ img {
     width: 200px;
 }
 
-.signature-hand {
-    font-family: var(--font-mono);
-    font-size: 22px;
+.signature-svg {
+    display: block;
+    width: 100%;
+    height: 54px;
     border-bottom: 1px solid var(--rule);
-    padding-bottom: 2px;
-    color: var(--ink);
+    overflow: visible;
+}
+
+.signature-svg path {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+}
+
+/* motion.js adds .will-sign, then swaps to .is-signed on first view */
+.signature-svg.will-sign path {
+    stroke-dashoffset: 1;
+}
+
+.signature-svg.is-signed path {
+    transition: stroke-dashoffset var(--d, 0.5s) cubic-bezier(0.55, 0.05, 0.45, 1) var(--delay, 0s);
+}
+
+/* ── Holographic foil seal (photo corner) ──────────────────── */
+.foil-seal {
+    --fx: 35%;
+    --fy: 30%;
+    --fa: 20deg;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: rotate(-10deg);
+    background:
+        radial-gradient(circle at var(--fx) var(--fy), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 42%),
+        conic-gradient(from var(--fa), #C9A86A, #EADBA8, #8FD1AB, #8EC3D6, #B39BD8, #E3A9C6, #C9A86A);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+/* Fine guilloche rings over the foil */
+.foil-seal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle at 50% 50%, rgba(10, 17, 14, 0.1) 0 1px, transparent 1px 3px);
+    mix-blend-mode: multiply;
+}
+
+.foil-seal svg {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.foil-seal-edge {
+    fill: none;
+    stroke: rgba(10, 17, 14, 0.45);
+    stroke-width: 1;
+}
+
+.foil-seal-ring {
+    font-family: var(--font-mono);
+    font-size: 8.4px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    fill: rgba(10, 17, 14, 0.78);
+}
+
+.foil-seal-rune {
+    font-family: var(--font-rune), var(--font-mono);
+    font-size: 30px;
+    fill: rgba(10, 17, 14, 0.72);
 }
 
 .signature-label {
