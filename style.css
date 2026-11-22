@@ -1218,25 +1218,249 @@ img {
     gap: 8px;
 }
 
-.mobile-exhibits-toggle {
-    display: none;
-    margin-top: 14px;
-    width: 100%;
-    min-height: 48px;
-    background: transparent;
-    border: 1.5px dashed var(--ink);
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+/* ── Project Archive: index + preview stage ────────────────── */
+/* Without JS the cards stay a plain ruled list; js/index.js adds .is-ready. */
+.archive-browser {
+    margin-top: 24px;
 }
 
-.mobile-exhibits-toggle:hover {
-    border-color: var(--signal-light);
+.archive-browser .archive-stage {
+    margin-top: 0;
+}
+
+.archive-browser:not(.is-ready) .archive-index {
+    display: none;
+}
+
+.archive-browser:not(.is-ready) .archive-stage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+}
+
+.archive-browser.is-ready {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+}
+
+/* The index runs the full height of the project panel: the selected rows
+   and the "more" scroll window share whatever height the card leaves. */
+.archive-index {
+    border: 1px solid var(--rule);
+    background: var(--night);
+    display: flex;
+    flex-direction: column;
+}
+
+.archive-index > .archive-list {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+}
+
+.archive-index > .archive-list > li {
+    flex: 1;
+    display: flex;
+}
+
+.archive-item.is-featured {
+    grid-template-columns: 28px minmax(0, 1fr) 96px;
+    align-content: center;
+}
+
+.archive-thumb {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 96px;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: center top;
+    border: 1px solid var(--rule);
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.archive-item:hover .archive-thumb,
+.archive-item[aria-pressed="true"] .archive-thumb {
+    opacity: 1;
+}
+
+.archive-index-label {
+    margin: 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+}
+
+.archive-index > .archive-index-label:first-child {
+    color: var(--brass);
+}
+
+.archive-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.archive-item {
+    appearance: none;
+    width: 100%;
+    min-height: 56px;
+    margin: 0;
+    padding: 12px 16px 12px 13px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 3px;
+    align-items: baseline;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    border-left: 3px solid transparent;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.archive-item:hover {
+    background: var(--brass-wash);
+}
+
+.archive-item:focus-visible {
+    outline: 2px solid var(--signal-light);
+    outline-offset: -2px;
+}
+
+.archive-item[aria-pressed="true"] {
+    background: var(--sheet-2);
+    border-left-color: var(--brass);
+}
+
+.archive-no {
+    grid-row: span 2;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+}
+
+.archive-item[aria-pressed="true"] .archive-no {
+    color: var(--brass);
+}
+
+.archive-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.archive-item.is-featured .archive-name {
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.archive-proof {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
     color: var(--signal-light);
+}
+
+.archive-item:not(.is-featured) .archive-proof {
+    color: var(--ink-muted);
+}
+
+.archive-index-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.archive-view-hint {
+    color: var(--ink-muted);
+}
+
+.archive-view-hint .hint-narrow {
+    display: none;
+}
+
+.archive-index-label[hidden] {
+    display: none;
+}
+
+.archive-scroll-hint {
+    color: var(--signal-light);
+}
+
+/* The other exhibits scroll inside the index: about 2.5 rows show, so the
+   cut-off row tells people there is more below. */
+.archive-more .archive-list {
+    max-height: 132px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-dashed) transparent;
+}
+
+/* Side by side with the card there is room for about four rows; the
+   cut-off fifth row still says "scroll". */
+.archive-browser.is-ready .archive-more .archive-list {
+    max-height: 232px;
+}
+
+.archive-more .archive-item {
+    min-height: 48px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.archive-more .archive-list li:last-child .archive-item {
+    border-bottom: 0;
+}
+
+/* Every card sits in the same grid cell, so the stage is as tall as the
+   tallest card and switching never shifts the page below it. */
+.archive-browser.is-ready .archive-stage {
+    display: grid;
+    border: 1px solid var(--rule);
+}
+
+.archive-browser.is-ready .archive-stage > .project-card {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    padding: 22px 24px 24px;
+}
+
+.archive-browser.is-ready .archive-stage > .project-card.is-current {
+    visibility: visible;
+    opacity: 1;
+    animation: archive-in 0.28s var(--ease-out);
+}
+
+.archive-browser.is-ready .archive-stage > .project-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.archive-browser.is-ready .archive-stage .project-name {
+    font-size: 30px;
+}
+
+@keyframes archive-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
 }
 
 /* ── Schedule B: Kit2Code Organizing Record ────────────────── */
@@ -2784,17 +3008,37 @@ body.freyr-mode {
         justify-content: space-between;
     }
 
-    /* Mobile "SHOW ALL 6 EXHIBITS ↓" progressive disclosure */
-    .projects-grid:not(.is-expanded) .project-card:nth-child(n+3) {
+    /* Project archive: index stacks above the preview */
+    .archive-browser.is-ready {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .archive-browser.is-ready .archive-stage > .project-card {
+        padding: 16px 16px 18px;
+    }
+
+    /* Stacked on a phone, the extra projects are plain rows: a scroll box
+       inside the page would fight the page's own scroll. */
+    .archive-browser.is-ready .archive-more .archive-list {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .archive-more .archive-scroll-hint {
         display: none;
     }
 
-    .mobile-exhibits-toggle {
-        display: flex;
+    .archive-view-hint .hint-wide {
+        display: none;
     }
 
-    .projects-grid.is-expanded + .mobile-exhibits-toggle {
-        display: none;
+    .archive-view-hint .hint-narrow {
+        display: inline;
+    }
+
+    .archive-browser.is-ready .archive-stage .project-name {
+        font-size: 24px;
     }
 
     .period-rail {

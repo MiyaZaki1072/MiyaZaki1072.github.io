@@ -90,15 +90,6 @@
             });
         });
     }
-
-    const showAllBtn = document.getElementById('showAllExhibitsBtn');
-    const projectsGrid = document.getElementById('projectsGrid');
-    if (showAllBtn && projectsGrid) {
-        showAllBtn.addEventListener('click', () => {
-            projectsGrid.classList.add('is-expanded');
-            showAllBtn.hidden = true;
-        });
-    }
 })();
 
 // ── Active Nav Link on Scroll (Scroll-Spy) ──────────────────
@@ -160,13 +151,79 @@ function fallbackCopy(text) {
     document.body.removeChild(ta);
 }
 
+// ── Project Archive: index + preview stage ───────────────────
+// The index on the left picks which card the stage shows. The first three
+// items are the selected work; the rest scroll in a short list below them.
+const archive = (() => {
+    const root = document.getElementById('archiveBrowser');
+    if (!root) return { filter() {} };
+
+    const items = Array.from(root.querySelectorAll('.archive-item'));
+    const featured = items.filter((b) => b.classList.contains('is-featured'));
+    const labels = Array.from(root.querySelectorAll('.archive-index-label'));
+    const narrow = window.matchMedia('(max-width: 860px)');
+    let current = null;
+
+    function select(id, reveal) {
+        items.forEach((b) => {
+            const on = b.dataset.target === id;
+            b.setAttribute('aria-pressed', String(on));
+            const card = document.getElementById(b.dataset.target);
+            if (card) card.classList.toggle('is-current', on);
+        });
+        current = id;
+        if (reveal && narrow.matches) {
+            document.getElementById(id)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }
+
+    function visibleItems() {
+        return items.filter((b) => !b.parentElement.hidden && !b.closest('[hidden]'));
+    }
+
+    // A skill filter shows every matching project, featured or not.
+    function filter(skill) {
+        let first = null;
+        items.forEach((b) => {
+            const card = document.getElementById(b.dataset.target);
+            const tags = (card?.dataset.tags || '').split(',').map((s) => s.trim());
+            const match = !skill || tags.includes(skill);
+            b.parentElement.hidden = !match;
+            if (match && !first) first = b.dataset.target;
+        });
+        if (skill && first) select(first);
+        labels.forEach((label) => {
+            const list = label.nextElementSibling;
+            label.hidden = !!list && !list.querySelector('li:not([hidden])');
+        });
+    }
+
+    items.forEach((b) => {
+        b.addEventListener('click', () => select(b.dataset.target, true));
+    });
+
+    root.querySelector('.archive-index')?.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        const vis = visibleItems();
+        const i = vis.indexOf(document.activeElement);
+        if (i < 0) return;
+        e.preventDefault();
+        const next = vis[(i + (e.key === 'ArrowDown' ? 1 : -1) + vis.length) % vis.length];
+        next.focus();
+        select(next.dataset.target);
+    });
+
+    root.classList.add('is-ready');
+    select(featured[0].dataset.target);
+    return { filter };
+})();
+
 // ── Skill Tag -> Project Filter ──────────────────────────────
 const skillTags = document.querySelectorAll('.skill-tag[data-skill]');
 const projectCards = document.querySelectorAll('.project-card[data-tags]');
 const filterBanner = document.getElementById('filterBanner');
 const filterName = document.getElementById('filterName');
 const filterClear = document.getElementById('filterClear');
-const projectsGridEl = document.getElementById('projectsGrid');
 let activeSkill = null;
 
 function applySkillFilter(skill) {
@@ -180,12 +237,11 @@ function applySkillFilter(skill) {
             c.classList.remove('dimmed', 'highlighted');
         });
         if (filterBanner) filterBanner.hidden = true;
+        archive.filter(null);
         return;
     }
 
-    if (projectsGridEl) {
-        projectsGridEl.classList.add('is-expanded');
-    }
+    archive.filter(skill);
 
     let matchCount = 0;
     projectCards.forEach((c) => {
