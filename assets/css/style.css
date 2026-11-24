@@ -232,38 +232,6 @@ img {
     color: var(--ink-muted);
 }
 
-.boot-stamp {
-    position: absolute;
-    right: -26px;
-    top: -30px;
-    width: 124px;
-    height: 124px;
-    border-radius: 50%;
-    border: 3px solid var(--brass);
-    color: var(--brass);
-    background: rgba(23, 34, 29, 0.9);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transform: rotate(-14deg);
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
-    gap: 2px;
-    pointer-events: none;
-}
-
-.boot-stamp-main {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 17px;
-}
-
-.boot-stamp-runes {
-    font-family: var(--font-rune), var(--font-mono);
-}
-
 .boot-meta {
     position: absolute;
     left: 40px;
@@ -1159,6 +1127,336 @@ img {
     color: var(--ink-muted);
 }
 
+/* ── Isometric diagrams (assets/js/iso.js) ────────────────────────────
+   Featured exhibits show a line diagram of how the project works;
+   the screenshot stays underneath and opens in the lightbox. */
+.exhibit-media.has-iso {
+    background:
+        radial-gradient(circle at 1px 1px, rgba(230, 225, 211, 0.07) 1px, transparent 0) 0 0 / 16px 16px,
+        var(--night);
+}
+
+.exhibit-media.has-iso img,
+.project-card:hover .exhibit-media.has-iso img {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.iso {
+    display: block;
+    overflow: visible;
+}
+
+.exhibit-media .iso {
+    position: absolute;
+    top: 6%;
+    left: 4%;
+    width: 92%;
+    height: 80%;
+}
+
+.iso .f-t { fill: #22332B; }
+.iso .f-l { fill: #1A2721; }
+.iso .f-r { fill: #131D18; }
+.iso polygon { stroke: #7C9787; stroke-width: 1; stroke-linejoin: round; }
+.iso .f-rule { stroke: #4F6B5B; stroke-width: 0.8; }
+.iso .f-handle { stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; }
+
+.iso .is-signal .f-t { fill: #2E5A44; }
+.iso .is-signal .f-l { fill: #24473A; }
+.iso .is-signal .f-r { fill: #1B382D; }
+.iso .is-signal polygon { stroke: var(--signal-light); }
+
+.iso .is-brass .f-t { fill: #4A3F28; }
+.iso .is-brass .f-l { fill: #3A3220; }
+.iso .is-brass .f-r { fill: #2D2719; }
+.iso .is-brass polygon { stroke: var(--brass); }
+
+.iso .is-glass polygon { fill: rgba(127, 184, 154, 0.05); stroke: var(--signal-light); stroke-dasharray: 3 3; }
+
+.iso .f-hot .f-t { fill: #4E9A73; }
+.iso .f-hot .f-l { fill: #3F805F; }
+.iso .f-hot .f-r { fill: #31664B; }
+.iso .f-hot polygon { stroke: #A6D9BC; }
+
+.iso .iso-pipe {
+    fill: none;
+    stroke: var(--rule-dashed);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 3;
+}
+
+.iso .iso-packet polygon { fill: var(--signal-light); stroke: none; }
+
+/* Return traffic (results, pages coming back) rides in brass. */
+.iso .iso-pipe.is-back { stroke: rgba(201, 168, 106, 0.45); }
+.iso .iso-packet.is-back polygon { fill: var(--brass); }
+
+/* Zones on the floor: networks, sessions. */
+.iso .iso-plate {
+    fill: rgba(127, 184, 154, 0.035);
+    stroke: var(--rule-dashed);
+    stroke-dasharray: 5 4;
+}
+
+/* Databases. */
+.iso .iso-cyl path,
+.iso .iso-cyl ellipse { stroke: #7C9787; stroke-width: 1; }
+.iso .iso-cyl .f-l { fill: #1A2721; }
+.iso .iso-cyl .f-t { fill: #2A3D33; }
+.iso .iso-cyl .f-band { fill: none; stroke: #4F6B5B; stroke-width: 0.8; }
+
+/* Names painted onto faces. */
+.iso .iso-ft {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    fill: var(--ink);
+}
+.iso .iso-ft.is-sub { font-weight: 500; fill: var(--ink-2); }
+.iso .iso-ft.is-plate { font-weight: 500; fill: var(--ink-muted); letter-spacing: 0.12em; }
+
+/* A dark outline behind captions keeps them readable where they cross lines. */
+.iso .iso-note text,
+.iso .iso-ft.is-plate {
+    paint-order: stroke;
+    stroke: var(--night);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+.iso .is-signal .iso-ft { fill: #E9F5EE; }
+.iso .is-brass .iso-ft { fill: #F1E3C4; }
+
+.iso .iso-note circle { fill: var(--ink-muted); }
+.iso .iso-leader { stroke: var(--ink-muted); stroke-width: 0.8; opacity: 0.7; }
+.iso .iso-note text {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    fill: var(--ink-2);
+}
+.iso .iso-note.is-key circle { fill: var(--brass); }
+.iso .iso-note.is-key .iso-leader { stroke: var(--brass); }
+.iso .iso-note.is-key text { fill: var(--brass); font-weight: 600; }
+
+/* On phones the captions shrink below reading size, so the diagram runs
+   without them; the card text below already names every part. */
+@media (max-width: 600px) {
+    .exhibit-media .iso .iso-notes,
+    .exhibit-media .iso .iso-ft.is-sub,
+    .exhibit-media .iso .iso-ft.is-plate { display: none; }
+}
+
+/* The diagram opens the explorer; the screenshot has its own button. */
+.exhibit-media.has-iso { cursor: zoom-in; }
+
+.exhibit-media.has-iso:focus-visible {
+    outline: 2px solid var(--signal-light);
+    outline-offset: 2px;
+}
+
+.exhibit-shot {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    min-height: 32px;
+    padding: 0 12px;
+    background: rgba(10, 17, 14, 0.84);
+    border: 0;
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+}
+
+.exhibit-shot:hover,
+.exhibit-shot:focus-visible {
+    color: var(--signal-light);
+}
+
+/* ── Diagram explorer (full screen, assets/js/iso.js) ─────────────── */
+.iso-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 9100;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(circle at 1px 1px, rgba(230, 225, 211, 0.06) 1px, transparent 0) 0 0 / 22px 22px,
+        var(--header);
+    color: var(--ink);
+    font-family: var(--font-mono);
+}
+
+.iso-viewer[hidden] { display: none; }
+
+.iso-viewer-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px clamp(14px, 3vw, 28px);
+    border-bottom: 1px solid var(--rule);
+}
+
+.iso-viewer-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.iso-viewer-hint {
+    margin: 0 auto 0 0;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+}
+
+.iso-viewer-tools {
+    display: flex;
+    gap: 6px;
+}
+
+.iso-viewer-tools button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    background: transparent;
+    border: 1px solid var(--rule-dashed);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+}
+
+.iso-viewer-tools button:hover,
+.iso-viewer-tools button:focus-visible {
+    border-color: var(--signal-light);
+    color: var(--signal-light);
+}
+
+.iso-viewer-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.iso-viewer-stage.is-dragging { cursor: grabbing; }
+
+.iso-viewer-stage .iso {
+    width: 100%;
+    height: calc(100% - 110px); /* room for the floating note below the fit */
+    overflow: visible;
+}
+
+.iso-viewer [data-note] { cursor: pointer; outline: none; }
+.iso-viewer [data-note].is-picked polygon,
+.iso-viewer [data-note].is-picked path,
+.iso-viewer [data-note].is-picked ellipse {
+    stroke: var(--brass);
+    stroke-width: 1.8;
+}
+
+/* The note floats over the diagram, so a longer note never resizes the
+   stage (which would rescale and shift the drawing). */
+.iso-viewer-note {
+    position: absolute;
+    left: clamp(12px, 3vw, 28px);
+    right: clamp(12px, 3vw, 28px);
+    bottom: clamp(12px, 3vw, 24px);
+    max-width: 760px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    padding: 12px 16px;
+    background: rgba(10, 17, 14, 0.92);
+    border: 1px solid var(--rule);
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none;
+}
+
+.iso-viewer-note strong {
+    color: var(--brass);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.iso-viewer-note span { color: var(--ink-2); max-width: 90ch; }
+
+@media (max-width: 600px) {
+    .iso-viewer-hint { display: none; }
+    .iso-viewer-title { font-size: 15px; margin-right: auto; }
+    .iso-viewer-tools button { min-width: 40px; padding: 0 8px; }
+    .iso-viewer-stage .iso { height: calc(100% - 150px); }
+}
+
+/* Boot card cabinet: drawers drop in, the top one slides open. */
+.boot-iso {
+    height: clamp(130px, 24vw, 190px);
+    border: 1px dashed var(--rule);
+    background:
+        radial-gradient(circle at 1px 1px, rgba(230, 225, 211, 0.07) 1px, transparent 0) 0 0 / 14px 14px,
+        var(--night);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
+.boot-iso .iso {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+}
+
+.iso-boot .boot-drop {
+    animation: iso-drop 0.36s var(--ease-out) 0.05s both;
+}
+
+.iso-boot .boot-open {
+    animation: iso-open 0.36s var(--ease-out) 0.5s both;
+}
+
+.iso-boot .boot-folder {
+    animation: iso-rise 0.3s var(--ease-out) 0.8s both;
+}
+
+.iso-boot .boot-note {
+    animation: iso-fade 0.25s ease 1s both;
+}
+
+@keyframes iso-drop {
+    from { opacity: 0; transform: translateY(-26px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* One unit along +y in the isometric plane is (-17.3px, +10px). */
+@keyframes iso-open {
+    from { transform: none; }
+    to   { transform: translate(-20.8px, 12px); }
+}
+
+@keyframes iso-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes iso-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 .project-head {
     display: flex;
     flex-direction: column;
@@ -1219,7 +1517,7 @@ img {
 }
 
 /* ── Project Archive: index + preview stage ────────────────── */
-/* Without JS the cards stay a plain ruled list; js/index.js adds .is-ready. */
+/* Without JS the cards stay a plain ruled list; assets/js/main.js adds .is-ready. */
 .archive-browser {
     margin-top: 24px;
 }
@@ -3056,13 +3354,6 @@ body.freyr-mode {
 
     .period-item {
         padding-right: 14px;
-    }
-
-    .boot-stamp {
-        width: 88px;
-        height: 88px;
-        right: -10px;
-        top: -20px;
     }
 
     .boot-meta {

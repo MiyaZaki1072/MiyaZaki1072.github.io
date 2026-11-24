@@ -1,5 +1,5 @@
 /* ============================================================
-   Form PD-07 Resume Printer (js/slip.js)
+   Form PD-07 Resume Printer (assets/js/slip.js)
    - Any [data-resume] link opens the records-office dialog
    - Printer retrieves (spinner) -> prints (paper feeds out
      line by line) -> downloads resume.pdf

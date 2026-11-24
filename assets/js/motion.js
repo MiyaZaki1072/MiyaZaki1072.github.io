@@ -1,5 +1,5 @@
 /* ============================================================
-   Form PD-07 Motion Controller (js/motion.js)
+   Form PD-07 Motion Controller (assets/js/motion.js)
    - Sheets fade in and rise 8px as they enter view (200ms)
    - Stamps "thump" once on first view (scale 1.08 -> 1)
    - Signature strokes draw once on first view

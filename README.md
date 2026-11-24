@@ -14,7 +14,7 @@ Plain HTML, CSS and JavaScript. No framework, no build step.
 - **Personnel:** identity, academic and technical record. Click a skill tag to filter
   the projects by it.
 - **Project Archives:** one exhibit per project, plus the GitHub contribution heatmap.
-  Click a screenshot to enlarge it. Each project can link to a short devlog page in `projects/`.
+  The three featured projects show an animated diagram; click it to see the screenshot. Each project can link to a short devlog page in `projects/`.
 - **Timeline:** education and experience.
 - **Contact:** the communication terminal, with one cell per link.
 - **Terminal:** click `>_` in the corner and type `help`. It has a small file system
@@ -37,18 +37,30 @@ The workflow also runs daily to refresh the contribution heatmap.
 ## Files
 
 ```
-index.html       the page
-projects/        devlog pages for the projects
-style.css        all styling
-js/index.js      page logic: boot screen, terminal, rune mode, skill filter, lightbox, heatmap
-js/motion.js     sheet entrances and stamp thumps (IntersectionObserver, no library)
-images/          photos and screenshots
-scripts/         fetches GitHub contribution data at deploy time
+index.html                 the page
+resume.pdf                 the résumé the print dialog downloads
+projects/                  devlog pages, one per project
+assets/
+  css/style.css            all styling
+  js/main.js               boot screen, navigation, project archive, skill filter,
+                           lightbox, contribution calendar
+  js/terminal.js           the >_ terminal, its games, and rune mode
+  js/iso.js                isometric project diagrams and the boot-screen cabinet
+  js/motion.js             sheet entrances and stamp thumps (IntersectionObserver)
+  js/slip.js               the résumé print dialog
+  images/                  portrait, favicon and social preview image
+  images/projects/         project screenshots
+  images/cat/              the terminal cat
+data/contributions.json    GitHub heatmap data, written at deploy time
+scripts/                   fetches that data (run by the deploy workflow)
 ```
+
+Scripts load in this order: `motion.js`, `slip.js`, `iso.js`, `main.js`, `terminal.js`.
+`terminal.js` uses `showToast()` from `main.js`, so keep `main.js` first.
 
 ## Adding a project
 
-1. Add a screenshot to `images/` (a `.webp` about 800px wide).
+1. Add a screenshot to `assets/images/projects/` (a `.webp` about 800px wide).
 2. Copy one `<article class="project-card">` in the Project Archives in `index.html`
    and change its text, tags, image and links.
 3. For a devlog page, copy `projects/taskmaker.html` and link to it from the card.
