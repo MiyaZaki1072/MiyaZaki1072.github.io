@@ -127,19 +127,31 @@ function showToast(msg) {
 // ── Email Copy ───────────────────────────────────────────────
 const emailBtn = document.getElementById('emailBtn');
 if (emailBtn) {
+    let copyTimer = null;
+    const markCopied = () => {
+        clearTimeout(copyTimer);
+        emailBtn.classList.add('is-copied');
+        emailBtn.textContent = 'COPIED';
+        copyTimer = setTimeout(() => {
+            emailBtn.classList.remove('is-copied');
+            emailBtn.textContent = 'COPY';
+        }, 1800);
+    };
+
     emailBtn.addEventListener('click', () => {
         const email = emailBtn.dataset.email;
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(email).then(() => {
                 showToast('COPIED TO CLIPBOARD · ' + email);
-            }).catch(() => fallbackCopy(email));
+                markCopied();
+            }).catch(() => fallbackCopy(email, markCopied));
         } else {
-            fallbackCopy(email);
+            fallbackCopy(email, markCopied);
         }
     });
 }
 
-function fallbackCopy(text) {
+function fallbackCopy(text, onSuccess) {
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.cssText = 'position:fixed;opacity:0';
@@ -148,6 +160,7 @@ function fallbackCopy(text) {
     try {
         document.execCommand('copy');
         showToast('COPIED TO CLIPBOARD · ' + text);
+        if (onSuccess) onSuccess();
     } catch (_) {
         showToast(text);
     }

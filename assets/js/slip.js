@@ -109,6 +109,11 @@
         btn.disabled = true;
         fillSlip();
 
+        // Trigger the download synchronously inside the click gesture so mobile
+        // browsers and download blockers don't drop it; the printer animation
+        // runs alongside as visual feedback.
+        download();
+
         setStage('processing', 'Retrieving file…');
         await wait(reducedMotion ? 200 : 1000);
         if (id !== run) return;
@@ -134,7 +139,6 @@
         setStage('complete', 'Resume downloaded');
         btn.textContent = 'DOWNLOAD AGAIN';
         btn.disabled = false;
-        download();
     }
 
     function closeMobileNav() {

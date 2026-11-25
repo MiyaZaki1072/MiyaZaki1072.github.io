@@ -139,11 +139,14 @@
                 </span>
             </a>
 
-            <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primaryNav">
-                <span class="nav-toggle-bar"></span>
-                <span class="nav-toggle-bar"></span>
-                <span class="nav-toggle-bar"></span>
-            </button>
+            <div class="header-mobile-actions">
+                <a href="resume.pdf" class="nav-resume nav-resume--mobile" data-resume download="Thitiwut-Sreewasut-Resume.pdf">RESUME</a>
+                <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="primaryNav">
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                    <span class="nav-toggle-bar"></span>
+                </button>
+            </div>
 
             <nav id="primaryNav" class="primary-nav" aria-label="Primary">
                 <a href="#overview" class="nav-link active">OVERVIEW</a>
@@ -857,14 +860,17 @@
             <p class="contact-lead">Open to new opportunities. Email is the quickest way to reach me. Select a channel to open a line.</p>
 
             <div class="ruled-grid contacts-grid">
-                <button type="button" class="contact-cell" id="emailBtn" data-email="titiwutfay2550@gmail.com" data-channel="Email" data-handle="titiwutfay2550@gmail.com">
-                    <span class="contact-check" aria-hidden="true">x</span>
-                    <span class="contact-info">
-                        <span class="contact-channel">EMAIL · QUICKEST</span>
-                        <span class="contact-handle">titiwutfay2550@gmail.com</span>
-                    </span>
-                    <span class="contact-action" aria-hidden="true">COPY →</span>
-                </button>
+                <div class="contact-cell contact-cell--split">
+                    <a href="mailto:titiwutfay2550@gmail.com" class="contact-main" aria-label="Email titiwutfay2550@gmail.com" data-channel="Email" data-handle="titiwutfay2550@gmail.com">
+                        <span class="contact-check" aria-hidden="true">x</span>
+                        <span class="contact-info">
+                            <span class="contact-channel">EMAIL · QUICKEST</span>
+                            <span class="contact-handle">titiwutfay2550<wbr>@gmail.com</span>
+                        </span>
+                        <span class="contact-action" aria-hidden="true">OPEN →</span>
+                    </a>
+                    <button type="button" class="contact-copy" id="emailBtn" data-email="titiwutfay2550@gmail.com" aria-label="Copy email address">COPY</button>
+                </div>
 
                 <a href="https://www.linkedin.com/in/thitiwut-sreewasut-5bb1aa428/" target="_blank" rel="noopener noreferrer" class="contact-cell" id="linkedinLink" data-channel="LinkedIn" data-handle="Thitiwut Sreewasut">
                     <span class="contact-check" aria-hidden="true"></span>
