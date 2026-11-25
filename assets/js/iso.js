@@ -301,6 +301,43 @@
                 .label(15.6, 6.2, 0, 14, 16, 'ROC-AUC 0.6628 · 14TH / 103', 'is-key');
             return s.svg('Credit default model: raw application columns feed four models (TabPFN-3.5, NVIDIA Kumo Tabular, LimiX-2 and a small denoising autoencoder) in a private Colab session; their predictions are rank-averaged into the probability of default within 12 months. Private ROC-AUC 0.6628, 14th of 103.', 16 / 9);
         },
+
+        // MiyaZaki1072/TaskMaker: problem.yaml checked by config/schema.ts,
+        // rendered through templates/render.hbs; Chromium prints that same
+        // page to PDF. Two containers, Postgres with no published port.
+        taskmaker() {
+            const s = Scene();
+            s.plate(4.9, -0.6, 9.7, 8.4, 'HOME SERVER · DOCKER · POSTGRES HAS NO PORT');
+
+            s.pipe([[1.1, 1], [8, 1]], { packets: [0, 1.3] })
+                .pipe([[8, 1.6], [1.1, 1.6]], { cls: 'is-back', packets: [2.2] })
+                .pipe([[10.6, 1], [15, 1]], { packets: [2, 3.2] })
+                .pipe([[2.8, 6.2], [8.6, 6.2], [8.6, 2]], { packets: [0.8] })
+                .pipe([[10.2, 2], [10.2, 5]], { cls: 'is-back', packets: [1.6] })
+                .pipe([[13, 2], [13, 5.8], [15, 5.8]], { packets: [3] });
+
+            s.box(0, 0.9, 0, 2.3, 0.22, 1.7, { left: 'EDITOR', lines: windowBar, note: 'Studio editor|Problem source on the left, the rendered problem updating live on the right. Edit, preview and validate in one dashboard, with no build step and no page reloads.' });
+            [0, 0.12, 0.24].forEach((z, i) => s.box(3.2, 0.4, z, 1.6, 1.3, 0.1, {
+                top: i === 2 ? 'PROBLEM.YAML' : '', hot: i === 2 ? 0.6 : null,
+                note: "problem.yaml|One plain-text file per problem in a fixed structure, with its diagrams in the problem's assets/ folder. Whole problem sets move between installations as ZIP files.",
+            }));
+            s.box(5.6, 0.2, 0, 1.4, 1.6, 1, { left: 'ZOD', top: 'SCHEMA', cls: 'is-brass', hot: 1.2, note: 'Schema · zod|config/schema.ts is the contract: a file that passes it is guaranteed to render. Its error messages are plain English, since most authors are not programmers.' })
+                .box(8, 0, 0, 2.6, 2, 1.6, { left: 'STUDIO', top: 'RENDER.HBS', cls: 'is-signal', hot: 1.8, note: 'Studio · Node + TypeScript|Renders every problem through one Handlebars template with KaTeX maths. TH Sarabun New and JetBrains Mono ship with the repo: no CDN, no network at render time.' })
+                .box(11.6, 0, 0, 2.7, 2, 1.4, { left: 'CHROMIUM', top: 'PUPPETEER', lines: rack(3), hot: 2.4, note: 'Chromium · Puppeteer|Opens the same page the preview shows, waits until fonts, images and maths have finished rendering, then prints it to PDF. So the preview and the PDF cannot drift apart.' });
+            [0, 0.12, 0.24, 0.36].forEach((z) => s.box(15, 0.4, z, 1.4, 1.2, 0.1, { hot: 3, note: 'PDF and booklet|One A4 PDF per problem, or every problem combined into one booklet with a cover page and a table of contents, for printing at the exam venue.' }));
+
+            s.box(0.6, 5.4, 0, 2.2, 1.6, 0.28, { lines: () => s.grid(0.6, 5.4, 0.28, 2.2, 1.6, 5, 4), note: 'CMS ranking|The ranking file the CMS admin downloads, as txt or csv. Nothing is stored: the scoreboard is rebuilt from the uploaded text on every request.' })
+                .cylinder(10.6, 5.8, 0, 1, 1.4, { top: 'POSTGRES', note: 'PostgreSQL 16|The one piece of durable state: problems, images and the session secret. No published port; only the studio container reaches it, on a private Docker network.' })
+                .box(15, 4.6, 0, 1.8, 2.4, 0.14, { lines: () => s.grid(15, 4.6, 0.14, 1.8, 2.4, 4, 1), hot: 3.3, note: 'Scoreboard|Rows sorted by total and coloured by medal. Chromium cannot capture a very tall page in one shot, so it is captured in strips and joined into one PNG.' });
+
+            s.label(1.1, 0.9, 1.7, -6, -30, 'WRITE · LIVE PREVIEW')
+                .label(4, 0.4, 0.34, 4, -40, 'ONE PROBLEM.YAML PER TASK')
+                .label(16.4, 0.4, 0.46, 10, -24, 'PDF · BOOKLET WITH COVER + TOC')
+                .label(1.7, 7, 0, -10, 24, 'CMS RANKING · TXT / CSV')
+                .label(16.8, 7, 0, 10, 14, 'SCOREBOARD PNG · MEDAL COLOURS')
+                .label(9.6, 0, 1.6, 26, -46, 'ONE TEMPLATE · PREVIEW = PRINT', 'is-key');
+            return s.svg('TaskMaker architecture: an author writes problem.yaml in the browser editor; the zod schema checks it and the studio renders it through one Handlebars template with KaTeX and Thai fonts, sending the live preview back. Chromium, through Puppeteer, prints that same page to PDFs and a booklet. A CMS ranking file becomes a medal-coloured scoreboard PNG. Studio and Postgres run as two Docker containers on a home server; Postgres has no published port.', 16 / 9);
+        },
     };
 
     // ── Boot card: a filing cabinet drops in, its top drawer opens ──
