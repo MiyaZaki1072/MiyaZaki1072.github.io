@@ -9,7 +9,9 @@
     const COS30 = Math.cos(Math.PI / 6);
     const UNIT = 20;
     const CYCLE = 4; // seconds; every scene loops on the same beat
-    const CHAR_W = 6.5; // glyph advance at the leader-label size, letter-spacing included
+    // .iso-note text uses --fs-label (12px) in IBM Plex Mono (0.60em advance)
+    // plus 0.08em letter-spacing: 12 * 0.68 = 8.16, rounded up for the 3px stroke halo.
+    const CHAR_W = 8.3;
 
     const toScreen = (x, y, z) => [(x - y) * COS30 * UNIT, (x + y) * 0.5 * UNIT - z * UNIT];
     const n1 = (v) => v.toFixed(1);
@@ -135,12 +137,13 @@
                 const right = dx >= 0;
                 const tx = q[0] + (right ? 4 : -4);
                 const w = text.length * CHAR_W;
-                grow(right ? tx + w : tx - w, q[1] - 8);
-                grow(tx, q[1] + 4);
+                // 12px caps (~8.4 tall) centred on q[1] at baseline q[1] + 4, plus 3px stroke halo.
+                grow(right ? tx + w : tx - w, q[1] - 10);
+                grow(tx, q[1] + 8);
                 notes.push(
                     `<g class="iso-note ${cls || ''}"><circle cx="${n1(a[0])}" cy="${n1(a[1])}" r="1.6"/>` +
                     line(a, q, 'iso-leader') +
-                    `<text x="${n1(tx)}" y="${n1(q[1] + 3)}" text-anchor="${right ? 'start' : 'end'}">${esc(text)}</text></g>`
+                    `<text x="${n1(tx)}" y="${n1(q[1] + 4)}" text-anchor="${right ? 'start' : 'end'}">${esc(text)}</text></g>`
                 );
                 return api;
             },
@@ -231,9 +234,9 @@
 
             s.label(1.1, 0.9, 1.7, -6, -30, 'SUBMIT · C / C++ / PYTHON')
                 .label(14, 0.2, 1.7, 8, -26, 'SUBMISSION + JUDGEJOB QUEUE')
-                .label(2.9, 5.45, 1.1, -10, -34, 'ISOLATE 2.7 · BOXES 100–109')
-                .label(10.4, 6.5, 0, -30, 72, 'WORKER CLAIMS JOBS · 60 S LEASE · HEARTBEAT 10 S')
-                .label(10.1, 2, 0, 12, 22, 'LIVE RESULTS · HTMX EVERY 2 S', 'is-key');
+                .label(2.9, 5.45, 1.1, -10, -38, 'ISOLATE 2.7 · BOXES 100–109')
+                .label(10.4, 6.5, 0, 14, 90, 'WORKER CLAIMS JOBS · 60 S LEASE · HEARTBEAT 10 S')
+                .label(10.1, 2, 0, 74, 64, 'LIVE RESULTS · HTMX EVERY 2 S', 'is-key');
             return s.svg('Kit2Code Grader architecture: the browser submits through a Cloudflare tunnel and the Caddy edge to the public Django site, which stores the submission and its judge job in Postgres. The worker, on a network with no internet and no database route, claims jobs from web-admin\'s internal API, runs them in isolate boxes 100 to 109, and reports results back; the page polls with htmx every 2 seconds.', 16 / 9);
         },
 
@@ -261,9 +264,9 @@
             s.label(-3.3, 0.1, 0.28, -4, -30, 'EXCEL · SHEETS · CSV')
                 .label(13.9, 0, 2.7, 14, -14, 'NO SERVER CHANGES')
                 .label(8.4, 0.1, 0.95, 10, -36, 'FORMS OUT · HTML PAGES BACK')
-                .label(7.85, 5.4, 0.55, 40, 8, 'TRACKER CACHE')
-                .label(9.9, 6.1, 0.42, 14, 6, 'AUDIT LOG')
-                .label(13.9, 2.2, 0, 14, 16, 'MEDIAN 171 MS UNDER LOAD', 'is-key');
+                .label(7.85, 5.4, 0.55, 50, 50, 'TRACKER CACHE')
+                .label(9.9, 6.1, 0.42, 16, 42, 'AUDIT LOG')
+                .label(13.9, 2.2, 0, 18, 22, 'MEDIAN 171 MS UNDER LOAD', 'is-key');
             return s.svg('CMS Admin Helper architecture: rows from Excel, Sheets or CSV go into the Helper panel on the AWS tab. Every request passes one queue, at most 2 at once and 4 per second, to the CMS v1.5 AdminWebServer, which is not changed; the HTML pages that come back are parsed in the browser. A background service worker keeps the tracker cache in IndexedDB and the audit log.', 16 / 9);
         },
 
@@ -296,7 +299,7 @@
 
             s.label(0.9, 0, 0.35, -8, -22, 'APPLICATION DATA · RAW COLUMNS')
                 .label(6.6, 0.2, 0.9, 14, -24, 'BEST SINGLE · AUC 0.6611')
-                .label(5.3, 10.8, 0, 10, 28, 'SMALL DENOISING AUTOENCODER')
+                .label(5.3, 10.8, 0, -8, 28, 'SMALL DENOISING AUTOENCODER')
                 .label(14.4, 4.8, 1.25, 12, -22, 'DEFAULT WITHIN 12 MONTHS')
                 .label(15.6, 6.2, 0, 14, 16, 'ROC-AUC 0.6628 · 14TH / 103', 'is-key');
             return s.svg('Credit default model: raw application columns feed four models (TabPFN-3.5, NVIDIA Kumo Tabular, LimiX-2 and a small denoising autoencoder) in a private Colab session; their predictions are rank-averaged into the probability of default within 12 months. Private ROC-AUC 0.6628, 14th of 103.', 16 / 9);
@@ -331,7 +334,7 @@
                 .box(15, 4.6, 0, 1.8, 2.4, 0.14, { lines: () => s.grid(15, 4.6, 0.14, 1.8, 2.4, 4, 1), hot: 3.3, note: 'Scoreboard|Rows sorted by total and coloured by medal. Chromium cannot capture a very tall page in one shot, so it is captured in strips and joined into one PNG.' });
 
             s.label(1.1, 0.9, 1.7, -6, -30, 'WRITE · LIVE PREVIEW')
-                .label(4, 0.4, 0.34, 4, -40, 'ONE PROBLEM.YAML PER TASK')
+                .label(4, 0.4, 0.34, 4, -46, 'ONE PROBLEM.YAML PER TASK')
                 .label(16.4, 0.4, 0.46, 10, -24, 'PDF · BOOKLET WITH COVER + TOC')
                 .label(1.7, 7, 0, -10, 24, 'CMS RANKING · TXT / CSV')
                 .label(16.8, 7, 0, 10, 14, 'SCOREBOARD PNG · MEDAL COLOURS')
@@ -355,7 +358,7 @@
         const sizing = Scene();
         sizing.box(0, 0, 0, W, D + PULL, ROW * 3);
         sizing.box(0.5, 1.0 + PULL, ROW * 3, 2.2, 0.12, 1.0);
-        sizing.label(2.7, 1.0 + PULL, ROW * 3 + 1.0, 22, -4, 'FILE · FREYR');
+        sizing.label(2.7, 1.0 + PULL, ROW * 3 + 1.0, 36, -18, 'FILE · FREYR');
 
         const part = (draw) => { const t = Scene(); draw(t); return t.layers(); };
         const shell = part((t) => t.box(0, 0, 0, W, D, ROW * 3, { lines: shellLines }));
@@ -365,7 +368,7 @@
                 lines: ({ left }) => handleAt(left, 0, 1),
             }));
         const folder = part((t) => t.box(0.5, 1.0, ROW * 3, 2.2, 0.12, 1.0, { cls: 'is-brass' }));
-        const note = part((t) => t.label(2.7, 1.0 + PULL, ROW * 3 + 1.0, 22, -4, 'FILE · FREYR', 'is-key'));
+        const note = part((t) => t.label(2.7, 1.0 + PULL, ROW * 3 + 1.0, 36, -18, 'FILE · FREYR', 'is-key'));
         return `<svg class="iso iso-boot" viewBox="${sizing.viewBox()}" aria-hidden="true">` +
             `<g class="boot-drop">${shell.solids}<g class="boot-open">` +
             `${drawer.solids}<g class="boot-folder">${folder.solids}</g></g></g>` +

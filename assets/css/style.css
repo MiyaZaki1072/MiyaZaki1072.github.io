@@ -107,6 +107,54 @@ button:focus-visible,
     outline-offset: 2px;
 }
 
+/* Visually hidden until keyboard focus; floats above the sticky header */
+.skip-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 10000;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+    pointer-events: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    width: auto;
+    height: auto;
+    min-height: 44px;
+    padding: 0 18px;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    background: var(--brass);
+    color: var(--signal-ink);
+    border: 1.5px solid var(--brass);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    font-family: var(--font-mono);
+    font-size: var(--fs-ui);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+}
+
+.skip-link:focus:hover,
+.skip-link:focus-visible:hover {
+    color: var(--signal-ink);
+}
+
 img {
     max-width: 100%;
     display: block;
@@ -455,6 +503,8 @@ img {
 
 /* ── Main Container & Form Sheets ──────────────────────────── */
 .site-main {
+    /* The skip link jumps to #main; keep its top clear of the sticky header */
+    scroll-margin-top: 84px;
     max-width: 1240px;
     margin: 0 auto;
     padding: 40px 24px 80px;
@@ -671,9 +721,9 @@ img {
     display: flex;
     flex-wrap: wrap;
     gap: 10px 36px;
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: var(--fs-body-lg);
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink);
 }
 
@@ -930,6 +980,16 @@ img {
     color: var(--ink);
 }
 
+/* Small helper line paired under "C. TECHNICAL SPECIALIZATIONS" */
+.skill-hint {
+    margin: -4px 0 2px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-meta);
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+    color: var(--ink-muted);
+}
+
 .specs-grid {
     display: flex;
     flex-direction: column;
@@ -952,12 +1012,20 @@ img {
     gap: 8px 22px;
 }
 
+/* Reset button defaults so <button class="spec-check skill-tag"> matches inline checklist items */
 .spec-check {
+    appearance: none;
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: 0;
+    font: inherit;
     font-size: var(--fs-body);
     color: var(--ink);
+    text-align: left;
     cursor: pointer;
     transition: color 0.15s ease;
 }
@@ -966,11 +1034,13 @@ img {
     color: var(--signal-light);
 }
 
-.spec-check.active {
+.spec-check.active,
+.spec-check[aria-pressed="true"] {
     color: var(--signal-light);
 }
 
-.spec-check.active .check-box {
+.spec-check.active .check-box,
+.spec-check[aria-pressed="true"] .check-box {
     border-color: var(--signal-light);
     background: rgba(95, 165, 126, 0.18);
     color: var(--signal-light);
@@ -994,7 +1064,7 @@ img {
    --rule-offset lifts each rule from the line-box bottom to sit just under
    the baseline, like typing on a form line. */
 .lined-profile {
-    --lh: 1.875rem;
+    --lh: 1.75rem;
     --rule-offset: 0.25rem;
     border: 1px solid var(--rule);
     padding: 14px 18px;
@@ -1007,7 +1077,7 @@ img {
     background-origin: content-box;
     background-clip: content-box;
     background-position: 0 calc(var(--rule-offset) * -1);
-    font-family: var(--font-mono);
+    font-family: var(--font-sans);
     font-size: var(--fs-body);
     line-height: var(--lh);
     color: var(--ink);
@@ -2449,7 +2519,13 @@ img {
     color: var(--brass);
 }
 
+/* Expanded vertical hit box (>=44px) with matching negative margin to hold text position */
 .footer-top-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 12px 0;
+    margin: -12px 0;
     color: var(--ink);
     text-decoration: none;
 }
@@ -3575,6 +3651,12 @@ body.freyr-mode {
         padding: 14px 12px;
     }
 
+    /* Stack and left-align sheet metadata under the title in every section on phones */
+    .sheet-meta {
+        width: 100%;
+        text-align: left;
+    }
+
     #overview .sheet-header {
         gap: 6px;
         padding-bottom: 10px;
@@ -3584,7 +3666,6 @@ body.freyr-mode {
         display: flex;
         flex-wrap: wrap;
         gap: 4px 10px;
-        text-align: left;
         line-height: 1.35;
     }
 
@@ -3685,8 +3766,23 @@ body.freyr-mode {
 
     .commend-list {
         gap: 5px 16px;
-        font-size: var(--fs-ui);
+        font-size: var(--fs-body);
         line-height: 1.5;
+    }
+
+    /* Phone tap targets (>=40px) for skill tags and exhibit screenshot toggle */
+    .spec-items {
+        gap: 6px 14px;
+    }
+
+    .spec-check.skill-tag {
+        min-height: 40px;
+        padding: 6px 4px;
+    }
+
+    button.exhibit-shot {
+        min-height: 40px;
+        padding: 0 14px;
     }
 
     .overview-footer {

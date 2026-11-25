@@ -91,6 +91,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+    <a class="skip-link" href="#main">Skip to content</a>
 
     <!-- ══ BOOT SEQUENCE OVERLAY (Board 4 · Once per session) ═════════ -->
     <div class="boot-overlay" id="bootOverlay" role="dialog" aria-label="Personnel Database Initialization" aria-modal="false">
@@ -167,7 +168,7 @@
     </header>
 
     <!-- ══ MAIN DOSSIER SHEETS ════════════════════════════════════════ -->
-    <main class="site-main">
+    <main id="main" class="site-main">
 
         <!-- ── PAGE 1 OF 5 · OVERVIEW ─────────────────────────────────── -->
         <section id="overview" class="sheet" aria-labelledby="h-overview">
@@ -314,38 +315,39 @@
                 <!-- Right Column: Specializations & Personal Profile -->
                 <div class="personnel-col">
                     <h3 class="sub-heading">C. TECHNICAL SPECIALIZATIONS</h3>
+                    <p class="skill-hint">SELECT A SKILL TO FILTER THE PROJECT ARCHIVES ↓</p>
                     <div class="specs-grid">
                         <div class="spec-group skill-group">
                             <span class="field-label skill-group-label">LANGUAGES</span>
                             <div class="spec-items">
-                                <span class="spec-check skill-tag" data-skill="C" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>C</span>
-                                <span class="spec-check skill-tag" data-skill="C++" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>C++</span>
-                                <span class="spec-check skill-tag" data-skill="C#" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>C#</span>
-                                <span class="spec-check skill-tag" data-skill="JavaScript" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>JavaScript</span>
-                                <span class="spec-check skill-tag" data-skill="TypeScript" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>TypeScript</span>
-                                <span class="spec-check skill-tag" data-skill="Python" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Python</span>
+                                <button type="button" class="spec-check skill-tag" data-skill="C" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>C</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="C++" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>C++</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="C#" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>C#</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="JavaScript" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>JavaScript</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="TypeScript" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>TypeScript</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Python" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Python</button>
                             </div>
                         </div>
 
                         <div class="spec-group skill-group">
                             <span class="field-label skill-group-label">TOOLS &amp; FRAMEWORKS</span>
                             <div class="spec-items">
-                                <span class="spec-check skill-tag" data-skill="Unity Engine" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Unity Engine</span>
-                                <span class="spec-check skill-tag" data-skill="Node.js" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Node.js</span>
-                                <span class="spec-check skill-tag" data-skill="Django" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Django</span>
-                                <span class="spec-check skill-tag" data-skill="Docker" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Docker</span>
-                                <span class="spec-check skill-tag" data-skill="PostgreSQL" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>PostgreSQL</span>
+                                <button type="button" class="spec-check skill-tag" data-skill="Unity Engine" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Unity Engine</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Node.js" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Node.js</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Django" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Django</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Docker" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Docker</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="PostgreSQL" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>PostgreSQL</button>
                             </div>
                         </div>
 
                         <div class="spec-group skill-group">
                             <span class="field-label skill-group-label">FIELDS OF WORK</span>
                             <div class="spec-items">
-                                <span class="spec-check skill-tag" data-skill="Backend Engineering" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Backend Engineering</span>
-                                <span class="spec-check skill-tag" data-skill="Competitive Programming" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Competitive Programming</span>
-                                <span class="spec-check skill-tag" data-skill="Software Development" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Software Development</span>
-                                <span class="spec-check skill-tag" data-skill="Contest Infrastructure" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Contest Infrastructure</span>
-                                <span class="spec-check skill-tag" data-skill="Machine Learning" role="button" tabindex="0"><span class="check-box" aria-hidden="true">x</span>Machine Learning</span>
+                                <button type="button" class="spec-check skill-tag" data-skill="Backend Engineering" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Backend Engineering</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Competitive Programming" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Competitive Programming</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Software Development" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Software Development</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Contest Infrastructure" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Contest Infrastructure</button>
+                                <button type="button" class="spec-check skill-tag" data-skill="Machine Learning" aria-pressed="false"><span class="check-box" aria-hidden="true">x</span>Machine Learning</button>
                             </div>
                         </div>
                     </div>

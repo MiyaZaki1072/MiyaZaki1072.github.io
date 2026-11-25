@@ -30,8 +30,11 @@
 
     let timerId = null;
     let stepTimer = null;
+    let dismissed = false;
 
     function dismissBoot() {
+        if (dismissed) return;
+        dismissed = true;
         if (timerId) clearTimeout(timerId);
         if (stepTimer) clearInterval(stepTimer);
         try {
@@ -45,8 +48,11 @@
     }
 
     function onBootKey(e) {
-        if (e.key === 'Enter' || e.key === 'Escape' || e.key === ' ') {
+        if (e.key === 'Escape') {
             e.preventDefault();
+            dismissBoot();
+        } else if (e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') {
+            // Dismiss without preventDefault so keyboard/SR navigation (e.g. skip link) still works
             dismissBoot();
         }
     }
@@ -245,7 +251,9 @@ let activeSkill = null;
 function applySkillFilter(skill) {
     activeSkill = skill;
     skillTags.forEach((t) => {
-        t.classList.toggle('active', t.dataset.skill === skill);
+        const isActive = t.dataset.skill === skill;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-pressed', String(isActive));
     });
 
     if (!skill) {
@@ -275,7 +283,7 @@ function applySkillFilter(skill) {
 }
 
 skillTags.forEach((tag) => {
-    const toggle = () => {
+    tag.addEventListener('click', () => {
         const s = tag.dataset.skill;
         if (activeSkill === s) {
             applySkillFilter(null);
@@ -288,13 +296,6 @@ skillTags.forEach((tag) => {
                     projSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }
-        }
-    };
-    tag.addEventListener('click', toggle);
-    tag.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggle();
         }
     });
 });
